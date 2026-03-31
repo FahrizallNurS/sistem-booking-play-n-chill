@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RegisterController;
 use App\Http\Middleware\RoleMiddleware;
 
 Route::get('/', function () {
@@ -19,6 +20,11 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// register routes
+Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+
+// beranda routes
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
 });
