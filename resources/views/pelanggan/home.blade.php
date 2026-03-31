@@ -684,9 +684,11 @@
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Ikuti Kami</div>
                 <div class="soc-wrap">
-                    <a class="soc-btn" href="#" title="YouTube">▶</a>
-                    <a class="soc-btn" href="#" title="TikTok">♫</a>
-                    <a class="soc-btn" href="#" title="Instagram">📸</a>
+                    <ul class="f-list">
+                    <li><span class="soc-btn" class="fi" href="#" title="YouTube">  ▶ Youtube  </span></li>
+                    <li><span class="soc-btn" class="fi" href="#" title="TikTok">  ♫ TikTok  </span></li>
+                    <li><span class="soc-btn" class="fi" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">  📸 Instagram  </span></li>
+                    </ul>
                 </div>
             </div>
 
