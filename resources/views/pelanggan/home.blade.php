@@ -110,8 +110,9 @@
             display: inline-flex;
             align-items: center;
             gap: 14px;
-            letter-spacing: 2px;
-            line-height: 1;
+            letter-spacing: 0px;
+            line-height: 550px;
+            
         }
 
         /* Orange boomerang/arrow icon */
@@ -448,10 +449,13 @@
             font-size: .98rem;
             color: #fff;
             margin-bottom: 13px;
+            gap: 4px;
+            margin-left: 48px;
+            
         }
 
         .f-list {
-            list-style: none; padding: 0; margin: 0;
+            list-style: none; padding: 0; margin-left: 48px;
             display: flex; flex-direction: column; gap: 9px;
         }
 
@@ -461,6 +465,7 @@
             font-size: .8rem;
             color: rgba(255,255,255,.62);
             line-height: 1.55;
+            
         }
 
         .f-list li .fi { flex-shrink: 0; font-size: .88rem; }
@@ -468,10 +473,12 @@
         .soc-wrap { display: flex; gap: 9px; }
 
         .soc-btn {
-            width: 32px; height: 32px;
+            width: fit-content; height: 32px;
+            padding: 10px;
             border-radius: 7px;
             background: rgba(255,255,255,.12);
             display: flex; align-items: center; justify-content: center;
+            text-align: center
             font-size: .88rem;
             color: #fff;
             text-decoration: none;
@@ -483,21 +490,6 @@
         .f-divider { border-color: rgba(255,255,255,.1) !important; margin: 28px 0 14px; }
         .f-copy { font-size: .72rem; color: rgba(255,255,255,.32); text-align: center; }
 
-        .dropdown-menu {
-            border-radius: 15px;
-            padding: 10px;
-        }
-
-        .dropdown-item {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: var(--purple);
-        }
-
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
 
         /* ════════════════════════
            RESPONSIVE
@@ -676,7 +668,7 @@
                 <ul class="f-list">
                     <li><span class="fi">📞</span><span>+62 812-XXXX-XXXX</span></li>
                     <li><span class="fi">📧</span><span>hello@playchill.id</span></li>
-                    <li><span class="fi">📍</span><span>Jl. Mangunkusumo No.45, Madiun, Kota Madiun</span></li>
+                    <li><span class="fi">📍</span><span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139n</span></li>
                 </ul>
             </div>
 
@@ -718,7 +710,7 @@
 <script>
     function startVideo() {
         // Ganti YOUR_VIDEO_ID dengan ID video YouTube Room Tour kamu
-        const videoId = 'Aq5WXmQQooo';
+        const videoId = 'P3yd4BX9aaU';
         const wrap    = document.getElementById('vidWrap');
         wrap.onclick  = null;
         wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1"
