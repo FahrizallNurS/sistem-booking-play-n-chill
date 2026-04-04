@@ -19,6 +19,7 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// dashboard superadmin
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
 });
@@ -26,10 +27,15 @@ Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('supera
 Route::get('/tesrole', function () {
     dd(auth()->user()?->role, auth()->check());
 });
+
+// dashboard admin
 Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
 });
 
+// dashboard pelanggan
 Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
     Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
 });
+
+Route::get('/jadwal', function () {return view('pelanggan.jadwal');});
