@@ -31,12 +31,14 @@
                 <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Main Menu</p>
                 
                 <!-- Menu Aktif -->
-                <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-white text-[#5E35B1] font-bold shadow-sm border border-indigo-50">
+                <a href="{{ route('superadmin.users') }}"
+                    class="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-white text-[#5E35B1] font-bold shadow-sm border border-indigo-50">
                     <i class="fa-solid fa-users text-lg"></i>
                     Data Pengguna
                 </a>
 
-                <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-gray-600 font-semibold hover:bg-white hover:text-[#5E35B1] transition-all">
+                <a href="{{ route('superadmin.laporan') }}"
+                    class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-gray-600 font-semibold hover:bg-white hover:text-[#5E35B1] transition-all">
                     <i class="fa-solid fa-file-chart-column text-lg"></i>
                     Laporan
                 </a>
