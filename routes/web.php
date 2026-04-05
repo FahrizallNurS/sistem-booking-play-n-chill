@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\TinjauLaporanController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -35,6 +36,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
 });
+    //tinjau laporan
+    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
 
 // Admin
 Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->name('admin.')->group(function () {
