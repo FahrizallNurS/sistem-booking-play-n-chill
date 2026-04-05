@@ -75,3 +75,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
+});

@@ -159,14 +159,17 @@
                     {{-- Tombol Booking --}}
                     @if($room['status'] === 'tersedia')
                         @auth
-                            <a href="{{ url('/booking/form?room='.($index+1).'&tipe='.$tipe) }}"
-                               class="btn-booking">
-                                Booking
-                            </a>
+                            @if($tipe === 'reguler')
+                                {{-- Reguler langsung ke form --}}
+                                <a href="{{ url('/booking/form?room='.$room['id'].'&tipe='.$tipe) }}"
+                                class="btn-booking">Booking</a>
+                            @else
+                                {{-- VIP/VVIP ke halaman pilih paket --}}
+                                <a href="{{ url('/booking/paket?room='.$room['id'].'&tipe='.$tipe) }}"
+                                class="btn-booking">Booking</a>
+                            @endif
                         @else
-                            <a href="{{ url('/login') }}" class="btn-booking">
-                                Booking
-                            </a>
+                            <a href="{{ url('/login') }}" class="btn-booking">Booking</a>
                         @endauth
                     @else
                         <button class="btn-booking disabled" disabled>Booking</button>

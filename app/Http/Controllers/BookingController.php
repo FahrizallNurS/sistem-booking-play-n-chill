@@ -45,6 +45,27 @@ class BookingController extends Controller
         return view('pelanggan.booking', compact('rooms', 'tipe'));
     }
 
+    public function paket(Request $request)
+    {
+        $roomId = $request->input('room');
+        $tipe   = $request->input('tipe', 'vip');
+
+        // ── KITA TAMBAHKAN DATA DUMMY ROOM DI SINI ──
+        $room = [
+            'id'     => $roomId,
+            'nama'   => match($tipe) {
+                'vip'  => 'VIP '.$roomId,
+                'vvip' => 'VVIP '.$roomId,
+                default => 'Reguler '.$roomId,
+            },
+            'tipe'   => $tipe,
+        ];
+        // ── AKHIR DATA DUMMY ──
+
+        // Pastikan 'room' dimasukkan ke dalam compact
+        return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room'));
+    }
+
     // =====================
     // Halaman form booking
     // =====================
