@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LayananController;
 use App\Http\Controllers\Admin\PaketController;
-use App\Http\Controllers\Admin\BookingController;   
+use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
@@ -23,19 +23,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::get('/login/google', [AuthController::class, 'redirectToGoogle'])->name('login.google');
     Route::get('/login/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('login.google.callback');
+
+    // Register (dari branch temen)
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-<<<<<<< HEAD
 // Superadmin
-=======
-// register routes
-Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-
-// beranda routes
->>>>>>> origin/dev
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
 });
@@ -54,9 +50,11 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
     Route::post('/layanan/{id}/pricing', [LayananController::class, 'storePricing'])->name('layanan.pricing.store');
     Route::delete('/pricing/{id}', [LayananController::class, 'destroyPricing'])->name('layanan.pricing.destroy');
 
+    // Booking
     Route::resource('booking', BookingController::class);
     Route::patch('/booking/{id}/konfirmasi', [BookingController::class, 'konfirmasi'])->name('booking.konfirmasi');
     Route::patch('/booking/{id}/tolak', [BookingController::class, 'tolak'])->name('booking.tolak');
+
     Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
     Route::get('/game', [GameController::class, 'index'])->name('game.index');
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
@@ -65,6 +63,4 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
 // Pelanggan
 Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
     Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
-});
-
-Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth');   
+}); 

@@ -316,7 +316,7 @@
   </a>
 
   <p class="register-link">
-    Belum punya akun? <a href="#">Daftar</a>
+    Belum punya akun? <a href="{{ route('register') }}">Daftar</a>
   </p>
 
 </div>
