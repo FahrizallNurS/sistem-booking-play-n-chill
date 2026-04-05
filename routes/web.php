@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BookingController;
 use App\Http\Middleware\RoleMiddleware;
 
 // Redirect root ke /home
@@ -65,4 +66,12 @@ Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('supera
 // Cek role (hapus setelah selesai development)
 Route::get('/tesrole', function () {
     dd(Auth::user()?->role, Auth::check());
+});
+
+Route::get('/booking', [BookingController::class, 'index'])->name('booking');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/booking/form',   [BookingController::class, 'form'])->name('booking.form');
+    Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 });
