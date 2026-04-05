@@ -57,3 +57,5 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
 Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
     Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
 });
+
+Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth');   

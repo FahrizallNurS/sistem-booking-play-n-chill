@@ -1,0 +1,39 @@
+/* Sidebar background */
+.main-sidebar {
+    background-color: #CAC1ED !important;
+}
+
+/* Sidebar menu item */
+.nav-sidebar .nav-item .nav-link {
+    color: #1a1a2e !important;
+}
+
+/* Sidebar header/label */
+.nav-sidebar .nav-header {
+    color: #4a4a6a !important;
+}
+
+/* Kolom layanan (nav-link aktif/hover) */
+.nav-sidebar .nav-item .nav-link:hover {
+    background-color: #6950CD !important;
+    color: #ffffff !important;
+}
+
+/* Kolom yang sedang aktif/diklik */
+.nav-sidebar .nav-item .nav-link.active {
+    background-color: #D9FF00 !important;
+    color: #1a1a2e !important;
+}
+
+/* Top navbar */
+.main-header.navbar {
+    background-color: #734FFF !important;
+}
+
+/* Navbar text & icon warna putih biar keliatan */
+.main-header.navbar .nav-link {
+    color: #ffffff !important;
+}
+.main-header.navbar .navbar-brand {
+    color: #ffffff !important;
+}
