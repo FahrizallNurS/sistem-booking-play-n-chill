@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\StatusBkController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,17 +20,26 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// dashboar superadmin
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
 });
 
-Route::get('/tesrole', function () {
-    dd(auth()->user()?->role, auth()->check());
-});
+Route::get('/tesrole', function () {dd(auth()->user()?->role, auth()->check());});
+
+// dashboard admin
 Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
 });
 
+// dashboard pelanggan
 Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
     Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
 });
+
+Route::get('/payment', function () {
+    return view('pelanggan.payment');
+});
+
+Route::get('/status-booking', function () {
+    return view('pelanggan.status-booking');})->name('pelanggan.status');
