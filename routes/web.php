@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Admin\ProfilController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -66,7 +67,12 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
     Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
     Route::get('/game', [GameController::class, 'index'])->name('game.index');
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-});
+
+
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
+    Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
+    Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
+    });
 
 // Pelanggan
 Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
