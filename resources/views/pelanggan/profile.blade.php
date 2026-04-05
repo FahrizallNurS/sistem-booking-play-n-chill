@@ -40,18 +40,16 @@
                     @auth
                         <div class="dropdown">
                             <div class="nav-avatar" id="userDropdown"
-                                 data-bs-toggle="dropdown" aria-expanded="false">
+                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <svg viewBox="0 0 24 24">
                                     <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
-                                             7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
-                                             1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
-                                          fill="var(--purple-dark)"/>
+                                            7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
+                                            1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                                        fill="var(--purple-dark)"/>
                                 </svg>
                             </div>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0"
                                 aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
@@ -122,8 +120,8 @@
                         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                     </svg>
                     <input type="text" name="name" id="inputName"
-                           value="{{ auth()->user()->name }}"
-                           placeholder="Nama lengkap" disabled>
+                        value="{{ auth()->user()->name }}"
+                        placeholder="Nama lengkap" disabled>
                 </div>
 
                 {{-- Email --}}
@@ -134,8 +132,8 @@
                         <path d="M2 7l10 7 10-7"/>
                     </svg>
                     <input type="email" name="email" id="inputEmail"
-                           value="{{ auth()->user()->email }}"
-                           placeholder="Email" disabled>
+                        value="{{ auth()->user()->email }}"
+                        placeholder="Email" disabled>
                 </div>
 
                 {{-- Nomor HP --}}
@@ -143,16 +141,16 @@
                     {{-- Icon phone --}}
                     <svg viewBox="0 0 24 24">
                         <path d="M6.6 10.8a15.2 15.2 0 006.6 6.6l2.2-2.2a1 1 0 011-.25
-                                 c1.1.37 2.3.57 3.6.57a1 1 0 011 1V20a1 1 0 01-1 1
-                                 C8.6 21 3 15.4 3 8.5a1 1 0 011-1H8a1 1 0 011 1
-                                 c0 1.3.2 2.5.57 3.6a1 1 0 01-.25 1L6.6 10.8z"/>
+                                c1.1.37 2.3.57 3.6.57a1 1 0 011 1V20a1 1 0 01-1 1
+                                C8.6 21 3 15.4 3 8.5a1 1 0 011-1H8a1 1 0 011 1
+                                c0 1.3.2 2.5.57 3.6a1 1 0 01-.25 1L6.6 10.8z"/>
                     </svg>
                     <input type="tel" name="phone" id="inputPhone"
-                           value="{{ auth()->user()->phone ?? '' }}"
-                           placeholder="Nomor HP" disabled>
+                        value="{{ auth()->user()->phone ?? '' }}"
+                        placeholder="Nomor HP" disabled>
                 </div>
 
-                
+
                 <div class="password-section" id="passwordSection">
                     <hr style="border-color: #eee; margin: 16px 0;">
 
