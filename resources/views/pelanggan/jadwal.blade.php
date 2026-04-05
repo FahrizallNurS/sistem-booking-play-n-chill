@@ -126,11 +126,11 @@
                     <a href="/" class="bg-white/20 text-white px-8 py-3 rounded-xl font-bold hover:bg-white/30 transition text-center flex-1">
                         Kembali
                     </a>
-                    <button type="submit" 
-                        :disabled="!confirmedTime"
-                        class="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-orange-600 transition flex-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <a href="{{ route('payment.info') }}" 
+                        :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': !confirmedTime }"
+                        class="bg-orange-500 text-white px-8 py-3 rounded-xl font-normal shadow-lg hover:bg-orange-600 transition flex-1 text-center block">
                         Lanjutkan
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

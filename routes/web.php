@@ -39,3 +39,4 @@ Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function 
 });
 
 Route::get('/jadwal', function () {return view('pelanggan.jadwal');});
+Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
