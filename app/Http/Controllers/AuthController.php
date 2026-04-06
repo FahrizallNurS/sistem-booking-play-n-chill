@@ -56,11 +56,10 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect('/'); // ← ganti dari route('login') ke /
     }
 
     // =====================
@@ -114,7 +113,7 @@ class AuthController extends Controller
         return match ($user->role) {
             'superadmin' => redirect()->route('superadmin.dashboard'),
             'admin'      => redirect()->route('admin.dashboard'),
-            default      => redirect()->route('pelanggan.home'),
+            default      => redirect('/'), // ← ganti dari route('pelanggan.home') ke /
         };
     }
 }
