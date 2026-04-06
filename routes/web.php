@@ -41,6 +41,7 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// dashboard superadmin
 // Superadmin
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
@@ -59,6 +60,13 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
     Route::resource('paket', PaketController::class);
     Route::get('/kategori/{id}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
 
+// dashboard pelanggan
+Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
+    Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
+});
+
+Route::get('/jadwal', function () {return view('pelanggan.jadwal');});
+Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
     // Layanan
     Route::resource('layanan', LayananController::class);
     Route::post('/layanan/{id}/pricing', [LayananController::class, 'storePricing'])->name('layanan.pricing.store');
