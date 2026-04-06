@@ -23,11 +23,6 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
 
-<<<<<<< HEAD
-
-=======
-// ================= PUBLIC =================
->>>>>>> d5ee2b76d3fc1ed4614660798e834cc5db0fb28f
 Route::get('/', function () {
     return redirect()->route('pelanggan.home');
 });
@@ -70,14 +65,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-<<<<<<< HEAD
+
     // Booking
     Route::get('/booking/paket',  [BookingController::class, 'paket'])->name('booking.paket');
     Route::get('/booking/form',   [BookingController::class, 'form'])->name('booking.form');
-=======
+
     Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
     Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
->>>>>>> d5ee2b76d3fc1ed4614660798e834cc5db0fb28f
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 
@@ -125,8 +119,6 @@ Route::middleware(['auth'])->group(function () {
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
         Route::get('/jadwal', fn () => view('pelanggan.jadwal'))->name('pelanggan.jadwal');
     });
-<<<<<<< HEAD
+
     Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
-=======
->>>>>>> d5ee2b76d3fc1ed4614660798e834cc5db0fb28f
 });
