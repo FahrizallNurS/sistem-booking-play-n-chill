@@ -12,9 +12,15 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
+<<<<<<< HEAD
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\DataUserController;
 
+=======
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Admin\ProfilController;
+>>>>>>> 9febbe8d9fbbe2efd9a8d4eb061fa0c93e01fe20
 
 Route::get('/', function () {
     return view('welcome');
