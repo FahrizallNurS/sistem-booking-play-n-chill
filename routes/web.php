@@ -12,9 +12,9 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\Admin\ProfilController;
+use App\Http\Controllers\SuperadminController;
+use App\Http\Controllers\DataUserController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,6 +47,8 @@ Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('supera
     Route::get('/data-pengguna', fn () => view('superadmin.datauser'))->name('users');
     Route::get('/laporan', fn () => view('superadmin.tinjau-laporan'))->name('laporan');
 });
+    //data user
+    Route::get('/superadmin/datauser', [DataUserController::class, 'index'])->name('superadmin.datauser');
 
 // Admin
 Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->name('admin.')->group(function () {
