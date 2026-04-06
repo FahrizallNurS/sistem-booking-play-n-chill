@@ -21,7 +21,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Auth Routes
+// --- Auth Routes ---
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -41,6 +41,12 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// --- Test Role ---
+Route::get('/tesrole', function () {
+    dd(auth()->user()?->role, auth()->check());
+});
+
+// --- Dashboard Superadmin ---
 // dashboard superadmin
 // Superadmin
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
@@ -51,6 +57,7 @@ Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('supera
     //data user
     Route::get('/superadmin/datauser', [DataUserController::class, 'index'])->name('superadmin.datauser');
 
+// --- Dashboard Admin ---
 // Admin
 Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -60,6 +67,20 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
     Route::resource('paket', PaketController::class);
     Route::get('/kategori/{id}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
 
+// --- Fitur Pelanggan (SEMUA DI SINI) ---
+Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {});
+    
+    // Halaman Utama Pelanggan
+    Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
+
+    // Halaman Informasi Pembayaran (Yang dipanggil tombol 'Lanjutkan')
+    Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
+
+    // Halaman Status Booking
+    Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
+
+    // Contoh rute booking jika nanti dibutuhkan
+    // Route::get('/booking', fn () => view('pelanggan.booking'))->name('booking.form');
 // dashboard pelanggan
 Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
     Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
