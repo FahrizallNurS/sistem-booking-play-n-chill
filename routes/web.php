@@ -47,6 +47,7 @@ Route::get('/tesrole', function () {
 });
 
 // --- Dashboard Superadmin ---
+// dashboard superadmin
 // Superadmin
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
@@ -80,6 +81,13 @@ Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function 
 
     // Contoh rute booking jika nanti dibutuhkan
     // Route::get('/booking', fn () => view('pelanggan.booking'))->name('booking.form');
+// dashboard pelanggan
+Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
+    Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
+});
+
+Route::get('/jadwal', function () {return view('pelanggan.jadwal');});
+Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
     // Layanan
     Route::resource('layanan', LayananController::class);
     Route::post('/layanan/{id}/pricing', [LayananController::class, 'storePricing'])->name('layanan.pricing.store');
