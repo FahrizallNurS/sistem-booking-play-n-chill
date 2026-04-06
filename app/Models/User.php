@@ -21,8 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'phone',
+        'no_hp', // ← ganti phone ke no_hp
         'role',
+        'google_id',
     ];
 
     /**

@@ -89,8 +89,8 @@ class AuthController extends Controller
             [
                 'name'              => $googleUser->getName(),
                 'password'          => bcrypt(\Illuminate\Support\Str::random(24)),
-                'role'              => 'pelanggan', // default role untuk user Google
-                'google_id'         => $googleUser->getId(),
+                'role'              => 'pelanggan',
+                'google_id'         => $googleUser->getId(), // ← ini hanya diisi saat CREATE
                 'email_verified_at' => now(),
             ]
         );

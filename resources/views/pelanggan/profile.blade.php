@@ -145,8 +145,8 @@
                                 C8.6 21 3 15.4 3 8.5a1 1 0 011-1H8a1 1 0 011 1
                                 c0 1.3.2 2.5.57 3.6a1 1 0 01-.25 1L6.6 10.8z"/>
                     </svg>
-                    <input type="tel" name="phone" id="inputPhone"
-                        value="{{ auth()->user()->phone ?? '' }}"
+                    <input type="tel" name="no_hp" id="inputPhone"
+                        value="{{ auth()->user()->no_hp ?? '' }}"
                         placeholder="Nomor HP" disabled>
                 </div>
 
