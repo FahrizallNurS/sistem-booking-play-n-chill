@@ -257,7 +257,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => 'admin/dashboard',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -370,6 +370,13 @@ return [
         'text' => 'Logout',
         'url'  => '#',
         'icon' => 'fas fa-fw fa-sign-out-alt',
+
+    ],
+
+    [
+        'text' => 'Profil',
+        'url'  => 'admin/profil',
+        'icon' => 'fas fa-fw fa-user-cog',
     ],
 ],
 
