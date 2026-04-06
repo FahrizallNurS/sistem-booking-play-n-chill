@@ -43,6 +43,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Superadmin
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
+
+    Route::get('/data-pengguna', fn () => view('superadmin.datauser'))->name('users');
+    Route::get('/laporan', fn () => view('superadmin.tinjau-laporan'))->name('laporan');
 });
 
 // Admin
