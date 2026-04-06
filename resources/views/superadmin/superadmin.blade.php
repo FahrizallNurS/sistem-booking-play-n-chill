@@ -31,7 +31,7 @@
                 <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Main Menu</p>
                 
                 <!-- Menu Aktif -->
-                <a href="{{ route('superadmin.users') }}"
+                <a href="{{ route('superadmin.datauser') }}"
                     class="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-white text-[#5E35B1] font-bold shadow-sm border border-indigo-50">
                     <i class="fa-solid fa-users text-lg"></i>
                     Data Pengguna
