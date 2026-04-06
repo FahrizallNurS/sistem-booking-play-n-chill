@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\ProfileController;
@@ -22,15 +23,16 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
 
+<<<<<<< HEAD
 
+=======
+// ================= PUBLIC =================
+>>>>>>> d5ee2b76d3fc1ed4614660798e834cc5db0fb28f
 Route::get('/', function () {
     return redirect()->route('pelanggan.home');
 });
 
 Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
-Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
-
-// Public
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
@@ -65,20 +67,21 @@ Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('supera
 // ================= AUTH USER =================
 Route::middleware(['auth'])->group(function () {
 
-    // Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+<<<<<<< HEAD
     // Booking
     Route::get('/booking/paket',  [BookingController::class, 'paket'])->name('booking.paket');
     Route::get('/booking/form',   [BookingController::class, 'form'])->name('booking.form');
+=======
+    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
+    Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
+>>>>>>> d5ee2b76d3fc1ed4614660798e834cc5db0fb28f
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 
-    // Cek role (hapus setelah development)
-    Route::get('/tesrole', function () {
-        dd(Auth::user()?->role, Auth::check());
-    });
+    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
 
     // ================= SUPERADMIN =================
     Route::middleware([RoleMiddleware::class.':superadmin'])
@@ -122,5 +125,8 @@ Route::middleware(['auth'])->group(function () {
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
         Route::get('/jadwal', fn () => view('pelanggan.jadwal'))->name('pelanggan.jadwal');
     });
+<<<<<<< HEAD
     Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
+=======
+>>>>>>> d5ee2b76d3fc1ed4614660798e834cc5db0fb28f
 });
