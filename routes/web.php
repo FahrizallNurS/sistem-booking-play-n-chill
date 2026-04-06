@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\ProfileController;
@@ -20,13 +19,13 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
 
-// Redirect root ke /home
+// ================= PUBLIC =================
 Route::get('/', function () {
-    return redirect('/home');
+    return redirect()->route('pelanggan.home');
 });
 
-// Beranda
 Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
+Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
 
 // ================= AUTH =================
 Route::middleware('guest')->group(function () {
@@ -51,11 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::get('/tesrole', function () {
-        dd(auth()->user()?->role, auth()->check());
-    });
-
-    // Superadmin
+    // ================= SUPERADMIN =================
     Route::middleware([RoleMiddleware::class.':superadmin'])
         ->prefix('superadmin')
         ->name('superadmin.')
@@ -63,14 +58,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
         });
 
-    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
-
     // ================= ADMIN =================
     Route::middleware([RoleMiddleware::class.':admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
 
@@ -96,12 +88,10 @@ Route::middleware(['auth'])->group(function () {
 
     // ================= PELANGGAN =================
     Route::middleware([RoleMiddleware::class.':pelanggan'])->group(function () {
-        Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
         Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
         Route::get('/jadwal', fn () => view('pelanggan.jadwal'))->name('pelanggan.jadwal');
     });
-});
 
-// Public
-Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
+});
