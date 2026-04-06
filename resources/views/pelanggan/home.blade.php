@@ -212,9 +212,6 @@
 
 {{-- ═══ CTA ═══ --}}
 <section class="cta-section" id="booking">
-    <div class="cta-blob cta-blob-1"></div>
-    <div class="cta-blob cta-blob-2"></div>
-    <div class="cta-blob cta-blob-3"></div>
     <h2>Siap untuk nongkrong Seru?</h2>
     <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
     <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>

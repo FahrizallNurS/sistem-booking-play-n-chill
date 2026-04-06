@@ -102,38 +102,59 @@ class BookingController extends Controller
     // =====================
     // Simpan booking
     // =====================
+    // Tahap 1: dari booking-form → simpan ke session → redirect ke payment
     public function store(Request $request)
     {
+        // Kalau dari konfirmasi payment (tahap 2)
+        if ($request->input('confirm') == '1') {
+            return $this->saveBooking($request);
+        }
+
+        // Tahap 1: validasi & simpan ke session
         $request->validate([
-            'room_id'    => ['required'],
-            'tipe'       => ['required', 'in:reguler,vip,vvip'],
-            'tanggal'    => ['required', 'date', 'after_or_equal:today'],
-            'jam_mulai'  => ['required'],
-            'jam_selesai'=> ['required'],
-            'catatan'    => ['nullable', 'string', 'max:255'],
+            'tanggal' => ['required', 'date', 'after_or_equal:today'],
+            'waktu'   => ['required'],
         ], [
-            'room_id.required'     => 'Ruangan wajib dipilih.',
-            'tanggal.required'     => 'Tanggal wajib diisi.',
+            'tanggal.required'       => 'Tanggal wajib diisi.',
             'tanggal.after_or_equal' => 'Tanggal tidak boleh sebelum hari ini.',
-            'jam_mulai.required'   => 'Jam mulai wajib diisi.',
-            'jam_selesai.required' => 'Jam selesai wajib diisi.',
+            'waktu.required'         => 'Jam main wajib dipilih.',
         ]);
 
-        // Simpan ke database
-        // Uncomment setelah tabel bookings tersambung:
+        session([
+            'booking_data' => [
+                'room_id'           => $request->room_id,
+                'tipe'              => $request->tipe,
+                'paket'             => $request->paket,
+                'kategori'          => $request->kategori,
+                'tanggal'           => $request->tanggal,
+                'waktu'             => $request->waktu,
+                'metode_pembayaran' => $request->metode_pembayaran,
+                'harga'             => 45000, // nanti dari database
+            ]
+        ]);
+
+        return redirect()->route('payment.info');
+    }
+
+    // Tahap 2: simpan ke database setelah konfirmasi
+    private function saveBooking(Request $request)
+    {
+        // Uncomment setelah database siap:
         // Booking::create([
-        //     'user_id'     => auth()->id(),
-        //     'room_id'     => $request->room_id,
-        //     'tipe'        => $request->tipe,
-        //     'tanggal'     => $request->tanggal,
-        //     'jam_mulai'   => $request->jam_mulai,
-        //     'jam_selesai' => $request->jam_selesai,
-        //     'catatan'     => $request->catatan,
-        //     'status'      => 'pending',
+        //     'user_id'           => auth()->id(),
+        //     'room_id'           => $request->room_id,
+        //     'tipe'              => $request->tipe,
+        //     'tanggal'           => $request->tanggal,
+        //     'waktu'             => $request->waktu,
+        //     'metode_pembayaran' => $request->metode_pembayaran,
+        //     'status'            => 'pending',
         // ]);
 
-        return redirect()->route('booking.status')
-                         ->with('success', 'Booking berhasil! Menunggu konfirmasi admin.');
+        // Hapus session setelah disimpan
+        session()->forget('booking_data');
+
+        return redirect()->route('pelanggan.status')
+                        ->with('success', 'Booking berhasil! Menunggu konfirmasi admin.');
     }
 
     // =====================
