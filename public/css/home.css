@@ -1,0 +1,592 @@
+/* ══════════════════════════════════════════
+   home.css — Stylesheet untuk home.blade.php
+   Play N Chill Madiun
+   ══════════════════════════════════════════ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --purple:      #734FFF;
+    --purple-btn:  #734FFF;
+    --purple-dark: #472CA1;
+    --yellow:      #D7E319;
+    --orange:      #E65A29;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    overflow-x: hidden;
+    background: #472CA1;
+}
+
+/* ════════════════════════
+   NAVBAR
+════════════════════════ */
+.navbar {
+    background: #fff;
+    padding: 10px 0;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, .08);
+}
+
+.logo-pill {
+    border: 2px solid var(--purple-dark);
+    border-radius: 30px;
+    padding: 4px 12px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+    text-decoration: none;
+}
+
+.logo-pill-top {
+    font-family: 'Fredoka One', cursive;
+    font-size: .9rem;
+    color: var(--purple);
+    letter-spacing: .3px;
+}
+
+.logo-pill-bot {
+    font-family: 'Fredoka One', cursive;
+    font-size: .5rem;
+    color: var(--purple);
+    letter-spacing: 2px;
+    margin-top: -1px;
+}
+
+.nav-btn-active {
+    background: var(--purple-dark) !important;
+    color: #fff !important;
+    border-radius: 20px !important;
+    padding: 6px 22px !important;
+    font-weight: 700;
+    font-size: .88rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 700;
+    color: #333;
+    font-size: .9rem;
+    padding: 6px 14px !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--purple);
+}
+
+.nav-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e5d5f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.nav-avatar svg {
+    width: 22px;
+    height: 22px;
+    fill: var(--purple);
+}
+
+/* ════════════════════════
+   HERO / CAROUSEL
+════════════════════════ */
+.hero {
+    background: var(--purple);
+    padding: 0 !important;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(3rem, 9vw, 5.5rem);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    line-height: normal !important;
+    margin: 0;
+}
+
+.hero-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(52px, 9vw, 76px);
+    height: clamp(52px, 9vw, 76px);
+    background: var(--orange);
+    border-radius: 50%;
+    position: relative;
+    animation: wobble 3s ease-in-out infinite;
+}
+
+.hero-icon::before {
+    content: 'N';
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: #fff;
+    line-height: 1;
+}
+
+.hero-slide-img {
+    height: 550px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-overlay {
+    background: rgba(0, 0, 0, 0.3);
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Indikator carousel */
+.carousel-indicators [data-bs-target] {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 5px;
+    background-color: #fff;
+}
+
+/* Tombol panah muncul saat hover */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 5%;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#heroCarousel:hover .carousel-control-prev,
+#heroCarousel:hover .carousel-control-next {
+    opacity: 1;
+}
+
+@keyframes wobble {
+    0%, 100% { transform: rotate(-10deg) scale(1); }
+    50%       { transform: rotate(10deg) scale(1.08); }
+}
+
+/* ════════════════════════
+   WHITE FLOATING CARD
+════════════════════════ */
+.white-card {
+    background: #fff;
+    margin-top: -60px;
+    padding: 44px 36px 52px;
+    box-shadow: 0 8px 36px rgba(0, 0, 0, .09);
+    position: relative;
+    z-index: 5;
+    border-radius: 20px 20px 0 0;
+}
+
+.white-card h2 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--purple-dark);
+    font-size: clamp(1.4rem, 3.8vw, 2.2rem);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.white-card .sub-desc {
+    color: #666;
+    font-size: .91rem;
+    text-align: center;
+    max-width: 420px;
+    margin: 0 auto 38px;
+    line-height: 1.65;
+}
+
+/* ════════════════════════
+   ROOM CARDS
+════════════════════════ */
+.room-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
+.room-grid a {
+    text-decoration: none !important;
+    color: inherit;
+    display: flex;
+}
+
+.room-grid a:hover {
+    text-decoration: none;
+}
+
+.r-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: var(--purple-dark);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 3px 18px rgba(92, 45, 145, .13);
+    transition: transform .25s, box-shadow .25s;
+    text-align: center;
+    color: #fff;
+}
+
+.r-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 28px rgba(92, 45, 145, .22);
+}
+
+.r-img {
+    width: 100%;
+    aspect-ratio: 1.15 / 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background-size: cover !important;
+    background-position: center !important;
+    border-radius: 20px 20px 0 0;
+}
+
+.r-img.gaming  { background: linear-gradient(150deg, #1a004e 0%, #4a1090 50%, #1a004e 100%); }
+.r-img.karaoke { background: linear-gradient(150deg, #060c28 0%, #0e2d6e 50%, #060c28 100%); }
+.r-img.bioskop { background: linear-gradient(150deg, #080820 0%, #1a1860 50%, #080820 100%); }
+
+.r-img::before {
+    content: '';
+    position: absolute;
+    width: 70%;
+    height: 60%;
+    border-radius: 50%;
+    filter: blur(28px);
+    bottom: 0;
+    left: 15%;
+    opacity: .65;
+}
+
+.r-img.gaming::before  { background: #9b44ff; }
+.r-img.karaoke::before { background: #4488ff; }
+.r-img.bioskop::before { background: #6633cc; }
+
+.r-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.05rem;
+    background: rgba(255, 255, 255, .18);
+    backdrop-filter: blur(6px);
+    border-radius: 7px;
+    padding: 4px 7px;
+    z-index: 2;
+}
+
+.r-sofa {
+    font-size: 2.2rem;
+    position: absolute;
+    bottom: 10px;
+    z-index: 2;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5));
+}
+
+.r-foot {
+    color: #fff;
+    padding: 13px 14px 15px;
+    background: transparent;
+}
+
+.r-foot h5 {
+    font-family: 'Fredoka One', cursive;
+    margin-bottom: 4px;
+    letter-spacing: .2px;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.r-foot p {
+    font-size: .79rem;
+    opacity: .9;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ════════════════════════
+   ROOM TOUR
+════════════════════════ */
+.tour-section {
+    background: var(--yellow);
+    text-align: center;
+    position: relative;
+    padding: 32px 0;
+}
+
+.tour-section h2 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--purple);
+    font-size: clamp(2rem, 5.5vw, 3.2rem);
+    margin-bottom: 6px;
+}
+
+.tour-section .tour-sub {
+    font-weight: 700;
+    color: #222;
+    font-size: .95rem;
+    margin-bottom: 28px;
+}
+
+.vid-wrap {
+    max-width: 750px;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 10px 44px rgba(0, 0, 0, .28);
+    aspect-ratio: 16 / 9;
+    position: relative;
+    background: #000;
+    cursor: pointer;
+    border-radius: 12px;
+    border: none;
+}
+
+.vid-thumb {
+    position: absolute;
+    inset: 0;
+    background: #000;
+}
+
+.vid-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s;
+}
+
+.vid-wrap:hover .vid-overlay {
+    background: rgba(0, 0, 0, .08);
+}
+
+.vid-play {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .2s;
+}
+
+.vid-wrap:hover .vid-play {
+    transform: scale(1.1);
+}
+
+.vid-play svg {
+    width: 28px;
+    height: 28px;
+    fill: var(--purple);
+    margin-left: 4px;
+}
+
+.vid-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* ════════════════════════
+   CTA SECTION
+════════════════════════ */
+.cta-section {
+    background: var(--purple-dark);
+    padding: 80px 24px 90px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-blob {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .18);
+    pointer-events: none;
+}
+
+.cta-section h2 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--yellow);
+    font-size: clamp(2rem, 5.5vw, 3.6rem);
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+}
+
+.cta-section p {
+    color: rgba(255, 255, 255, .83);
+    font-size: .95rem;
+    max-width: 400px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    position: relative;
+    z-index: 2;
+}
+
+.btn-pesan {
+    display: inline-block;
+    background: var(--yellow);
+    color: #fff !important;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    padding: 15px 60px;
+    border-radius: 50px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 6px 22px rgba(212, 230, 0, .32);
+    position: relative;
+    z-index: 2;
+}
+
+.btn-pesan:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(212, 230, 0, .45);
+    color: #3a3a00 !important;
+}
+
+/* ════════════════════════
+   FOOTER
+════════════════════════ */
+footer {
+    background: #14083a;
+    color: rgba(255, 255, 255, .75);
+    padding: 50px 0 20px;
+}
+
+.f-logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.45rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.f-logo-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--orange);
+    border-radius: 50%;
+    font-size: .8rem;
+}
+
+.f-tagline {
+    font-size: .8rem;
+    color: rgba(255, 255, 255, .5);
+    line-height: 1.7;
+    margin-top: 8px;
+    max-width: 170px;
+}
+
+.f-head {
+    font-family: 'Fredoka One', cursive;
+    font-size: .98rem;
+    color: #fff;
+    margin-bottom: 13px;
+}
+
+.f-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.f-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: .8rem;
+    color: rgba(255, 255, 255, .62);
+    line-height: 1.55;
+}
+
+.f-list li .fi {
+    flex-shrink: 0;
+    font-size: .88rem;
+}
+
+.soc-wrap {
+    display: flex;
+    gap: 9px;
+}
+
+.soc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, .12);
+    font-size: .85rem;
+    color: #fff;
+    text-decoration: none;
+    transition: background .2s;
+    white-space: nowrap;
+}
+
+.soc-btn:hover {
+    background: var(--purple);
+    color: #fff;
+}
+
+.f-divider {
+    border-color: rgba(255, 255, 255, .1) !important;
+    margin: 28px 0 14px;
+}
+
+.f-copy {
+    font-size: .72rem;
+    color: rgba(255, 255, 255, .32);
+    text-align: center;
+}
+
+/* ════════════════════════
+   RESPONSIVE
+════════════════════════ */
+@media (max-width: 767px) {
+    .white-card { padding: 32px 18px 40px; }
+    .room-grid  { grid-template-columns: 1fr; max-width: 300px; margin: 0 auto; }
+    .tour-section { padding: 40px 0; }
+    .cta-section  { padding: 60px 16px 70px; }
+}
+
+@media (max-width: 480px) {
+    .hero        { padding: 50px 16px 72px; }
+    .cta-section { padding: 52px 14px 60px; }
+    .hero-slide-img { height: 300px; }
+}

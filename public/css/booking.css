@@ -1,0 +1,190 @@
+/* ══════════════════════════════════════════
+   booking.css — Stylesheet untuk booking.blade.php
+   Play N Chill Madiun
+   ══════════════════════════════════════════ */
+
+/* ────────────────────────
+   PAGE
+──────────────────────── */
+.booking-page {
+    min-height: 100vh;
+    background: var(--purple-dark);
+    padding: 48px 20px 64px;
+}
+
+/* ────────────────────────
+   JUDUL
+──────────────────────── */
+.booking-title {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+/* ────────────────────────
+   FILTER TAB (Reguler / VIP / VVIP)
+──────────────────────── */
+.booking-tabs {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    margin-bottom: 48px;
+}
+
+.tab-link {
+    font-family: 'Fredoka One', cursive;
+    color: var(--yellow);
+    text-decoration: none;
+    font-size: 1.3rem;
+    transition: 0.3s;
+    padding: 5px 15px;
+    border-radius: 12px;
+}
+
+.tab-link:hover {
+    background: rgba(45, 27, 107, .6);
+    color: var(--yellow);
+}
+
+.tab-link.active {
+    background: #2D1B6B;
+    color: var(--yellow);
+}
+
+/* ────────────────────────
+   ROOM CONTAINER (kotak border kuning)
+──────────────────────── */
+.room-container {
+    border: 2px solid var(--yellow);
+    border-radius: 20px;
+    padding: 40px 32px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.room-container-title {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    margin-bottom: 32px;
+}
+
+/* ────────────────────────
+   ROOM GRID
+──────────────────────── */
+.room-grid-booking {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* ────────────────────────
+   ROOM CARD
+──────────────────────── */
+.room-card-booking {
+    background: rgba(255, 255, 255, .12);
+    border-radius: 16px;
+    padding: 20px 16px 16px;
+    position: relative;
+    text-align: center;
+    transition: transform .25s, background .25s;
+}
+
+.room-card-booking:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, .18);
+}
+
+/* Status badge (Tersedia / Penuh) */
+.room-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: .72rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 50px;
+    color: #fff;
+}
+
+.room-status.tersedia { background: #22c55e; }
+.room-status.penuh    { background: #ef4444; }
+
+/* Sofa icon */
+.room-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(255, 255, 255, .18);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px auto 14px;
+}
+
+.room-icon svg {
+    width: 44px;
+    height: 44px;
+    fill: #fff;
+}
+
+/* Room name & device */
+.room-name {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+}
+
+.room-device {
+    color: rgba(255, 255, 255, .75);
+    font-size: .8rem;
+    margin-bottom: 16px;
+}
+
+/* Booking button */
+.btn-booking {
+    display: block;
+    width: 100%;
+    background: var(--orange);
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.05rem;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity .2s, transform .2s;
+}
+
+.btn-booking:hover {
+    opacity: .88;
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+.btn-booking:disabled,
+.btn-booking.disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ────────────────────────
+   RESPONSIVE
+──────────────────────── */
+@media (max-width: 768px) {
+    .room-grid-booking { grid-template-columns: repeat(2, 1fr); }
+    .room-container    { padding: 28px 16px; }
+    .booking-tabs      { gap: 14px; }
+    .tab-link          { font-size: 1.1rem; padding: 6px 18px; }
+}
+
+@media (max-width: 480px) {
+    .room-grid-booking { grid-template-columns: 1fr; max-width: 280px; margin: 0 auto; }
+    .booking-title     { font-size: 2rem; }
+}
