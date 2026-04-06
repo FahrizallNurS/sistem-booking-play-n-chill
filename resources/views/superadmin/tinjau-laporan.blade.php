@@ -29,12 +29,14 @@
         <div class="bg-sidebar-light h-4"></div>
         <nav class="flex flex-col">
             <!-- Data Pengguna (Sekarang tidak aktif) -->
-            <a href="#" class="bg-sidebar-light py-5 px-6 text-sm font-normal text-white uppercase hover:brightness-110 transition">
+            <a href="{{ route('superadmin.datauser') }}"
+            class="bg-sidebar-light py-5 px-6 text-sm font-normal text-white uppercase hover:brightness-110 transition">
                 Data Pengguna
             </a>
             <div class="bg-sidebar-light h-4"></div>
             <!-- Laporan (Aktif - Warna Lime) -->
-            <a href="#" class="bg-lime-custom py-5 px-6 text-sm font-normal text-active uppercase">
+            <a href="{{ route('superadmin.laporan') }}"
+            class="bg-lime-custom py-5 px-6 text-sm font-normal text-active uppercase">
                 Laporan
             </a>
         </nav>
@@ -102,7 +104,7 @@
                         <tr class="bg-purple-main border-b border-indigo-400 font-normal">
                             <td class="py-4 border-r border-indigo-400">BK-01</td>
                             <td class="py-4 border-r border-indigo-400">Wong Asor</td>
-                            <td class="py-4 border-r border-indigo-400">PSHT1922</td>
+                            <td class="py-4 border-r border-indigo-400">paket couple</td>
                             <td class="py-4 border-r border-indigo-400 text-xs">23/09/2026<br><span class="text-[10px]">14.00 WIB</span></td>
                             <td class="py-4 border-r border-indigo-400 text-orange-bright font-bold">Cencle</td>
                             <td class="py-4 flex justify-center gap-2">
