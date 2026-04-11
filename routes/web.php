@@ -22,6 +22,7 @@ use App\Http\Controllers\TinjauLaporanController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
+use App\Http\Controllers\Superadmin\SAProfilController;
 
 Route::get('/', function () {
     return redirect()->route('pelanggan.home');
@@ -83,6 +84,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('superadmin.')
         ->group(function () {
             Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
+            Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         });
 
     // ================= ADMIN =================
