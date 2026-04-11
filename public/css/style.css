@@ -1,0 +1,137 @@
+/* ══════════════════════════════════════════
+   style.css — Global Stylesheet
+   Play N Chill Madiun
+   ══════════════════════════════════════════ */
+
+/* ────────────────────────
+   VARIABLE & RESET
+──────────────────────── */
+:root {
+    --purple:       #734FFF;
+    --purple-dark:  #472CA1;
+    --purple-light: #A391E3;
+    --yellow:       #D7E319;
+    --orange:       #E65A29;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--purple-dark);
+    color: #fff;
+    overflow-x: hidden;
+}
+
+/* ────────────────────────
+   NAVBAR (Shared)
+──────────────────────── */
+.navbar {
+    background: #fff;
+    padding: 10px 0;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, .08);
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 700;
+    color: #333;
+    font-size: .9rem;
+    padding: 6px 14px !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--purple) !important;
+}
+
+.nav-btn-active {
+    background: var(--purple-dark) !important;
+    color: #fff !important;
+    border-radius: 20px !important;
+    padding: 6px 22px !important;
+    font-weight: 700;
+    font-size: .88rem;
+}
+
+.nav-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e5d5f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color .2s;
+}
+
+.nav-avatar:hover {
+    border-color: var(--purple-light);
+}
+
+.nav-avatar svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--purple-dark);
+}
+
+/* ────────────────────────
+   HERO & CAROUSEL (Shared)
+──────────────────────── */
+.hero {
+    padding: 0 !important;
+    background: var(--purple-dark);
+}
+
+.hero-slide-img {
+    height: 550px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-overlay {
+    background: rgba(0, 0, 0, 0.3);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(3rem, 9vw, 5.5rem);
+    color: #fff;
+    line-height: normal !important;
+}
+
+/* ────────────────────────
+   BACKGROUND DECORATION (Shared)
+──────────────────────── */
+.bg-decoration {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 0;
+    opacity: .9;
+    pointer-events: none;
+}
+
+/* ────────────────────────
+   RESPONSIVE (Shared)
+──────────────────────── */
+@media (max-width: 480px) {
+    .hero-slide-img { height: 300px; }
+}
