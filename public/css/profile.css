@@ -17,12 +17,48 @@
 /* ────────────────────────
    DECORATIVE DIAMOND SHAPES
 ──────────────────────── */
+/* Menghilangkan simbol diamond */
 .diamond {
-    position: absolute;
-    background: var(--yellow);
+    display: none !important;
+}
+
+/* Gaya Tombol Lihat Status Booking */
+.btn-booking-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    color: var(--purple-dark);
+    padding: 20px 25px;
     border-radius: 20px;
-    pointer-events: none;
-    z-index: 0;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.btn-booking-status:hover {
+    transform: translateY(-5px);
+    background: var(--yellow);
+    color: var(--purple-dark);
+}
+
+.btn-booking-status .arrow {
+    background: var(--orange);
+    color: white;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.btn-booking-status:hover .arrow {
+    transform: translateX(5px);
 }
 
 /* Top-right diamond */

@@ -159,19 +159,15 @@
                     {{-- Tombol Booking --}}
                     @if($room['status'] === 'tersedia')
                         @auth
-                            @if($tipe === 'reguler')
-                                {{-- Reguler langsung ke form --}}
-                                <a href="{{ url('/booking/form?room='.$room['id'].'&tipe='.$tipe) }}"
-                                class="btn-booking">Booking</a>
-                            @else
-                                {{-- VIP/VVIP ke halaman pilih paket --}}
-                                <a href="{{ url('/booking/paket?room='.$room['id'].'&tipe='.$tipe) }}"
-                                class="btn-booking">Booking</a>
-                            @endif
+                            {{-- Semua tipe (Reguler, VIP, VVIP) sekarang diarahkan ke halaman paket --}}
+                            <a href="{{ url('/booking/paket?room='.$room['id'].'&tipe='.$tipe) }}"
+                            class="btn-booking">Booking</a>
                         @else
+                            {{-- Jika belum login diarahkan ke login --}}
                             <a href="{{ url('/login') }}" class="btn-booking">Booking</a>
                         @endauth
                     @else
+                        {{-- Jika penuh --}}
                         <button class="btn-booking disabled" disabled>Booking</button>
                     @endif
 
