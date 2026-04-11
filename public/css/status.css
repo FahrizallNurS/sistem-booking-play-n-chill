@@ -1,0 +1,124 @@
+/* ══════════════════════════════════════════
+   STATUS BOOKING PAGE STYLES
+   ══════════════════════════════════════════ */
+
+body { 
+    background-color: var(--purple-dark); 
+    color: white; 
+    font-family: 'Nunito', sans-serif;
+}
+
+/* Kotak Transparan (Glassmorphism) */
+.glass-card {
+    background: rgba(163, 145, 227, 0.2);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* Judul Pesanan Berhasil */
+.status-title {
+    font-family: 'Fredoka One', cursive;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+/* Label Orange di Pojok Box */
+.section-badge {
+    background: var(--orange);
+    color: white;
+    padding: 8px 25px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border-radius: 0 0 20px 0;
+    display: inline-block;
+}
+
+/* Teks Kode Booking Gede */
+.booking-id-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(3rem, 10vw, 5rem);
+    letter-spacing: 5px;
+    color: white;
+    margin-bottom: 15px;
+}
+
+/* Box Status (Menunggu Pembayaran) */
+.status-box {
+    background: white;
+    padding: 12px 30px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 3px solid #ff4d4d;
+}
+
+/* Item Detail (Tanggal & Ruangan) */
+.detail-item {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+
+.detail-item:hover {
+    transform: translateY(-5px);
+}
+
+.detail-icon {
+    width: 50px; 
+    height: 50px;
+    background: #f0f0f0;
+    border-radius: 12px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Tombol WA Konfirmasi */
+.btn-wa-confirm {
+    background: white;
+    color: var(--purple-dark);
+    font-weight: 900;
+    font-size: 1.3rem;
+    padding: 20px;
+    border-radius: 25px;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 0 #ddd;
+    border: none;
+}
+
+.btn-wa-confirm:hover {
+    transform: translateY(-3px);
+    background: #f9f9f9;
+    box-shadow: 0 10px 0 #ccc;
+    color: var(--purple);
+}
+
+.btn-wa-confirm:active {
+    transform: translateY(5px);
+    box-shadow: 0 2px 0 #ccc;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+    .booking-id-text { font-size: 3rem; }
+    .btn-wa-confirm { font-size: 1rem; padding: 15px; }
+}

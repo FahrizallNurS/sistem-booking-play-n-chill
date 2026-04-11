@@ -48,21 +48,20 @@ class BookingController extends Controller
     public function paket(Request $request)
     {
         $roomId = $request->input('room');
-        $tipe   = $request->input('tipe', 'vip');
+        $tipe   = $request->input('tipe', 'reguler'); 
 
-        // ── KITA TAMBAHKAN DATA DUMMY ROOM DI SINI ──
+        // Pastikan data room ini lengkap karena akan dipakai di link "Pilih Paket"
         $room = [
             'id'     => $roomId,
             'nama'   => match($tipe) {
-                'vip'  => 'VIP '.$roomId,
-                'vvip' => 'VVIP '.$roomId,
-                default => 'Reguler '.$roomId,
+                'vip'   => 'VIP Room ' . $roomId,
+                'vvip'  => 'VVIP Room ' . $roomId,
+                default => 'Reguler Room ' . $roomId,
             },
             'tipe'   => $tipe,
         ];
-        // ── AKHIR DATA DUMMY ──
 
-        // Pastikan 'room' dimasukkan ke dalam compact
+        // Mengirim data ke view
         return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room'));
     }
 
@@ -72,31 +71,30 @@ class BookingController extends Controller
     public function form(Request $request)
     {
         $roomId = $request->input('room');
-        $tipe   = $request->input('tipe', 'reguler');
+        $tipe   = $request->input('tipe');
+        $paket  = $request->input('paket');
+        $kategori = $request->input('kategori');
 
-        // Ambil detail ruangan dari database
-        // Uncomment setelah database tersambung:
-        // $room = Room::findOrFail($roomId);
+        // Tentukan harga dasar berdasarkan paket yang dipilih
+        // Kamu bisa menggunakan database nanti, sekarang pakai logika match:
+        $hargaDasar = match($paket) {
+            'Paket Couple' => ($kategori == 'Playstation' ? 7000 : 30000),
+            'Paket Group'  => ($kategori == 'Playstation' ? 45000 : 50000),
+            'Paket Party'  => ($kategori == 'Playstation' ? 125000 : 85000),
+            default        => 30000,
+        };
 
-        // ── DATA DUMMY ──
         $room = [
-            'id'     => $roomId,
-            'nama'   => match($tipe) {
-                'vip'  => 'VIP '.$roomId,
-                'vvip' => 'VVIP '.$roomId,
-                default => 'Reguler '.$roomId,
+            'id'    => $roomId,
+            'nama'  => match($tipe) {
+                'vip'   => 'VIP Room ' . $roomId,
+                'vvip'  => 'VVIP Room ' . $roomId,
+                default => 'Reguler Room ' . $roomId,
             },
-            'device' => 'PS5',
-            'tipe'   => $tipe,
-            'harga'  => match($tipe) {
-                'vip'  => 50000,
-                'vvip' => 100000,
-                default => 30000,
-            },
+            'harga' => $hargaDasar, // Harga dasar paket
         ];
-        // ── AKHIR DATA DUMMY ──
 
-        return view('pelanggan.booking-form', compact('room', 'tipe'));
+        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'kategori'));
     }
 
     // =====================
@@ -110,8 +108,10 @@ class BookingController extends Controller
             return $this->saveBooking($request);
         }
 
-        // Tahap 1: validasi & simpan ke session
+        // Tahap 1: Validasi
         $request->validate([
+            'room_id' => 'required',
+            'durasi'  => 'required|numeric|min:1',
             'tanggal' => ['required', 'date', 'after_or_equal:today'],
             'waktu'   => ['required'],
         ], [
@@ -120,16 +120,32 @@ class BookingController extends Controller
             'waktu.required'         => 'Jam main wajib dipilih.',
         ]);
 
+        // ── LOGIKA HARGA DINAMIS ──
+        // Kita ambil harga dasar berdasarkan paket (mirip logika di fungsi form)
+        $paket = $request->paket;
+        $kategori = $request->kategori;
+        
+        $hargaDasar = match($paket) {
+            'Paket Couple' => ($kategori == 'Playstation' ? 7000 : 30000),
+            'Paket Group'  => ($kategori == 'Playstation' ? 45000 : 50000),
+            'Paket Party'  => ($kategori == 'Playstation' ? 125000 : 85000),
+            default        => 30000,
+        };
+
+        $totalHarga = $hargaDasar * $request->durasi;
+
+        // Simpan data lengkap ke session
         session([
             'booking_data' => [
                 'room_id'           => $request->room_id,
                 'tipe'              => $request->tipe,
-                'paket'             => $request->paket,
-                'kategori'          => $request->kategori,
+                'paket'             => $paket,    // Menyimpan nama paket
+                'kategori'          => $kategori, // Menyimpan kategori (PS/Karaoke/Bioskop)
                 'tanggal'           => $request->tanggal,
                 'waktu'             => $request->waktu,
+                'durasi'            => $request->durasi,
                 'metode_pembayaran' => $request->metode_pembayaran,
-                'harga'             => 45000, // nanti dari database
+                'harga'             => $totalHarga, 
             ]
         ]);
 
@@ -191,6 +207,72 @@ class BookingController extends Controller
         ]);
         // ── AKHIR DATA DUMMY ──
 
-        return view('pelanggan.booking-status', compact('bookings'));
+        return view('pelanggan.status-booking', compact('bookings'));
+    }
+
+    public function paymentInfo(Request $request)
+    {
+        // Ambil data dari form sebelumnya
+        $data = [
+            'room_id'  => $request->room_id,
+            'tipe'     => $request->tipe,
+            'paket'    => $request->paket,    // Pastikan ini ada
+            'kategori' => $request->kategori, // Pastikan ini ada
+            'tanggal'  => $request->tanggal,
+            'waktu'    => $request->waktu,
+            'durasi'   => $request->durasi,
+            'harga'    => $request->harga, // Total harga yang sudah dikali durasi
+        ];
+
+        // Simpan ke session agar bisa dibaca di payment.blade.php
+        session(['booking_data' => $data]);
+
+        return view('pelanggan.payment');
+    }
+
+    // Tambahkan ini di dalam class BookingController
+    public function processToPayment(Request $request)
+    {
+        // 1. Ambil harga dasar berdasarkan paket (untuk keamanan data)
+        $paket = $request->paket;
+        $kategori = $request->kategori;
+        
+        $hargaDasar = match($paket) {
+            'Paket Couple' => ($kategori == 'Playstation' ? 7000 : 30000),
+            'Paket Group'  => ($kategori == 'Playstation' ? 45000 : 50000),
+            'Paket Party'  => ($kategori == 'Playstation' ? 125000 : 85000),
+            default        => 30000,
+        };
+
+        // 2. Hitung total harga berdasarkan durasi
+        $totalHarga = $hargaDasar * $request->durasi;
+
+        // 3. Simpan semua data ke dalam Session agar bisa dibaca di halaman Payment
+        $bookingData = [
+            'room_id'           => $request->room_id,
+            'tipe'              => $request->tipe,
+            'paket'             => $paket,
+            'kategori'          => $kategori,
+            'tanggal'           => $request->tanggal,
+            'waktu'             => $request->waktu,
+            'durasi'            => $request->durasi,
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'harga'             => $totalHarga,
+        ];
+
+        session(['booking_data' => $bookingData]);
+
+        // 4. Arahkan ke rute tampilan pembayaran
+        return redirect()->route('booking.payment.show');
+    }
+
+    public function showPayment()
+    {
+        // Cek apakah ada data di session, jika kosong balikkan ke awal
+        if (!session()->has('booking_data')) {
+            return redirect()->route('booking.index');
+        }
+
+        return view('pelanggan.payment');
     }
 }
