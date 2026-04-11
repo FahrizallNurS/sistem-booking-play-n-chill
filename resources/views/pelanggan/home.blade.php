@@ -121,7 +121,7 @@
                     @else
                         {{-- Slide 2-10: Foto --}}
                         <div class="hero-slide-img"
-                            style="background-image: url('{{ asset('images/banner/slide' . $i . '.jpg') }}')">
+                            style="background-image: url('{{ asset("images/banner/slide{$i}.jpg") }}')">
                         </div>
                     @endif
                 </div>

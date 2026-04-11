@@ -16,20 +16,18 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\SuperadminController;
+use App\Http\Controllers\DataUserController;
 use App\Http\Controllers\TinjauLaporanController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
 
-// ================= ROOT =================
 Route::get('/', function () {
-    return redirect('/home');
+    return redirect()->route('pelanggan.home');
 });
 
-// Beranda (public)
 Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
-
-// Public
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
@@ -51,25 +49,35 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Superadmin
+Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
+
+    Route::get('/data-pengguna', fn () => view('superadmin.datauser'))->name('users');
+    Route::get('/laporan', fn () => view('superadmin.tinjau-laporan'))->name('laporan');
+});
+    //data user
+    Route::get('/superadmin/datauser', [DataUserController::class, 'index'])->name('superadmin.datauser');
+
 // ================= AUTH USER =================
 Route::middleware(['auth'])->group(function () {
 
-    // Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
 
     // Booking
     Route::get('/booking/paket',  [BookingController::class, 'paket'])->name('booking.paket');
     Route::get('/booking/form',   [BookingController::class, 'form'])->name('booking.form');
+
+    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
+    Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/payment', [BookingController::class, 'showPayment'])->name('booking.payment.show');
 
-    // Cek role (hapus setelah development)
-    Route::get('/tesrole', function () {
-        dd(Auth::user()?->role, Auth::check());
-    });
+    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
 
     // ================= SUPERADMIN =================
     Route::middleware([RoleMiddleware::class.':superadmin'])
@@ -79,14 +87,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
         });
 
-    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
-
     // ================= ADMIN =================
     Route::middleware([RoleMiddleware::class.':admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
 
@@ -116,4 +121,6 @@ Route::middleware(['auth'])->group(function () {
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
         Route::get('/jadwal', fn () => view('pelanggan.jadwal'))->name('pelanggan.jadwal');
     });
+
+    Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
 });
