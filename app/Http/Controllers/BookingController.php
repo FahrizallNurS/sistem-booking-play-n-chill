@@ -3,173 +3,141 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Room;
-use App\Models\Booking;
+use App\Models\TrTransaksi;
+use App\Models\MsRuangan;
+use App\Models\MsPaket;
+use App\Models\MsPricing;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
-    // =====================
-    // Halaman pilih ruangan
-    // =====================
     public function index(Request $request)
     {
-        $tipe = $request->input('tipe', 'reguler'); // default: reguler
+        $tipe = $request->input('tipe', 'reguler');
 
-        // Ambil ruangan berdasarkan tipe dari database
-        // Uncomment baris ini setelah tabel rooms tersedia:
-        // $rooms = Room::where('tipe', $tipe)->get();
+        $kategoriMap = [
+            'reguler' => 1,
+            'vip'     => 2,
+            'vvip'    => 3,
+        ];
 
-        // ── DATA DUMMY (hapus setelah database tersambung) ──
-        // ── DATA DUMMY (hapus setelah database tersambung) ──
-        $rooms = collect(match($tipe) {
-            'vip' => [
-                ['id' => 1, 'nama' => 'VIP 1', 'device' => 'PS4', 'status' => 'tersedia'],
-                ['id' => 2, 'nama' => 'VIP 2', 'device' => 'PS4', 'status' => 'tersedia'],
-            ],
-            'vvip' => [
-                ['id' => 1, 'nama' => 'VVIP 1', 'device' => 'PS5', 'status' => 'tersedia'],
-                ['id' => 2, 'nama' => 'VVIP 2', 'device' => 'PS5', 'status' => 'tersedia'],
-            ],
-            default => [ // reguler
-                ['id' => 1, 'nama' => 'Reguler 1', 'device' => 'PS3 - Tv 32" - Bean Bag', 'status' => 'tersedia'],
-                ['id' => 2, 'nama' => 'Reguler 2', 'device' => 'PS3 - Tv 32" - Bean Bag', 'status' => 'tersedia'],
-                ['id' => 3, 'nama' => 'Reguler 3', 'device' => 'PS4 - Tv 43" - Bean Bag', 'status' => 'penuh'],
-                ['id' => 4, 'nama' => 'Reguler 4', 'device' => 'PS4 - Tv 43" - Bean Bag', 'status' => 'tersedia'],
-                ['id' => 5, 'nama' => 'Reguler 5', 'device' => 'PS5 - Tv 43" - Bean Bag', 'status' => 'tersedia'],
-                ['id' => 6, 'nama' => 'Reguler 6', 'device' => 'PS5 - Tv 43" - Bean Bag', 'status' => 'tersedia'],
-            ],
-        });
-// ── AKHIR DATA DUMMY ──
-        // ── AKHIR DATA DUMMY ──
+        $idKategori = $kategoriMap[$tipe] ?? 1;
+
+        $rooms = MsRuangan::where('ms_kategori_id_kategori', $idKategori)
+            ->where('is_active', 1)
+            ->get();
 
         return view('pelanggan.booking', compact('rooms', 'tipe'));
     }
 
     public function paket(Request $request)
-    {
-        $roomId = $request->input('room');
-        $tipe   = $request->input('tipe', 'vip');
+{
+    $roomId = $request->input('room');
+    $tipe   = $request->input('tipe', 'reguler');
 
-        // ── KITA TAMBAHKAN DATA DUMMY ROOM DI SINI ──
-        $room = [
-            'id'     => $roomId,
-            'nama'   => match($tipe) {
-                'vip'  => 'VIP '.$roomId,
-                'vvip' => 'VVIP '.$roomId,
-                default => 'Reguler '.$roomId,
-            },
-            'tipe'   => $tipe,
-        ];
-        // ── AKHIR DATA DUMMY ──
+    $room = MsRuangan::with('kategori')->findOrFail($roomId);
 
-        // Pastikan 'room' dimasukkan ke dalam compact
-        return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room'));
+    $pricings = MsPricing::with(['paket.fasilitas'])
+        ->where('ms_ruangan_id_ruangan', $roomId)
+        ->get()
+        ->groupBy('ms_paket_id_paket');
+
+    return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room', 'pricings'));
     }
 
-    // =====================
-    // Halaman form booking
-    // =====================
+    
     public function form(Request $request)
     {
-        $roomId = $request->input('room');
-        $tipe   = $request->input('tipe', 'reguler');
+        $roomId  = $request->input('room');
+        $tipe    = $request->input('tipe');
+        $paketId = $request->input('paket');
 
-        // Ambil detail ruangan dari database
-        // Uncomment setelah database tersambung:
-        // $room = Room::findOrFail($roomId);
+        $room  = MsRuangan::findOrFail($roomId);
+        $paket = MsPaket::findOrFail($paketId);
 
-        // ── DATA DUMMY ──
-        $room = [
-            'id'     => $roomId,
-            'nama'   => match($tipe) {
-                'vip'  => 'VIP '.$roomId,
-                'vvip' => 'VVIP '.$roomId,
-                default => 'Reguler '.$roomId,
-            },
-            'device' => 'PS5',
-            'tipe'   => $tipe,
-            'harga'  => match($tipe) {
-                'vip'  => 50000,
-                'vvip' => 100000,
-                default => 30000,
-            },
-        ];
-        // ── AKHIR DATA DUMMY ──
+        $pricings = MsPricing::where('ms_ruangan_id_ruangan', $roomId)
+            ->where('ms_paket_id_paket', $paketId)
+            ->get();
 
-        return view('pelanggan.booking-form', compact('room', 'tipe'));
+        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'pricings'));
     }
 
-    // =====================
-    // Simpan booking
-    // =====================
+
     public function store(Request $request)
     {
         $request->validate([
-            'room_id'    => ['required'],
-            'tipe'       => ['required', 'in:reguler,vip,vvip'],
-            'tanggal'    => ['required', 'date', 'after_or_equal:today'],
-            'jam_mulai'  => ['required'],
-            'jam_selesai'=> ['required'],
-            'catatan'    => ['nullable', 'string', 'max:255'],
+            'ms_id_ruangan'   => 'required|exists:ms_ruangan,id_ruangan',
+            'ms_id_paket'     => 'required|exists:ms_paket,id_paket',
+            'tanggal_booking' => 'required|date|after_or_equal:today',
+            'waktu_mulai'     => 'required',
+            'durasi_sewa'     => 'required|integer|min:30',
+            'opsi_pembayaran' => 'required|in:full,dp',
+            'jumlah_dp'       => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
         ], [
-            'room_id.required'     => 'Ruangan wajib dipilih.',
-            'tanggal.required'     => 'Tanggal wajib diisi.',
-            'tanggal.after_or_equal' => 'Tanggal tidak boleh sebelum hari ini.',
-            'jam_mulai.required'   => 'Jam mulai wajib diisi.',
-            'jam_selesai.required' => 'Jam selesai wajib diisi.',
+            'tanggal_booking.after_or_equal' => 'Tanggal tidak boleh sebelum hari ini.',
+            'waktu_mulai.required'           => 'Jam main wajib dipilih.',
         ]);
 
-        // Simpan ke database
-        // Uncomment setelah tabel bookings tersambung:
-        // Booking::create([
-        //     'user_id'     => auth()->id(),
-        //     'room_id'     => $request->room_id,
-        //     'tipe'        => $request->tipe,
-        //     'tanggal'     => $request->tanggal,
-        //     'jam_mulai'   => $request->jam_mulai,
-        //     'jam_selesai' => $request->jam_selesai,
-        //     'catatan'     => $request->catatan,
-        //     'status'      => 'pending',
-        // ]);
+        $hari = Carbon::parse($request->tanggal_booking)->isWeekend() ? 'weekend' : 'weekday';
+        $pricing = MsPricing::where('ms_ruangan_id_ruangan', $request->ms_id_ruangan)
+            ->where('ms_paket_id_paket', $request->ms_id_paket)
+            ->where('hari_type', $hari)
+            ->where('durasi_menit', $request->durasi_sewa)
+            ->first();
+
+        if (!$pricing) {
+            return back()->withInput()->withErrors([
+                'durasi_sewa' => 'Paket tidak tersedia untuk durasi dan hari tersebut.'
+            ]);
+        }
+
+        do {
+            $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
+        } while (TrTransaksi::where('kode_booking', $kode)->exists());
+
+        TrTransaksi::create([
+            'kode_booking'         => $kode,
+            'tanggal_booking'      => $request->tanggal_booking,
+            'waktu_mulai'          => $request->waktu_mulai,
+            'durasi_sewa'          => $request->durasi_sewa,
+            'ms_id_ruangan'        => $request->ms_id_ruangan,
+            'ms_id_paket'          => $request->ms_id_paket,
+            'ms_id_pengguna'       => Auth::id(),
+            'opsi_pembayaran'      => $request->opsi_pembayaran,
+            'jumlah_dp'            => $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null,
+            'total_harga'          => $pricing->harga,
+            'harga_saat_transaksi' => $pricing->harga,
+            'status_booking'       => 'pending',
+            'status_pembayaran'    => 'unpaid',
+        ]);
 
         return redirect()->route('booking.status')
-                         ->with('success', 'Booking berhasil! Menunggu konfirmasi admin.');
+            ->with('success', 'Booking berhasil! Menunggu konfirmasi admin.');
     }
 
-    // =====================
-    // Halaman status booking
-    // =====================
     public function status()
     {
-        // Ambil booking milik user yang login
-        // Uncomment setelah database tersambung:
-        // $bookings = Booking::where('user_id', auth()->id())
-        //                    ->latest()
-        //                    ->get();
+        $bookings = TrTransaksi::with(['ruangan', 'paket'])
+            ->where('ms_id_pengguna', Auth::id())
+            ->latest()
+            ->get();
 
-        // ── DATA DUMMY ──
-        $bookings = collect([
-            [
-                'id'          => 1,
-                'ruangan'     => 'Reguler 1',
-                'tipe'        => 'reguler',
-                'tanggal'     => '2025-07-10',
-                'jam_mulai'   => '14:00',
-                'jam_selesai' => '16:00',
-                'status'      => 'pending',
-            ],
-            [
-                'id'          => 2,
-                'ruangan'     => 'VIP 2',
-                'tipe'        => 'vip',
-                'tanggal'     => '2025-07-08',
-                'jam_mulai'   => '10:00',
-                'jam_selesai' => '12:00',
-                'status'      => 'dikonfirmasi',
-            ],
-        ]);
-        // ── AKHIR DATA DUMMY ──
+        return view('pelanggan.status-booking', compact('bookings'));
+    }
 
-        return view('pelanggan.booking-status', compact('bookings'));
+    public function processToPayment(Request $request)
+    {
+        session(['booking_data' => $request->all()]);
+        return redirect()->route('booking.payment.show');
+    }
+
+    public function showPayment()
+    {
+        if (!session()->has('booking_data')) {
+            return redirect()->route('booking');
+        }
+        return view('pelanggan.payment');
     }
 }

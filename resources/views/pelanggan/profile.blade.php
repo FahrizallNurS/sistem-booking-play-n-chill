@@ -50,6 +50,9 @@
                             </div>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0"
                                 aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/booking/status') }}">Status Booking</a></li> {{-- Tambahkan ini --}}
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
@@ -70,11 +73,6 @@
 {{-- ═══ PROFILE PAGE ═══ --}}
 <div class="profile-page">
 
-    {{-- Dekorasi diamond kuning --}}
-    <div class="diamond diamond-1"></div>
-    <div class="diamond diamond-2"></div>
-    <div class="diamond diamond-3"></div>
-    <div class="diamond diamond-4"></div>
 
     {{-- Judul --}}
     <h1 class="profile-title">Profil</h1>

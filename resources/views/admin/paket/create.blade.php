@@ -38,38 +38,38 @@
             <hr>
             <h5>Assign ke Ruangan</h5>
 
-            {{-- Kategori --}}
-            <div class="form-group">
-                <label>Kategori Ruangan</label>
-                <select id="kategori_select" class="form-control">
-                    <option value="">-- Pilih Kategori --</option>
-                    @foreach($kategoris as $kategori)
-                        <option value="{{ $kategori->id_kategori }}">{{ $kategori->nama_kategori }}</option>
-                    @endforeach
-                </select>
-            </div>
+        {{-- Kategori --}}
+        <div class="form-group">
+            <label>Kategori Ruangan</label>
+            <select id="kategori_select" class="form-control">
+                <option value="">-- Pilih Kategori --</option>
+                @foreach($kategoris as $kategori)
+                    <option value="{{ $kategori->id_kategori }}">{{ $kategori->nama_kategori }}</option>
+                @endforeach
+            </select>
+        </div>
 
-            {{-- Ruangan (diisi via AJAX) --}}
-            <div class="form-group">
-                <label>Nama Ruangan</label>
-                <select name="ms_ruangan_id_ruangan" id="ruangan_select" class="form-control" required>
-                    <option value="">-- Pilih Kategori dulu --</option>
-                </select>
+        {{-- Ruangan multi-select --}}
+        <div class="form-group">
+            <label>Pilih Ruangan <small class="text-muted">(bisa pilih lebih dari satu)</small></label>
+            <div id="ruangan_container" class="border rounded p-2" style="min-height:50px">
+                <small class="text-muted">Pilih kategori dulu...</small>
             </div>
+        </div>
 
-            {{-- Tipe Hari --}}
-            <div class="form-group">
-                <label>Tipe Hari</label>
-                <select name="tipe_hari" id="tipe_hari" class="form-control" required>
-                    <option value="">-- Pilih Hari --</option>
-                    <option value="weekday">Weekday (Senin - Jumat)</option>
-                    <option value="weekend">Weekend (Sabtu - Minggu)</option>
-                    <option value="holiday">Holiday</option>
-                </select>
-                <small id="label_hari" class="text-muted"></small>
-            </div>
+        {{-- Tipe Hari --}}
+        <div class="form-group">
+            <label>Tipe Hari</label>
+            <select name="tipe_hari" id="tipe_hari" class="form-control" required>
+                <option value="">-- Pilih Hari --</option>
+                <option value="weekday">Weekday (Senin - Jumat)</option>
+                <option value="weekend">Weekend (Sabtu - Minggu)</option>
+                <option value="holiday">Holiday</option>
+            </select>
+            <small id="label_hari" class="text-muted"></small>
+        </div>
 
-            <hr>
+
             <h5>Fasilitas Paket</h5>
 
             <div id="fasilitas_container">
@@ -131,26 +131,38 @@
 
 @section('js')
 <script>
-    // AJAX load ruangan by kategori
+
     document.getElementById('kategori_select').addEventListener('change', function() {
-        const idKategori = this.value;
-        const ruanganSelect = document.getElementById('ruangan_select');
+    const idKategori = this.value;
+    const container = document.getElementById('ruangan_container');
 
-        ruanganSelect.innerHTML = '<option value="">Loading...</option>';
+    container.innerHTML = '<small class="text-muted">Loading...</small>';
 
-        if (!idKategori) {
-            ruanganSelect.innerHTML = '<option value="">-- Pilih Kategori dulu --</option>';
-            return;
-        }
+    if (!idKategori) {
+        container.innerHTML = '<small class="text-muted">Pilih kategori dulu...</small>';
+        return;
+    }
 
-        fetch(`/admin/kategori/${idKategori}/ruangan`)
+    fetch(`/admin/kategori/${idKategori}/ruangan`)
         .then(res => res.text())
         .then(text => {
-            const clean = text.replace(/^[^[{]*/, ''); // hapus karakter aneh di depan
+            const clean = text.replace(/^[^[{]*/, '');
             const data = JSON.parse(clean);
-            ruanganSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+            container.innerHTML = '';
+            if (data.length === 0) {
+                container.innerHTML = '<small class="text-muted">Tidak ada ruangan tersedia.</small>';
+                return;
+            }
             data.forEach(r => {
-                ruanganSelect.innerHTML += `<option value="${r.id_ruangan}">${r.nama_ruangan}</option>`;
+                container.innerHTML += `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                            name="ms_ruangan_ids[]" value="${r.id_ruangan}" id="ruangan_${r.id_ruangan}">
+                        <label class="form-check-label" for="ruangan_${r.id_ruangan}">
+                            ${r.nama_ruangan}
+                        </label>
+                    </div>
+                `;
             });
         });
     });

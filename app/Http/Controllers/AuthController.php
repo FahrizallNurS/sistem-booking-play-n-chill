@@ -94,6 +94,7 @@ class AuthController extends Controller
                 'email_verified_at' => now(),
             ]
         );
+    
 
         // Update google_id kalau user sudah ada tapi belum punya google_id
         if (!$user->google_id) {
