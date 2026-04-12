@@ -16,13 +16,10 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\SuperadminController;
-use App\Http\Controllers\DataUserController;
-use App\Http\Controllers\TinjauLaporanController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
-use App\Http\Controllers\Superadmin\SADashboardController;
+use App\Http\Controllers\Superadmin\SABerandaController;
 use App\Http\Controllers\Superadmin\SAProfilController;
 use App\Http\Controllers\Superadmin\KelolaUserController;
 use App\Http\Controllers\Superadmin\SATinjauLaporanController;
@@ -53,17 +50,6 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Superadmin
-Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function (){
-    Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
-
-    Route::get('/data-pengguna', fn () => view('superadmin.datauser'))->name('users');
-    Route::get('/laporan', fn () => view('superadmin.tinjau-laporan'))->name('laporan');
-});
-    //data user
-    Route::get('/superadmin/datauser', [DataUserController::class, 'index'])->name('superadmin.datauser');
-   
-
 // ================= AUTH USER =================
 Route::middleware(['auth'])->group(function () {
 
@@ -88,7 +74,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('superadmin.')
         ->group(function () {
             // Halaman Utama Dashboard
-        Route::get('/dashboard', [SADashboardController::class, 'index'])->name('dashboard');
+        Route::get('/beranda', [SABerandaController::class, 'index'])->name('beranda');
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
         Route::patch('/data-user/{id}', [KelolaUserController::class, 'update'])->name('users.update');
