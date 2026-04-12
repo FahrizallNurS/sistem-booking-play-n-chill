@@ -10,6 +10,8 @@ use App\Models\MsFasilitas;
 use App\Models\MsPricing;
 use Illuminate\Http\Request;
 
+        
+
 class PaketController extends Controller
 {
     public function index()
@@ -28,19 +30,21 @@ class PaketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_paket'            => 'required|string|max:50',
+            'nama_paket'            => 'required|string|max:50|unique:ms_paket,nama_paket',
             'deskripsi_paket'       => 'nullable|string',
             'maksimal_orang'        => 'nullable|integer|min:1',
             'is_active'             => 'required|in:0,1',
             'ms_ruangan_id_ruangan' => 'required|exists:ms_ruangan,id_ruangan',
             'tipe_hari'             => 'required|in:weekday,weekend,holiday',
-            'harga'                 => 'required|numeric|min:0',
-            'durasi_menit'          => 'required|integer|min:30',
+            'durasi_menit'          => 'required|array',
+            'durasi_menit.*'        => 'integer|min:30',
+            'harga'                 => 'required|array',
+            'harga.*'               => 'numeric|min:0',
             'fasilitas'             => 'nullable|array',
-            'fasilitas.*'           => 'exists:ms_fasilitas,id_fasilitas',
+            'fasilitas.*'           => 'nullable|string|max:100',
         ]);
 
-        // Simpan paket
+        // 1. Simpan paket
         $paket = MsPaket::create([
             'nama_paket'      => $request->nama_paket,
             'deskripsi_paket' => $request->deskripsi_paket,
@@ -48,24 +52,37 @@ class PaketController extends Controller
             'is_active'       => $request->is_active,
         ]);
 
-        // Simpan pricing
-        MsPricing::create([
-            'ms_ruangan_id_ruangan' => $request->ms_ruangan_id_ruangan,
-            'ms_paket_id_paket'     => $paket->id_paket,
-            'tipe_pricing'          => $request->tipe_hari,
-            'hari_type'             => $request->tipe_hari,
-            'durasi_menit'          => $request->durasi_menit,
-            'harga'                 => $request->harga,
-        ]);
+        // 2. Simpan fasilitas
+        $fasilitasIds = [];
+        if ($request->fasilitas) {
+            foreach ($request->fasilitas as $nama) {
+                if ($nama) {
+                    $f = MsFasilitas::firstOrCreate([
+                        'nama_fasilitas' => ucfirst(strtolower($nama))
+                    ]);
+                    $fasilitasIds[] = $f->id_fasilitas;
+                }
+            }
+        }
+        if (!empty($fasilitasIds)) {
+            $paket->fasilitas()->sync($fasilitasIds);
+        }
 
-        // Simpan fasilitas ruangan
-    if ($request->fasilitas) {
-        $paket->fasilitas()->syncWithoutDetaching($request->fasilitas);
+        // 3. Simpan pricing
+        foreach ($request->durasi_menit as $index => $durasi) {
+            MsPricing::create([
+                'ms_ruangan_id_ruangan' => $request->ms_ruangan_id_ruangan,
+                'ms_paket_id_paket'     => $paket->id_paket,
+                'tipe_pricing'          => $request->tipe_hari,
+                'hari_type'             => $request->tipe_hari,
+                'durasi_menit'          => $durasi,
+                'harga'                 => $request->harga[$index],
+            ]);
+        }
+
+        return redirect()->route('admin.paket.index')
+            ->with('success', 'Paket berhasil dibuat!');
     }
-
-        return redirect()->route('admin.paket.index')->with('success', 'Paket berhasil ditambahkan!');
-    }
-
     public function edit($id)
     {
         $paket     = MsPaket::with('pricings.ruangan')->findOrFail($id);
@@ -79,7 +96,7 @@ class PaketController extends Controller
         $request->validate([
             'nama_paket'      => 'required|string|max:50',
             'deskripsi_paket' => 'nullable|string',
-            'maksimal_orang'  => 'nullable|integer|min:1',
+            'maksimal_orang'  => 'nullable|integer|min:1',  
             'is_active'       => 'required|in:0,1',
         ]);
 

@@ -350,7 +350,7 @@ body {
 
 .vid-wrap {
     max-width: 750px;
-    margin: 0 auto;
+    margin: 0 auto; 
     overflow: hidden;
     box-shadow: 0 10px 44px rgba(0, 0, 0, .28);
     aspect-ratio: 16 / 9;
@@ -589,4 +589,8 @@ footer {
     .hero        { padding: 50px 16px 72px; }
     .cta-section { padding: 52px 14px 60px; }
     .hero-slide-img { height: 300px; }
+}
+
+html {
+    overflow-x: hidden;
 }

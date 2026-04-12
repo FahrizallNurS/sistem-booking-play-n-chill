@@ -69,46 +69,63 @@
                 <small id="label_hari" class="text-muted"></small>
             </div>
 
-            {{-- Durasi --}}
-            <div class="form-group">
-                <label>Durasi (menit)</label>
-                <input type="number" name="durasi_menit" class="form-control" min="30"
-                    placeholder="contoh: 60 untuk 1 jam" required>
-            </div>
-
-            {{-- Harga --}}
-            <div class="form-group">
-                <label>Harga (Rp)</label>
-                <input type="number" name="harga" class="form-control" min="0"
-                    placeholder="contoh: 50000" required>
-            </div>
-
             <hr>
-            <h5>Fasilitas Ruangan</h5>
+            <h5>Fasilitas Paket</h5>
 
-            {{-- Fasilitas Dynamic --}}
             <div id="fasilitas_container">
-                <div class="fasilitas-row d-flex mb-2">
-                    <select name="fasilitas[]" class="form-control mr-2">
-                        <option value="">-- Pilih Fasilitas --</option>
-                        @foreach($fasilitas as $f)
-                            <option value="{{ $f->id_fasilitas }}">{{ $f->nama_fasilitas }}</option>
-                        @endforeach
-                    </select>
+                <div class="fasilitas-row d-flex align-items-center mb-2">
+                    <input type="text" name="fasilitas[]" class="form-control mr-2"
+                        placeholder="contoh: AC, Snack, PS5">
+
                     <button type="button" class="btn btn-danger btn-hapus-fasilitas">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
+
             <button type="button" id="btn_tambah_fasilitas" class="btn btn-secondary btn-sm mb-3">
                 <i class="fas fa-plus"></i> Tambah Fasilitas
             </button>
 
-            <br>
-            <a href="{{ route('admin.paket.index') }}" class="btn btn-secondary">Batal</a>
-            <button type="submit" class="btn btn-primary">Simpan</button>
+            <hr>
+            <h5>Pricing (Durasi & Harga)</h5>
+
+            <div id="pricing_container">
+                <div class="pricing-row d-flex align-items-center mb-2">
+                    <input type="number" name="durasi_menit[]" class="form-control mr-2"
+                        placeholder="Durasi (menit)" min="30" required>
+
+                    <input type="number" name="harga[]" class="form-control mr-2"
+                        placeholder="Harga" min="0" required>
+
+                    <button type="button" class="btn btn-danger btn-hapus-pricing">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" id="btn_tambah_pricing" class="btn btn-secondary btn-sm mb-3">
+                <i class="fas fa-plus"></i> Tambah Durasi
+            </button>
+
+            <hr>
+
+            <div class="d-flex justify-content-end">
+                <a href="{{ route('admin.paket.index') }}" class="btn btn-secondary mr-2">
+                    Batal
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Simpan
+                </button>
+            </div>
+
+            </div>
+            </div>
+
+
         </form>
-    </div>
+
+
 </div>
 @stop
 
@@ -127,13 +144,15 @@
         }
 
         fetch(`/admin/kategori/${idKategori}/ruangan`)
-            .then(res => res.json())
-            .then(data => {
-                ruanganSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
-                data.forEach(r => {
-                    ruanganSelect.innerHTML += `<option value="${r.id_ruangan}">${r.nama_ruangan}</option>`;
-                });
+        .then(res => res.text())
+        .then(text => {
+            const clean = text.replace(/^[^[{]*/, ''); // hapus karakter aneh di depan
+            const data = JSON.parse(clean);
+            ruanganSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+            data.forEach(r => {
+                ruanganSelect.innerHTML += `<option value="${r.id_ruangan}">${r.nama_ruangan}</option>`;
             });
+        });
     });
 
     // Label hari otomatis
@@ -145,8 +164,14 @@
         else label.textContent = '';
     });
 
-    // Tambah fasilitas dynamic
-    const fasilitasTemplate = document.querySelector('.fasilitas-row').innerHTML;
+    const fasilitasTemplate = `
+    <input type="text" name="fasilitas[]" class="form-control mr-2"
+        placeholder="contoh: AC, Snack, PS5">
+
+    <button type="button" class="btn btn-danger btn-hapus-fasilitas">
+        <i class="fas fa-times"></i>
+    </button>
+    `;
 
     document.getElementById('btn_tambah_fasilitas').addEventListener('click', function() {
         const div = document.createElement('div');
@@ -164,5 +189,40 @@
             }
         }
     });
+
+    const pricingTemplate = `
+    <input type="number" name="durasi_menit[]" class="form-control mr-2"
+        placeholder="Durasi (menit)" min="30" required>
+
+    <input type="number" name="harga[]" class="form-control mr-2"
+        placeholder="Harga" min="0" required>
+
+    <button type="button" class="btn btn-danger btn-hapus-pricing">
+        <i class="fas fa-times"></i>
+    </button>
+    `;
+
+    // tambah pricing
+    document.getElementById('btn_tambah_pricing').addEventListener('click', function() {
+        const div = document.createElement('div');
+        div.className = 'pricing-row d-flex mb-2';
+        div.innerHTML = pricingTemplate;
+        document.getElementById('pricing_container').appendChild(div);
+    });
+
+    // hapus pricing
+    document.getElementById('pricing_container').addEventListener('click', function(e) {
+        if (e.target.closest('.btn-hapus-pricing')) {
+            const rows = document.querySelectorAll('.pricing-row');
+            if (rows.length > 1) {
+                e.target.closest('.pricing-row').remove();
+            }
+        }
+    });
+
+    
+    
 </script>
+
+
 @stop

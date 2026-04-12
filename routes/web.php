@@ -95,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
             Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
             Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
+
+            Route::get('/admin/kategori/{id}/ruangan', [LayananController::class, 'getRuanganByKategori']);
         });
 
     // ================= PELANGGAN =================

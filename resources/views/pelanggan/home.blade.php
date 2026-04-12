@@ -148,51 +148,50 @@
         Nikmati tiga jenis hiburan berbeda tanpa perlu pindah tempat. Hemat waktu, maksimalkan keseruan!
     </p>
 
-    <div class="room-grid">
+   <div class="room-grid">
 
-        {{-- Gaming Room --}}
-        <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none">
-            <div class="r-card">
-                <div class="r-img gaming">
-                    <span class="r-badge">🎮</span>
-                    <span class="r-sofa">🛋️</span>
-                </div>
-                <div class="r-foot">
-                    <h5>Gaming Room</h5>
-                    <p>PlayStation & Nintendo Switch terbaru dengan koleksi game lengkap</p>
-                </div>
+    {{-- Gaming Room --}}
+    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none">
+        <div class="r-card">
+            <div class="r-img gaming" style="background-image: url('{{ asset('images/gaming.jpg') }}'); background-size: cover; background-position: center;">
+                <span class="r-badge">🎮</span>
+                <span class="r-sofa">🛋️</span>
             </div>
-        </a>
-
-        {{-- Karaoke Room --}}
-        <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none">
-            <div class="r-card">
-                <div class="r-img karaoke">
-                    <span class="r-badge">🎤</span>
-                    <span class="r-sofa">🛋️</span>
-                </div>
-                <div class="r-foot">
-                    <h5>Karaokke Room</h5>
-                    <p>Ruang karaoke privat dengan sound system premium</p>
-                </div>
+            <div class="r-foot">
+                <h5>Gaming Room</h5>
+                <p>PlayStation & Nintendo Switch terbaru dengan koleksi game lengkap</p>
             </div>
-        </a>
+        </div>
+    </a>
 
-        {{-- Private Bioskop --}}
-        <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none">
-            <div class="r-card">
-                <div class="r-img bioskop">
-                    <span class="r-badge">🎞️</span>
-                    <span class="r-sofa">🛋️</span>
-                </div>
-                <div class="r-foot">
-                    <h5>Private Bioskop</h5>
-                    <p>Nikmati film favorit di layar lebar dengan kenyamanan maksimal</p>
-                </div>
+    {{-- Karaoke Room --}}
+    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none">
+        <div class="r-card">
+            <div class="r-img karaoke" style="background-image: url('{{ asset('images/karaoke.jpg') }}'); background-size: cover; background-position: center;">
+                <span class="r-badge">🎤</span>
+                <span class="r-sofa">🛋️</span>
             </div>
-        </a>
+            <div class="r-foot">
+                <h5>Karaoke Room</h5>
+                <p>Ruang karaoke privat dengan sound system premium</p>
+            </div>
+        </div>
+    </a>
 
-    </div>
+    {{-- Private Bioskop --}}
+    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none">
+        <div class="r-card">
+            <div class="r-img bioskop" style="background-image: url('{{ asset('images/cinema.jpg') }}'); background-size: cover; background-position: center;">
+                <span class="r-badge">🎞️</span>
+                <span class="r-sofa">🛋️</span>
+            </div>
+            <div class="r-foot">
+                <h5>Private Bioskop</h5>
+                <p>Nikmati film favorit di layar lebar dengan kenyamanan maksimal</p>
+            </div>
+        </div>
+    </a>
+
 </div>
 
 {{-- ═══ ROOM TOUR ═══ --}}
