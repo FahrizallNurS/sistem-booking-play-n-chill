@@ -37,7 +37,7 @@
         <p class="text-purple-100 mt-2 font-medium">Konfigurasi Booking Anda</p>
     </div>
 
-    <form action="{{ route('booking.store') }}" method="POST" class="space-y-6">
+    <form action="{{ route('booking.checkout') }}" method="POST" class="space-y-6">
         @csrf
         <input type="hidden" name="tanggal" :value="tanggal">
         <input type="hidden" name="waktu_mulai" :value="confirmedTime">
@@ -118,7 +118,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mt-8">
-                <a href="{{ url()->previous() }}" class="bg-white/20 text-center py-4 rounded-2xl font-bold hover:bg-white/30 transition">
+                <a href="{{ url('/booking') }}"class="bg-white/20 text-center py-4 rounded-2xl font-bold hover:bg-white/30 transition">
                     Batal
                 </a>
                 <button type="submit" :disabled="!confirmedTime"

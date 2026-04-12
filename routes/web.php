@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/jadwal', [JadwalController::class, 'index'])->name('pelanggan.jadwal');
+    Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/payment', [BookingController::class, 'showPayment'])->name('booking.payment.show');
