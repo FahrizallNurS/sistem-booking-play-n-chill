@@ -22,7 +22,10 @@ use App\Http\Controllers\TinjauLaporanController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
+use App\Http\Controllers\Superadmin\SADashboardController;
 use App\Http\Controllers\Superadmin\SAProfilController;
+use App\Http\Controllers\Superadmin\KelolaUserController;
+use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 
 Route::get('/', function () {
     return redirect()->route('pelanggan.home');
@@ -51,7 +54,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Superadmin
-Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function (){
     Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
 
     Route::get('/data-pengguna', fn () => view('superadmin.datauser'))->name('users');
@@ -59,6 +62,7 @@ Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('supera
 });
     //data user
     Route::get('/superadmin/datauser', [DataUserController::class, 'index'])->name('superadmin.datauser');
+   
 
 // ================= AUTH USER =================
 Route::middleware(['auth'])->group(function () {
@@ -83,9 +87,16 @@ Route::middleware(['auth'])->group(function () {
         ->prefix('superadmin')
         ->name('superadmin.')
         ->group(function () {
-            Route::get('/dashboard', fn () => view('superadmin.dashboard'))->name('dashboard');
-            Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
-        });
+            // Halaman Utama Dashboard
+        Route::get('/dashboard', [SADashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
+        Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
+        Route::patch('/data-user/{id}', [KelolaUserController::class, 'update'])->name('users.update');
+        // Tambahkan rute ini jika nanti ingin buat fitur tambah/edit user:
+        // Route::get('/data-user/create', [KelolaUserController::class, 'create'])->name('users.create');
+        // Route::post('/data-user/store', [KelolaUserController::class, 'store'])->name('users.store');
+        Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
+    });
 
     // ================= ADMIN =================
     Route::middleware([RoleMiddleware::class.':admin'])
