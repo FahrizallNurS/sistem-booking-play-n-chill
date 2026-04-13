@@ -13,11 +13,15 @@ class RoleMiddleware
     if (!Auth::check()) {
         return redirect()->route('login');
     }
+    $user = Auth::user();
 
-    if (!in_array(Auth::user()->role, $roles)) {
-        abort(403, 'Akses ditolak.');
+    if ($user->role === 'superadmin') {
+        return $next($request);
     }
 
-    return $next($request);
+    if (in_array($user->role, $roles)) {
+        return $next($request);
+    }
+    abort(403, 'Maaf, Anda tidak memiliki akses ke halaman ini.');
 }
 }
