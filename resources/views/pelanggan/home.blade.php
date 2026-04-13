@@ -105,7 +105,7 @@
         </div>
 
         <div class="carousel-inner">
-            @for ($i = 1; $i <= 10; $i++)
+            @for ($i = 1; $i <= 5; $i++)
                 <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="3000">
                     @if ($i == 1)
                         {{-- Slide 1: Teks Play N Chill --}}
@@ -148,50 +148,49 @@
         Nikmati tiga jenis hiburan berbeda tanpa perlu pindah tempat. Hemat waktu, maksimalkan keseruan!
     </p>
 
-    <div class="room-grid">
+   <div class="room-grid">
 
-        {{-- Gaming Room --}}
-        <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none">
-            <div class="r-card">
-                <div class="r-img gaming">
-                    <span class="r-badge">🎮</span>
-                    <span class="r-sofa">🛋️</span>
-                </div>
-                <div class="r-foot">
-                    <h5>Gaming Room</h5>
-                    <p>PlayStation & Nintendo Switch terbaru dengan koleksi game lengkap</p>
-                </div>
+    {{-- Gaming Room --}}
+    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none">
+        <div class="r-card">
+            <div class="r-img gaming" style="background-image: url('{{ asset('images/gaming.jpg') }}'); background-size: cover; background-position: center;">
+                <span class="r-badge">🎮</span>
+                <span class="r-sofa">🛋️</span>
             </div>
-        </a>
-
-        {{-- Karaoke Room --}}
-        <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none">
-            <div class="r-card">
-                <div class="r-img karaoke">
-                    <span class="r-badge">🎤</span>
-                    <span class="r-sofa">🛋️</span>
-                </div>
-                <div class="r-foot">
-                    <h5>Karaokke Room</h5>
-                    <p>Ruang karaoke privat dengan sound system premium</p>
-                </div>
+            <div class="r-foot">
+                <h5>Gaming Room</h5>
+                <p>PlayStation & Nintendo Switch terbaru dengan koleksi game lengkap</p>
             </div>
-        </a>
+        </div>  
+    </a>
 
-        {{-- Private Bioskop --}}
-        <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none">
-            <div class="r-card">
-                <div class="r-img bioskop">
-                    <span class="r-badge">🎞️</span>
-                    <span class="r-sofa">🛋️</span>
-                </div>
-                <div class="r-foot">
-                    <h5>Private Bioskop</h5>
-                    <p>Nikmati film favorit di layar lebar dengan kenyamanan maksimal</p>
-                </div>
+    {{-- Karaoke Room --}}
+    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none">
+        <div class="r-card">
+            <div class="r-img karaoke" style="background-image: url('{{ asset('images/karaoke.jpg') }}'); background-size: cover; background-position: center;">
+                <span class="r-badge">🎤</span>
+                <span class="r-sofa">🛋️</span>
             </div>
-        </a>
+            <div class="r-foot">
+                <h5>Karaoke Room</h5>
+                <p>Ruang karaoke privat dengan sound system premium</p>
+            </div>
+        </div>
+    </a>
 
+    {{-- Private Bioskop --}}
+    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none">
+        <div class="r-card">
+            <div class="r-img bioskop" style="background-image: url('{{ asset('images/cinema.jpg') }}'); background-size: cover; background-position: center;">
+                <span class="r-badge">🎞️</span>
+                <span class="r-sofa">🛋️</span>
+            </div>
+            <div class="r-foot">
+                <h5>Private Bioskop</h5>
+                <p>Nikmati film favorit di layar lebar dengan kenyamanan maksimal</p>
+            </div>
+        </div>
+    </a>
     </div>
 </div>
 
@@ -210,11 +209,49 @@
     </div>
 </section>
 
+{{-- ═══ DAFTAR GAME ═══ --}}
+<section class="game-section">
+    <div class="container-fluid px-4">
+        <h2>Koleksi Game Kami</h2>
+
+        {{-- Navigasi Filter --}}
+        <div class="game-filter">
+            <button class="filter-game-btn active" onclick="filterGames('all')">Semua</button>
+            <button class="filter-game-btn" onclick="filterGames('ps3')">PS 3</button>
+            <button class="filter-game-btn" onclick="filterGames('ps4')">PS 4</button>
+            <button class="filter-game-btn" onclick="filterGames('ps5')">PS 5</button>
+            <button class="filter-game-btn" onclick="filterGames('switch')">Switch</button>
+        </div>
+
+        {{-- Grid Game --}}
+        <div class="game-grid" id="gameGrid">
+            @php
+                // Data Dummy Game (Nanti bisa dipindah ke Controller)
+                $games = [
+                    ['title' => 'GTA V', 'platform' => 'ps4', 'img' => 'gta5.jpg'],
+                    ['title' => 'God of War Ragnarok', 'platform' => 'ps5', 'img' => 'gow.jpg'],
+                    ['title' => 'Mario Kart 8', 'platform' => 'switch', 'img' => 'mario.jpg'],
+                    ['title' => 'FIFA 23', 'platform' => 'ps5', 'img' => 'fifa23.jpg'],
+                    ['title' => 'The Last of Us', 'platform' => 'ps3', 'img' => 'tlou.jpg'],
+                    ['title' => 'Naruto Storm 4', 'platform' => 'ps4', 'img' => 'naruto.jpg'],
+                ];
+            @endphp
+
+            @foreach ($games as $game)
+                <div class="game-card" data-platform="{{ $game['platform'] }}">
+                    {{-- Pastikan kamu punya gambar di public/images/games/ --}}
+                    <img src="{{ asset('images/games/' . $game['img']) }}" 
+                         onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'" alt="Game">
+                    <span class="game-badge">{{ $game['platform'] }}</span>
+                    <h5>{{ $game['title'] }}</h5>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
 {{-- ═══ CTA ═══ --}}
 <section class="cta-section" id="booking">
-    <div class="cta-blob cta-blob-1"></div>
-    <div class="cta-blob cta-blob-2"></div>
-    <div class="cta-blob cta-blob-3"></div>
     <h2>Siap untuk nongkrong Seru?</h2>
     <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
     <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
@@ -288,6 +325,28 @@
         wrap.onclick  = null;
         wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1"
             allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+</script>
+
+<script>
+    function filterGames(platform) {
+        // 1. Ubah status tombol aktif
+        const buttons = document.querySelectorAll('.filter-game-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // 2. Filter kartu game
+        const cards = document.querySelectorAll('.game-card');
+        cards.forEach(card => {
+            if (platform === 'all' || card.getAttribute('data-platform') === platform) {
+                card.style.display = 'block';
+                // Animasi muncul kembali
+                card.style.opacity = '0';
+                setTimeout(() => { card.style.opacity = '1'; }, 10);
+            } else {
+                card.style.display = 'none';
+            }
+        });
     }
 </script>
 

@@ -3,158 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
     <title>Informasi Pembayaran - Play N Chill</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #4B32A8;
-            background-image: 
-                linear-gradient(135deg, #A8E014 15%, transparent 15%),
-                linear-gradient(225deg, #A8E014 10%, transparent 10%);
-            background-size: 100% 100%;
-            background-attachment: fixed;
-        }
-        .glass-card {
-            background: rgba(85, 60, 200, 0.97);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-    </style>
+    
+    {{-- CSS Assets (Gunakan Bootstrap agar Navbar sama) --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    {{-- Hubungkan CSS Terpisah --}}
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/payment.css') }}">
 </head>
-<body class="min-h-screen text-white pb-12">
+<body>
 
-    <!-- Header Full Width -->
-    <nav class="bg-white w-full shadow-md mb-8">
-        <div class="w-full px-6 py-3 flex justify-between items-center">
-            <!-- Logo Kiri -->
-            <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <div class="w-12 h-12 bg-[#4B32A8] rounded-xl flex items-center justify-center font-black text-white text-[10px] text-center p-1 uppercase leading-none shadow-md">
-                    Play N Chill<br> 
-                </div>
+    {{-- ═══ NAVBAR (Sinkron dengan Home/Gallery) ═══ --}}
+    <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm mb-5">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand p-0" href="{{ url('/') }}">
+                <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
             </a>
-
-            <!-- Menu Kanan (Bisa Dipencet Semua) -->
-            <div class="flex items-center gap-4 md:gap-8 text-sm font-bold text-gray-800">
-                <a href="/home" class="hover:text-indigo-600 transition-colors">Home</a>
-                <a href="/booking" class="bg-[#9B87F5] text-white px-6 py-2 rounded-full shadow-md hover:bg-indigo-600 transition-all">
-                    Booking
-                </a>
-                <a href="/gallery" class="hover:text-indigo-600 transition-colors">Gallery</a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <a href="{{ url('/') }}" class="nav-link fw-bold text-dark d-none d-md-block">Home</a>
+                <a href="{{ url('/booking') }}" class="nav-link nav-btn-active">Booking</a>
+                <a href="{{ url('/gallery') }}" class="nav-link fw-bold text-dark d-none d-md-block">Gallery</a>
                 
-                <!-- Profil Bisa Dipencet -->
-                <a href="/profile" class="group">
-                    <div class="w-12 h-12 bg-[#E86B32] rounded-full flex items-center justify-center border-2 border-white overflow-hidden shadow-lg group-hover:scale-110 transition-transform">
-                        <img src="https://ui-avatars.com/api/?name=Gojo+Satoru&background=E86B32&color=fff" alt="Profile" class="w-full h-full">
-                    </div>
-                </a>
+                @auth
+                <div class="nav-avatar">
+                    <svg viewBox="0 0 24 24" width="22">
+                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="var(--purple-dark)"/>
+                    </svg>
+                </div>
+                @endauth
             </div>
         </div>
     </nav>
 
-    <!-- Container Utama (Dilebarkan ke max-w-2xl) -->
-    <div class="max-w-2xl mx-auto px-6">
-        
-        <h2 class="text-4xl font-black text-center mb-10 uppercase tracking-tighter drop-shadow-lg">
-            Informasi Pembayaran
-        </h2>
+    {{-- ═══ CONTENT ═══ --}}
+    <div class="container pb-5">
+        <h2 class="payment-title text-white">Informasi Pembayaran</h2>
 
-        <!-- Area Konten Vertikal (Tumpuk Bawah) -->
-        <div class="space-y-8">
-            
-            <!-- 1. Ringkasan Booking -->
-            <div class="glass-card rounded-3xl overflow-hidden shadow-2xl">
-                <div class="bg-[#E86B32] inline-block px-8 py-2 font-extrabold text-sm rounded-br-3xl uppercase tracking-wider shadow-md">
-                    Ringkasan Booking
-                </div>
-                
-                <div class="p-8 space-y-4">
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">Paket</span>
-                        <span class="font-bold text-base">Gaming Private Room</span>
+        @php
+            // Ambil data dari session booking
+            $booking = session('booking_data', []);
+            $user    = auth()->user();
+        @endphp
+
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+
+                {{-- ── 1. RINGKASAN BOOKING ── --}}
+                <div class="payment-card">
+                    <span class="section-badge">Ringkasan Pesanan</span>
+                    
+                    <div class="info-row">
+                        <span class="info-label">Ruangan</span>
+                        <span class="info-value">{{ $booking['room_id'] ?? '-' }} — {{ ucfirst($booking['tipe'] ?? '-') }}</span>
                     </div>
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">Durasi</span>
-                        <span class="font-bold text-base">2 Jam</span>
+                    <div class="info-row">
+                        <span class="info-label">Paket & Kategori</span>
+                        <span class="info-value">
+                            {{-- Sekarang datanya akan muncul karena sudah ada di session --}}
+                            {{ $booking['paket'] ?? '-' }} — {{ $booking['kategori'] ?? '-' }}
+                        </span>
                     </div>
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">Tanggal</span>
-                        <span class="font-bold text-base">01-02-2005</span>
+                    <div class="info-row">
+                        <span class="info-label">Tanggal</span>
+                        <span class="info-value">
+                            {{ isset($booking['tanggal']) ? \Carbon\Carbon::parse($booking['tanggal'])->translatedFormat('d F Y') : '-' }}
+                        </span>
                     </div>
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">Jam Mulai</span>
-                        <span class="font-bold text-base">11.00 WIB</span>
+                    <div class="info-row">
+                        <span class="info-label">Jam Mulai</span>
+                        <span class="info-value">{{ $booking['waktu'] ?? '-' }} WIB</span>
                     </div>
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">Nama</span>
-                        <span class="font-bold text-base">Gojo Satoru</span>
-                    </div>
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">Email</span>
-                        <span class="font-bold text-base lowercase">gojosatoru@gmail.com</span>
-                    </div>
-                    <div class="flex justify-between border-b border-white/10 pb-3">
-                        <span class="text-white/60 text-sm">No. HP</span>
-                        <span class="font-bold text-base">085646789021</span>
+                    <div class="info-row">
+                        <span class="info-label">Metode Bayar</span>
+                        <span class="info-value text-warning">{{ $booking['metode_pembayaran'] ?? '-' }}</span>
                     </div>
 
-                    <div class="flex justify-between pt-6 items-center">
-                        <span class="font-black text-lg uppercase italic text-white/90 tracking-tighter">Total Pembayaran</span>
-                        <span class="font-black text-3xl text-white drop-shadow-md">Rp. 192.000</span>
+                    <div class="border-top border-white-50 my-3"></div>
+
+                    <div class="info-row">
+                        <span class="info-label">Nama Pemesan</span>
+                        <span class="info-value">{{ $user->name ?? '-' }}</span>
+                    </div>
+
+                    <div class="info-row border-0 pt-4">
+                        <span class="h5 m-0 fw-bold">Total Pembayaran</span>
+                        <span class="total-highlight">Rp {{ number_format($booking['harga'] ?? 0, 0, ',', '.') }}</span>
                     </div>
                 </div>
+
+                {{-- ── 2. INFORMASI TRANSFER ── --}}
+                <div class="payment-card">
+                    <span class="section-badge">Metode Transfer</span>
+                    
+                    {{-- Bank BCA --}}
+                    <div class="bank-box mb-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/1200px-Bank_Central_Asia.svg.png" width="80" alt="BCA">
+                        <div>
+                            <p class="m-0 fw-bold text-uppercase small text-muted">Bank Central Asia</p>
+                            <h4 class="m-0 fw-black text-primary">1112233705</h4>
+                            <p class="m-0 fw-bold small">A/N Play n Chill</p>
+                        </div>
+                    </div>
+
+                    {{-- QRIS --}}
+                    <div class="qris-box">
+                        <div class="section-badge bg-dark mb-3" style="font-size: 10px;">QRIS</div>
+                        <div class="qris-img mx-auto">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PlayNChillMadiun" class="img-fluid" alt="QRIS">
+                        </div>
+                        <p class="m-0 fw-black text-dark">Play N Chill Madiun</p>
+                        <p class="small text-muted m-0">NMID: ID123456789</p>
+                    </div>
+                </div>
+
+                {{-- ── 3. TOMBOL AKSI ── --}}
+                <form action="{{ route('booking.store') }}" method="POST">
+                    @csrf
+                    @foreach($booking as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+                    <input type="hidden" name="confirm" value="1">
+
+                    <button type="submit" class="btn-confirm w-100 mb-3">
+                        Konfirmasi Pembayaran <span class="ms-2">✓</span>
+                    </button>
+                </form>
+
+                <a href="{{ url('/status-booking') }}" class="btn-status-link">
+                    Lihat Status Booking ➜
+                </a>
+
             </div>
-
-            <!-- 2. Informasi Transfer -->
-            <div class="glass-card rounded-3xl overflow-hidden shadow-2xl">
-                <div class="bg-[#E86B32] inline-block px-8 py-2 font-extrabold text-sm rounded-br-3xl uppercase tracking-wider shadow-md">
-                    Informasi Transfer
-                </div>
-
-                <div class="p-8 space-y-6">
-                    <!-- Bank BCA -->
-                    <div class="bg-white rounded-2xl p-6 flex items-center gap-6 shadow-xl">
-                        <div class="w-24 flex-shrink-0">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/1200px-Bank_Central_Asia.svg.png" alt="Logo BCA" class="w-full">
-                        </div>
-                        <div class="text-gray-900 border-l-2 pl-6 border-gray-100 flex-grow">
-                            <p class="font-black text-lg uppercase leading-tight tracking-tight">Bank Central Asia</p>
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">A/N Play n Chill</p>
-                            <p class="text-indigo-800 font-extrabold underline decoration-2 tracking-widest text-xl mt-1">1112233705</p>
-                        </div>
-                    </div>
-
-                    <!-- QRIS -->
-                    <div class="bg-white rounded-2xl overflow-hidden shadow-xl">
-                        <div class="bg-[#E86B32] inline-block px-5 py-1 font-bold text-[10px] text-white rounded-br-2xl uppercase">
-                            Qris
-                        </div>
-                        <div class="p-6 flex items-center gap-8">
-                            <div class="w-36 h-36 flex-shrink-0 bg-white p-2 border-2 border-dashed border-gray-200 rounded-2xl">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PlayNChillMadiun" alt="QRIS" class="w-full h-full object-contain">
-                            </div>
-                            <div class="text-gray-900 space-y-2">
-                                <p class="font-black text-base uppercase leading-tight">Play N Chill Madiun</p>
-                                <div class="space-y-1">
-                                    <p class="text-xs font-bold text-gray-600 uppercase">NMID: <span class="text-gray-900 font-black">ID123456789</span></p>
-                                    <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">TID: 002345001</p>
-                                </div>
-                                <p class="text-[11px] text-gray-400 italic mt-3 font-medium">*Silakan scan menggunakan mobile banking atau e-wallet</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tombol Status Booking (Bisa Dipencet) -->
-            <a href="/status-booking" class="block w-full bg-white text-[#4B32A8] font-black py-5 rounded-3xl shadow-[0_8px_0_rgb(210,210,210)] 
-            active:translate-y-1.5 active:shadow-[0_3px_0_rgb(210,210,210)] transition-all flex items-center justify-center gap-4 uppercase tracking-tighter hover:bg-gray-50 text-xl group">
-                Lihat Status Booking 
-                <span class="text-[#E86B32] text-3xl group-hover:translate-x-2 transition-transform">➜</span>
-            </a>
-
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -12,7 +12,6 @@ class MsPaket extends Model
 
     public function pricings()
     {
-
         return $this->hasMany(MsPricing::class, 'ms_paket_id_paket', 'id_paket');
     }
 

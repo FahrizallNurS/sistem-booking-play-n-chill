@@ -9,12 +9,52 @@
 @section('content')
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('success') }}
+        </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ session('error') }}
+        </div>
     @endif
+
+    {{-- Filter --}}
+    <div class="card card-outline card-secondary mb-3">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.booking.index') }}" class="form-inline flex-wrap" style="gap: 8px;">
+                <input type="text" name="search" value="{{ request('search') }}"
+                    class="form-control form-control-sm" placeholder="Cari kode / nama...">
+
+                <select name="status_booking" class="form-control form-control-sm">
+                    <option value="">-- Status Booking --</option>
+                    <option value="pending"   {{ request('status_booking') === 'pending'   ? 'selected' : '' }}>Pending</option>
+                    <option value="confirmed" {{ request('status_booking') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                    <option value="rejected"  {{ request('status_booking') === 'rejected'  ? 'selected' : '' }}>Rejected</option>
+                </select>
+
+                <select name="status_pembayaran" class="form-control form-control-sm">
+                    <option value="">-- Status Pembayaran --</option>
+                    <option value="belum_bayar" {{ request('status_pembayaran') === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
+                    <option value="dp"          {{ request('status_pembayaran') === 'dp'          ? 'selected' : '' }}>DP</option>
+                    <option value="lunas"       {{ request('status_pembayaran') === 'lunas'       ? 'selected' : '' }}>Lunas</option>
+                </select>
+
+                <input type="date" name="tanggal" value="{{ request('tanggal') }}"
+                    class="form-control form-control-sm">
+
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                <a href="{{ route('admin.booking.index') }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-sync"></i> Reset
+                </a>
+            </form>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-header">
@@ -25,13 +65,14 @@
                 </a>
             </div>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered table-hover">
-                <thead>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="thead-light">
                     <tr>
                         <th>#</th>
-                        <th>Username</th>
+                        <th>Pelanggan</th>
                         <th>Kode Booking</th>
+                        <th>Ruangan</th>
                         <th>Tanggal</th>
                         <th>Status Pembayaran</th>
                         <th>Status Booking</th>
@@ -39,37 +80,139 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- dummy --}}
-                    <tr>
-                        <td>1</td>
-                        <td>johndoe</td>
-                        <td>BK-001</td>
-                        <td>03/04/2026</td>
-                        <td><span class="badge badge-warning">Unpaid</span></td>
-                        <td><span class="badge badge-secondary">Pending</span></td>
-                        <td>
+                    @forelse($bookings as $booking)
+                        <tr>
+                            <td>{{ $bookings->firstItem() + $loop->index }}</td>
+                            <td>
+                                @if($booking->pengguna)
+                                    {{ $booking->pengguna->nama_pengguna }}
+                                @else
+                                    <span class="text-muted"><i class="fas fa-walking"></i> Walk-in</span>
+                                @endif
+                            </td>
+                            <td><code>{{ $booking->kode_booking }}</code></td>
+                            <td>{{ $booking->ruangan->nama_ruangan ?? '-' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($booking->tanggal_booking)->format('d/m/Y') }}</td>
+                            <td>
+                                @php
+                                    $badgePembayaran = match($booking->status_pembayaran) {
+                                        'lunas'      => 'success',
+                                        'dp'         => 'info',
+                                        default      => 'warning',
+                                    };
+                                    $labelPembayaran = match($booking->status_pembayaran) {
+                                        'lunas'      => 'Lunas',
+                                        'dp'         => 'DP',
+                                        default      => 'Belum Bayar',
+                                    };
+                                @endphp
+                                <span class="badge badge-{{ $badgePembayaran }}">{{ $labelPembayaran }}</span>
+                            </td>
+                            <td>
+                                @php
+                                    $badgeBooking = match($booking->status_booking) {
+                                        'confirmed' => 'success',
+                                        'rejected'  => 'danger',
+                                        default     => 'secondary',
+                                    };
+                                @endphp
+                                <span class="badge badge-{{ $badgeBooking }}">
+                                    {{ ucfirst($booking->status_booking) }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ route('admin.booking.show', $booking->id_transaksi) }}"
+                                    class="btn btn-info btn-xs">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
 
-                            <a href="{{ route('admin.booking.show', 1) }}" class="btn btn-info btn-sm">
-                                 <i class="fas fa-eye"></i> Detail
-                            </a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>janedoe</td>
-                        <td>BK-002</td>
-                        <td>04/04/2026</td>
-                        <td><span class="badge badge-success">Paid</span></td>
-                        <td><span class="badge badge-success">Confirmed</span></td>
-                        <td>
-                            <a href="#" class="btn btn-info btn-sm">
-                                <i class="fas fa-eye"></i> Detail
-                            </a>
-                        </td>
-                    </tr>
+                                @if($booking->status_booking === 'pending')
+                                    {{-- Konfirmasi --}}
+                                    <form action="{{ route('admin.booking.konfirmasi', $booking->id_transaksi) }}"
+                                        method="POST" class="d-inline"
+                                        onsubmit="return confirm('Konfirmasi booking {{ $booking->kode_booking }}?')">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" class="btn btn-success btn-xs">
+                                            <i class="fas fa-check"></i> Konfirmasi
+                                        </button>
+                                    </form>
+
+                                    {{-- Tolak --}}
+                                    <button type="button" class="btn btn-warning btn-xs"
+                                        data-toggle="modal"
+                                        data-target="#modalTolak"
+                                        data-id="{{ $booking->id_transaksi }}"
+                                        data-kode="{{ $booking->kode_booking }}">
+                                        <i class="fas fa-times"></i> Tolak
+                                    </button>
+
+                                    {{-- Hapus --}}
+                                    <form action="{{ route('admin.booking.destroy', $booking->id_transaksi) }}"
+                                        method="POST" class="d-inline"
+                                        onsubmit="return confirm('Hapus booking {{ $booking->kode_booking }}? Aksi ini tidak bisa dibatalkan.')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">
+                                Tidak ada data booking.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
+        @if($bookings->hasPages())
+            <div class="card-footer">
+                {{ $bookings->links() }}
+            </div>
+        @endif
     </div>
 
+    {{-- Modal Tolak --}}
+    <div class="modal fade" id="modalTolak" tabindex="-1">
+        <div class="modal-dialog">
+            <form id="formTolak" method="POST">
+                @csrf @method('PATCH')
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title">Tolak Booking</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Booking: <strong id="modalKode"></strong></p>
+                        <div class="form-group">
+                            <label>Alasan Penolakan <span class="text-danger">*</span></label>
+                            <textarea name="alasan_tolak" class="form-control" rows="3"
+                                placeholder="Tulis alasan penolakan..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning">Tolak Booking</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+@stop
+
+@section('js')
+<script>
+    $('#modalTolak').on('show.bs.modal', function (e) {
+        var btn    = $(e.relatedTarget);
+        var id     = btn.data('id');
+        var kode   = btn.data('kode');
+        var url    = '/admin/booking/' + id + '/tolak';
+        $(this).find('#formTolak').attr('action', url);
+        $(this).find('#modalKode').text(kode);
+    });
+</script>
 @stop
