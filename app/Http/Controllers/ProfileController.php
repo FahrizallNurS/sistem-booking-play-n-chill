@@ -29,7 +29,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name'         => ['required', 'string', 'max:100'],
             'email'        => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($user->id)],
-            'phone'        => ['nullable', 'string', 'max:20'],
+            'no_hp' => ['nullable', 'string', 'max:20'],
             'current_password' => ['nullable', 'required_with:new_password'],
             'new_password' => ['nullable', 'min:8', 'confirmed'],
         ], [
@@ -61,7 +61,7 @@ class ProfileController extends Controller
 }
         $user->name  = $validated['name'];
         $user->email = $validated['email'];
-        $user->phone = $validated['phone'];
+        $user->no_hp = $validated['no_hp'] ?? null;
         $user->save();
 
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui!');

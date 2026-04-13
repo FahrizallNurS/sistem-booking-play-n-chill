@@ -4,313 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
-    <title>Pilih Paket - Play N Chill</title>
+    <title>Booking Sekarang - Play N Chill</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/booking-paket.css') }}">
 </head>
 <body>
 
-{{-- ═══ NAVBAR ═══ --}}
-<nav class="navbar navbar-expand-lg sticky-top">
+{{-- NAVBAR --}}
+<nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
     <div class="container-fluid px-4">
-
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
-
-        <button class="navbar-toggler border-0 shadow-none" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navMain">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse justify-content-end" id="navMain">
-            <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/') }}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link nav-btn-active" href="{{ url('/booking') }}">Booking</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
-                </li>
-                <li class="nav-item ms-2">
-                    @guest
-                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
-                           style="background-color: var(--orange) !important;">Login</a>
-                    @endguest
-                    @auth
-                        <div class="dropdown">
-                            <div class="nav-avatar" id="userDropdown"
-                                 data-bs-toggle="dropdown" aria-expanded="false">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
-                                             7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
-                                             1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
-                                          fill="var(--purple-dark)"/>
-                                </svg>
-                            </div>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                                aria-labelledby="userDropdown">
-                                <li>
-                                    <span class="dropdown-item-text fw-bold">
-                                        {{ auth()->user()->name }}
-                                    </span>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            Keluar (Logout)
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    @endauth
-                </li>
-            </ul>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <a href="{{ url('/') }}" class="nav-link fw-bold text-dark">Home</a>
+            <a href="{{ url('/booking') }}" class="nav-link nav-btn-active">Booking</a>
+            <a href="{{ url('/gallery') }}" class="nav-link fw-bold text-dark">Gallery</a>
+            @auth
+            <div class="nav-avatar"><svg viewBox="0 0 24 24" width="22"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="#472CA1"/></svg></div>
+            @endauth
         </div>
     </div>
 </nav>
 
-{{-- ═══ PAKET PAGE ═══ --}}
-<div class="paket-page">
+{{-- HERO --}}
+<div class="paket-hero">
+    <h1>Booking Sekarang</h1>
+    <p>Reservasi paket favoritmu jadi lebih praktis, ikuti langkah mudahnya dan pesan sekarang</p>
+</div>
 
-    {{-- Hero Judul --}}
-    <div class="paket-hero">
-        <h1>Booking Sekarang</h1>
-        <p>Reservasi paket favoritmu jadi lebih praktis, ikuti langkah mudahnya dan pesan sekarang</p>
+<section class="paket-section section-ps">
+    <h2 class="section-title">{{ $room->kategori->nama_kategori ?? 'Paket' }}</h2>
+
+    <div class="paket-grid">
+        @forelse($pricings as $paketId => $items)
+
+            @php
+                $first = $items->first();
+                $paket = $first->paket;
+            @endphp
+
+            <div class="paket-card">
+                {{-- NAMA --}}
+                <div class="paket-card-name">
+                    {{ $paket->nama_paket }}
+                </div>
+
+                {{-- SUB --}}
+                <p class="paket-card-sub">
+                    {{ $room->nama_ruangan ?? '' }}
+                </p>
+
+                {{-- HARGA --}}
+                <div class="paket-card-price">
+                    Rp {{ number_format($first->harga, 0, ',', '.') }}
+                </div>
+
+                {{-- META --}}
+                <div class="paket-card-meta">
+                    <span>🕐 {{ $first->durasi_menit }} menit</span>
+                    <span>👤 Max {{ $paket->maksimal_orang }} Orang</span>
+                </div>
+
+                {{-- FASILITAS = DESKRIPSI --}}
+                <ul class="paket-features">
+                    @forelse($paket->fasilitas as $f)
+                        <li>{{ $f->nama_fasilitas }}</li>
+                    @empty
+                        <li class="text-muted">Tidak ada fasilitas</li>
+                    @endforelse
+                </ul>
+
+                {{-- BUTTON --}}
+                <a href="{{ url('/booking/form?room='.$roomId.'&tipe='.$tipe.'&paket='.$paket->id_paket) }}"
+                   class="btn-pilih-paket">
+                    Pilih Paket
+                </a>
+            </div>
+
+        @empty
+            <p class="text-center text-muted">Belum ada paket tersedia.</p>
+        @endforelse
     </div>
+</section>
 
-    {{-- ════════════════════════
-         SECTION: PLAYSTATION
-    ════════════════════════ --}}
-    <div class="paket-section ps">
-        <h2 class="paket-section-title">Playstation</h2>
-
-        <div class="paket-grid">
-
-            {{-- Paket Couple --}}
-            <div class="paket-card">
-                <div class="paket-card-name">Paket Couple</div>
-                <div class="paket-card-sub">VIP PlayStation3</div>
-                <div class="paket-card-price">Rp 7.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi 1 jam</span>
-                    <span>👤 1 - 2 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>Nintendo Switch</li>
-                    <li>AC & WiFi</li>
-                    <li>VIP/VVIP</li>
-                    <li>4K TV</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=ps-couple&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-            {{-- Paket Group (featured) --}}
-            <div class="paket-card featured">
-                <div class="paket-card-name">Paket Group</div>
-                <div class="paket-card-sub">VIP PlayStation4</div>
-                <div class="paket-card-price">Rp 45.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi 2 jam</span>
-                    <span>👤 1 - 4 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>Nintendo Switch</li>
-                    <li>AC & WiFi</li>
-                    <li>VIP/VVIP</li>
-                    <li>4K TV</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=ps-group&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-            {{-- Paket Party --}}
-            <div class="paket-card">
-                <div class="paket-card-name">Paket Party</div>
-                <div class="paket-card-sub">VIP PlayStation5</div>
-                <div class="paket-card-price">Rp 125.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi 3 jam</span>
-                    <span>👤 1 - 6 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>Nintendo Switch</li>
-                    <li>AC & WiFi</li>
-                    <li>VIP/VVIP</li>
-                    <li>4K TV</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=ps-party&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-        </div>
-    </div>
-
-    {{-- ════════════════════════
-         SECTION: PRIVATE KARAOKE
-    ════════════════════════ --}}
-    <div class="paket-section karaoke">
-        <h2 class="paket-section-title">Private Karaoke</h2>
-
-        <div class="paket-grid">
-
-            {{-- Paket Couple --}}
-            <div class="paket-card">
-                <div class="paket-card-name">Paket Couple</div>
-                <div class="paket-card-sub">VIP PlayStation4<br>Senin - Kamis</div>
-                <div class="paket-card-price">Rp 30.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi per jam</span>
-                    <span>👤 1 - 2 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>VIP Room</li>
-                    <li>AC</li>
-                    <li>Sofa / Beanbag</li>
-                    <li>4K TV</li>
-                    <li>Soundbar</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=karaoke-couple&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-            {{-- Paket Group (featured) --}}
-            <div class="paket-card featured">
-                <div class="paket-card-name">Paket Group</div>
-                <div class="paket-card-sub">VIP PlayStation4<br>Senin - Kamis</div>
-                <div class="paket-card-price">Rp 50.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi per jam</span>
-                    <span>👤 1 - 4 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>VIP Room</li>
-                    <li>AC</li>
-                    <li>Sofa / Beanbag</li>
-                    <li>4K TV</li>
-                    <li>Soundbar</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=karaoke-group&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-            {{-- Paket Party --}}
-            <div class="paket-card">
-                <div class="paket-card-name">Paket Party</div>
-                <div class="paket-card-sub">VIP PlayStation4<br>Jumat - Minggu</div>
-                <div class="paket-card-price">Rp 85.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi per jam</span>
-                    <span>👤 1 - 6 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>VIP Room</li>
-                    <li>AC</li>
-                    <li>Sofa / Beanbag</li>
-                    <li>4K TV</li>
-                    <li>Soundbar</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=karaoke-party&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-        </div>
-    </div>
-
-    {{-- ════════════════════════
-         SECTION: BIOSKOP
-    ════════════════════════ --}}
-    <div class="paket-section bioskop">
-        <h2 class="paket-section-title">Bioskop</h2>
-
-        <div class="paket-grid">
-
-            {{-- Paket Couple --}}
-            <div class="paket-card">
-                <div class="paket-card-name">Paket Couple</div>
-                <div class="paket-card-sub">VIP PlayStation4<br>Senin - Kamis</div>
-                <div class="paket-card-price">Rp 65.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi per jam</span>
-                    <span>👤 1 - 2 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>VIP Room</li>
-                    <li>AC</li>
-                    <li>Sofa / Beanbag</li>
-                    <li>4K TV</li>
-                    <li>Set Karaoke</li>
-                    <li>2 Mic</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=bioskop-couple&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-            {{-- Paket Group (featured) --}}
-            <div class="paket-card featured">
-                <div class="paket-card-name">Paket Group</div>
-                <div class="paket-card-sub">VIP PlayStation4<br>Senin - Kamis</div>
-                <div class="paket-card-price">Rp 100.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi per jam</span>
-                    <span>👤 1 - 4 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>VIP Room</li>
-                    <li>AC</li>
-                    <li>Sofa / Beanbag</li>
-                    <li>4K TV</li>
-                    <li>Set Karaoke</li>
-                    <li>2 Mic</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=bioskop-group&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-            {{-- Paket Party --}}
-            <div class="paket-card">
-                <div class="paket-card-name">Paket Party</div>
-                <div class="paket-card-sub">VIP PlayStation4<br>Jumat - Minggu</div>
-                <div class="paket-card-price">Rp 165.000</div>
-                <div class="paket-card-meta">
-                    <span>🕐 Durasi per jam</span>
-                    <span>👤 1 - 6 Orang</span>
-                </div>
-                <hr class="paket-divider">
-                <ul class="paket-features">
-                    <li>VIP Room</li>
-                    <li>AC</li>
-                    <li>Sofa / Beanbag</li>
-                    <li>4K TV</li>
-                    <li>Set Karaoke</li>
-                    <li>2 Mic</li>
-                </ul>
-                <a href="{{ url('/booking/form?paket=bioskop-party&room='.$room['id'].'&tipe='.$tipe) }}"
-                   class="btn-pilih-paket">Pilih Paket</a>
-            </div>
-
-        </div>
-    </div>
-
-</div>{{-- end paket-page --}}
+<div style="background-color: #472CA1; padding: 40px 0; text-align: center;">
+    <a href="{{ url('/booking') }}" style="color: white; text-decoration: none; font-weight: bold;">← Kembali Pilih Ruangan</a>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
