@@ -15,11 +15,10 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\DataUserController;
-use App\Http\Controllers\TinjauLaporanController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\ProfilController;
+use App\Http\Controllers\JadwalController;
 
 Route::get('/', function () {
     return redirect()->route('pelanggan.home');
@@ -66,6 +65,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
     Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/jadwal', [JadwalController::class, 'index'])->name('pelanggan.jadwal');
+    Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/payment', [BookingController::class, 'showPayment'])->name('booking.payment.show');
@@ -106,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([RoleMiddleware::class.':pelanggan'])->group(function () {
         Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
-        Route::get('/jadwal', fn () => view('pelanggan.jadwal'))->name('pelanggan.jadwal');
+    
     });
 
     Route::get('/laporan', [TinjauLaporanController::class, 'index'])->name('laporan.index');
