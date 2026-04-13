@@ -19,25 +19,31 @@
 @stop
 
 @section('content')
+
+    {{--  Proteksi hanya untuk superadmin --}}
+    @if(auth()->user()->role == 'superadmin')
+
     <div class="container-fluid">
         <div class="row">
+
             {{-- Box Total Pelanggan --}}
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-info">
                     <div class="inner">
-                        {{-- Mengambil data dinamis dari Controller --}}
                         <h3>{{ $totalPelanggan ?? '0' }}</h3>
                         <p>Total Pelanggan</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <a href="{{ route('superadmin.dashboard') }}" class="small-box-footer">
+                    {{--  arahkan ke kelola user --}}
+                    <a href="{{ route('data-user') }}" class="small-box-footer">
                         Kelola User <i class="fas fa-arrow-circle-right"></i>
                     </a>
                 </div>
             </div>
 
+            {{-- Box Laporan --}}
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner">
@@ -47,13 +53,14 @@
                     <div class="icon">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    {{-- Pastikan rute 'superadmin.laporan' sudah terdaftar di web.php --}}
-                    <a href="#" class="small-box-footer">
+                    {{--  arahkan ke laporan --}}
+                    <a href="{{ route('tinjau-laporan') }}" class="small-box-footer">
                         Tinjau Laporan <i class="fas fa-arrow-circle-right"></i>
                     </a>
                 </div>
             </div>
 
+            {{-- Box Booking --}}
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
@@ -67,6 +74,7 @@
                 </div>
             </div>
 
+            {{-- Box Server --}}
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-danger">
                     <div class="inner">
@@ -79,19 +87,15 @@
                     <div class="small-box-footer" style="height: 30px"></div>
                 </div>
             </div>
+
         </div>
 
-        {{-- Tabel Aktivitas Terbaru --}}
+        {{-- Tabel --}}
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-outline card-primary">
                     <div class="card-header">
                         <h3 class="card-title">Aktivitas Pendaftaran Terbaru</h3>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                        </div>
                     </div>
                     <div class="card-body">
                         <table class="table table-hover table-bordered text-nowrap">
@@ -105,7 +109,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- Contoh data statis, nanti bisa dilooping pakai @foreach --}}
                                 <tr>
                                     <td>1</td>
                                     <td>Ahmad Budi</td>
@@ -113,23 +116,27 @@
                                     <td><span class="badge badge-info">Pelanggan</span></td>
                                     <td><span class="badge badge-success">Aktif</span></td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Siti Aminah</td>
-                                    <td>siti@example.com</td>
-                                    <td><span class="badge badge-info">Pelanggan</span></td>
-                                    <td><span class="badge badge-success">Aktif</span></td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="card-footer text-right">
-                        <a href="{{ route('superadmin.dashboard') }}" class="btn btn-primary btn-sm">Lihat Semua Pengguna</a>
+                        <a href="{{ route('data-user') }}" class="btn btn-primary btn-sm">
+                            Lihat Semua Pengguna
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
+
+    @else
+        {{--  Kalau bukan superadmin --}}
+        <div class="alert alert-danger">
+            Anda tidak memiliki akses ke halaman ini.
+        </div>
+    @endif
+
 @stop
 
 @section('css')

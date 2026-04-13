@@ -4,12 +4,16 @@
 
 @section('content')
 <div class="container-fluid pt-4">
-    {{-- Tombol Tambah Pengguna --}}
-    <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary" style="border-radius: 10px; background-color: #6c5ce7; border: none; padding: 10px 20px;">
-            <i class="fas fa-plus"></i> Tambah Pengguna
-        </button>
-    </div>
+{{-- Tombol Tambah Pengguna --}}
+<div class="d-flex justify-content-end mb-3">
+    {{-- Tambahkan data-toggle dan data-target --}}
+    <button class="btn btn-primary" 
+            data-toggle="modal" 
+            data-target="#modalTambahUser" 
+            style="border-radius: 10px; background-color: #6c5ce7; border: none; padding: 10px 20px;">
+        <i class="fas fa-plus"></i> Tambah Pengguna
+    </button>
+</div>
 
     {{-- Container Tabel Ungu --}}
     <div class="custom-card">
