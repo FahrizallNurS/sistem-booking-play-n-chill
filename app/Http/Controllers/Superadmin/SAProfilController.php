@@ -7,5 +7,9 @@ use App\Http\Controllers\Controller;
 
 class SAProfilController extends Controller
 {
-    //
+    public function index()
+    {
+        return view('superadmin.profil-sa.index');
+    }
 }
+
