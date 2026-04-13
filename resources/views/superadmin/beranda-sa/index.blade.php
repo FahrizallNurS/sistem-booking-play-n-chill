@@ -21,16 +21,18 @@
 @section('content')
     <div class="container-fluid">
         <div class="row">
+            {{-- Box Total Pelanggan --}}
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-info">
                     <div class="inner">
-                        <h3>150</h3>
+                        {{-- Mengambil data dinamis dari Controller --}}
+                        <h3>{{ $totalPelanggan ?? '0' }}</h3>
                         <p>Total Pelanggan</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <a href="{{ route('superadmin.users') }}" class="small-box-footer">
+                    <a href="{{ route('superadmin.dashboard') }}" class="small-box-footer">
                         Kelola User <i class="fas fa-arrow-circle-right"></i>
                     </a>
                 </div>
@@ -45,7 +47,8 @@
                     <div class="icon">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    <a href="{{ route('superadmin.laporan') }}" class="small-box-footer">
+                    {{-- Pastikan rute 'superadmin.laporan' sudah terdaftar di web.php --}}
+                    <a href="#" class="small-box-footer">
                         Tinjau Laporan <i class="fas fa-arrow-circle-right"></i>
                     </a>
                 </div>
@@ -78,6 +81,7 @@
             </div>
         </div>
 
+        {{-- Tabel Aktivitas Terbaru --}}
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-outline card-primary">
@@ -101,6 +105,7 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {{-- Contoh data statis, nanti bisa dilooping pakai @foreach --}}
                                 <tr>
                                     <td>1</td>
                                     <td>Ahmad Budi</td>
@@ -119,7 +124,7 @@
                         </table>
                     </div>
                     <div class="card-footer text-right">
-                        <a href="{{ route('superadmin.users') }}" class="btn btn-primary btn-sm">Lihat Semua Pengguna</a>
+                        <a href="{{ route('superadmin.dashboard') }}" class="btn btn-primary btn-sm">Lihat Semua Pengguna</a>
                     </div>
                 </div>
             </div>
@@ -129,7 +134,7 @@
 
 @section('css')
     <style>
-        /* Kamu bisa tambah CSS custom di sini jika ada tampilan yang belum sreg */
         .small-box .icon i { font-size: 70px; }
+        .card-title { font-weight: bold; }
     </style>
 @stop

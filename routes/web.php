@@ -74,13 +74,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('superadmin.')
         ->group(function () {
             // Halaman Utama Dashboard
-        Route::get('/beranda', [SABerandaController::class, 'index'])->name('beranda');
+        Route::get('/dashboard', [SABerandaController::class, 'index'])->name('dashboard');
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
         Route::patch('/data-user/{id}', [KelolaUserController::class, 'update'])->name('users.update');
-        // Tambahkan rute ini jika nanti ingin buat fitur tambah/edit user:
-        // Route::get('/data-user/create', [KelolaUserController::class, 'create'])->name('users.create');
-        // Route::post('/data-user/store', [KelolaUserController::class, 'store'])->name('users.store');
         Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
     });
 
