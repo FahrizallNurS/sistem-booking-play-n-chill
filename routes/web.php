@@ -76,14 +76,6 @@ Route::middleware('guest')->group(function () {
 */
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
-
-<<<<<<< HEAD
-// register routes
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register-proses', [RegisterController::class, 'register'])->name('register.post');
-=======
->>>>>>> c6b5a3714006c2097208129b665147d90b8a0d71
-
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATED USER
