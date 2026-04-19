@@ -129,7 +129,20 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
             Route::patch('/data-user/{id}', [KelolaUserController::class, 'update'])->name('users.update');
 
-            Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
+            Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index'); // FIXED
+
+
+            Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
+            Route::get('/data-user/create', [KelolaUserController::class, 'create'])->name('users.create');
+            Route::post('/data-user', [KelolaUserController::class, 'store'])->name('users.store');
+            Route::get('/data-user/{id}/edit', [KelolaUserController::class, 'edit'])->name('users.edit');
+            Route::patch('/data-user/{id}', [KelolaUserController::class, 'update'])->name('users.update');
+            Route::delete('/data-user/{id}', [KelolaUserController::class, 'destroy'])->name('users.destroy');
+            Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
+
+            Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
+            Route::patch('/profil', [SAProfilController::class, 'update'])->name('profil.update');
+            Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');
         });
 
 
@@ -150,17 +163,19 @@ Route::middleware(['auth'])->group(function () {
 
             // Paket
             Route::resource('paket', PaketController::class);
-            Route::get('/kategori/{id}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
+            Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
 
             // Layanan
             Route::resource('layanan', LayananController::class);
-            Route::post('/layanan/{id}/pricing', [LayananController::class, 'storePricing'])->name('layanan.pricing.store');
-            Route::delete('/pricing/{id}', [LayananController::class, 'destroyPricing'])->name('layanan.pricing.destroy');
+            Route::post('/layanan/{id}/penetapan-harga', [LayananController::class, 'storePenetapanHarga'])->name('layanan.penetapan.store');
+            Route::delete('/penetapan-harga/{id}', [LayananController::class, 'destroyPenetapanHarga'])->name('layanan.penetapan.destroy');
 
-            // Booking
+            //booking
             Route::resource('booking', AdminBookingController::class);
             Route::patch('/booking/{id}/konfirmasi', [AdminBookingController::class, 'konfirmasi'])->name('booking.konfirmasi');
             Route::patch('/booking/{id}/tolak', [AdminBookingController::class, 'tolak'])->name('booking.tolak');
+            Route::patch('/booking/{id}/pembayaran', [AdminBookingController::class, 'pembayaran'])->name('booking.pembayaran');
+            Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
 
             // Konten
             Route::get('/gallery', [AdminGalleryController::class, 'index'])->name('gallery.index');
@@ -185,6 +200,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
         Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
+        Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+        Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
     });
 
 });

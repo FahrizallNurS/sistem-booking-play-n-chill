@@ -11,6 +11,9 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
 
     <div class="card">
         <div class="card-header">
@@ -28,6 +31,7 @@
                         <th>#</th>
                         <th>Nama Ruangan</th>
                         <th>Kategori</th>
+                        <th>Perangkat</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -37,7 +41,8 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $ruangan->nama_ruangan }}</td>
-                            <td>{{ $ruangan->kategori->nama_kategori ?? '-' }}</td>
+                            <td><span class="badge badge-info">{{ $ruangan->kategori }}</span></td>
+                            <td>{{ $ruangan->perangkat ?? '-' }}</td>
                             <td>
                                 @if($ruangan->is_active)
                                     <span class="badge badge-success">Aktif</span>
@@ -46,16 +51,20 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('admin.layanan.show', $ruangan->id_ruangan) }}" class="btn btn-info btn-sm">
+                                <a href="{{ route('admin.layanan.show', $ruangan->id_ruangan) }}"
+                                    class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i> Detail
                                 </a>
-                                <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}"
+                                    class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
-                                <form action="{{ route('admin.layanan.destroy', $ruangan->id_ruangan) }}" method="POST" style="display:inline">
+                                <form action="{{ route('admin.layanan.destroy', $ruangan->id_ruangan) }}"
+                                    method="POST" style="display:inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus ruangan ini?')">
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Yakin hapus ruangan ini?')">
                                         <i class="fas fa-trash"></i> Hapus
                                     </button>
                                 </form>
@@ -63,7 +72,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">Belum ada data ruangan</td>
+                            <td colspan="6" class="text-center">Belum ada data ruangan</td>
                         </tr>
                     @endforelse
                 </tbody>

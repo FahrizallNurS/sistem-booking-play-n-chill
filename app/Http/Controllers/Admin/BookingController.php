@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\TrTransaksi;
 use App\Models\MsRuangan;
 use App\Models\MsPaket;
+use App\Models\PenetapanHarga;
 use App\Models\User;
-use App\Models\MsPricing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -15,16 +15,15 @@ use Carbon\Carbon;
 class BookingController extends Controller
 {
     // ============================================================
-    // INDEX — List semua booking dengan filter
-    // Route: GET /admin/booking
+    // INDEX
     // ============================================================
     public function index(Request $request)
     {
-        $query = TrTransaksi::with(['pengguna', 'ruangan', 'paket'])
+        $query = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna'])
             ->latest('created_at');
 
-        if ($request->filled('status_booking')) {
-            $query->where('status_booking', $request->status_booking);
+        if ($request->filled('status_sewa')) {
+            $query->where('status_sewa', $request->status_sewa);
         }
 
         if ($request->filled('status_pembayaran')) {
@@ -32,19 +31,20 @@ class BookingController extends Controller
         }
 
         if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_booking', $request->tanggal);
+            $query->whereDate('waktu_mulai', $request->tanggal);
         }
 
         if ($request->filled('ruangan')) {
-            $query->where('ms_id_ruangan', $request->ruangan);
+            $query->whereHas('penetapanHarga', function ($q) use ($request) {
+                $q->where('id_ruangan', $request->ruangan);
+            });
         }
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('kode_booking', 'like', "%{$search}%")
-                  ->orWhereHas('pengguna', fn ($u) => $u->where('nama_pengguna', 'like', "%{$search}%"))
-                  ->orWhere('walkin_name', 'like', "%{$search}%");
+                $q->where('kode_sewa', 'like', "%{$search}%")
+                  ->orWhereHas('pengguna', fn ($u) => $u->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -55,12 +55,11 @@ class BookingController extends Controller
     }
 
     // ============================================================
-    // CREATE — Form tambah booking baru (walk-in dari admin)
-    // Route: GET /admin/booking/create
+    // CREATE — walk-in dari admin
     // ============================================================
     public function create()
     {
-        $ruangans   = MsRuangan::where('is_active', 1)->with('kategori')->get();
+        $ruangans   = MsRuangan::where('is_active', 1)->get();
         $pakets     = MsPaket::where('is_active', 1)->get();
         $pelanggans = User::where('role', 'pelanggan')->get();
 
@@ -68,70 +67,56 @@ class BookingController extends Controller
     }
 
     // ============================================================
-    // STORE — Simpan booking baru
-    // Route: POST /admin/booking
+    // STORE
     // ============================================================
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal_booking' => 'required|date|after_or_equal:today',
-            'waktu_mulai'     => 'required',
-            'durasi_sewa'     => 'required',
-            'ms_id_ruangan'   => 'required|exists:ms_ruangan,id_ruangan',
-            'ms_id_paket'     => 'required|exists:ms_paket,id_paket',
-            'opsi_pembayaran' => 'required|in:full,dp',
-            'jumlah_dp'       => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
-            'ms_id_pengguna'  => 'nullable|exists:users,id',
-            'walkin_name'     => 'required_without:ms_id_pengguna|nullable|string|max:100',
-            'walkin_phone'    => 'required_without:ms_id_pengguna|nullable|string|max:20',
-        ], [
-            'walkin_name.required_without'  => 'Nama wajib diisi untuk pelanggan walk-in.',
-            'walkin_phone.required_without' => 'No. HP wajib diisi untuk pelanggan walk-in.',
+            'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
+            'tanggal'            => 'required|date|after_or_equal:today',
+            'waktu_mulai'        => 'required',
+            'opsi_pembayaran'    => 'required|in:full,dp',
+            'jumlah_dp'          => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
+            'id_pengguna'        => 'nullable|exists:users,id',
         ]);
 
-        $konflik = $this->cekKonflikJadwal(
-            $request->ms_id_ruangan,
-            $request->tanggal_booking,
-            $request->waktu_mulai,
-            $request->durasi_sewa
-        );
+        $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
+
+        $waktuMulai   = Carbon::parse($request->tanggal . ' ' . str_replace('.', ':', $request->waktu_mulai));
+        $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
+
+        // Cek konflik jadwal
+        $konflik = TrTransaksi::where('id_penetapan_harga', $ph->id_penetapan_harga)
+            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+            ->where(function ($q) use ($waktuMulai, $waktuSelesai) {
+                $q->whereBetween('waktu_mulai', [$waktuMulai, $waktuSelesai])
+                  ->orWhereBetween('waktu_selesai', [$waktuMulai, $waktuSelesai]);
+            })->exists();
 
         if ($konflik) {
             return back()->withInput()
-                ->withErrors(['waktu_mulai' => 'Ruangan sudah dibooking di jam tersebut. Pilih waktu lain.']);
+                ->withErrors(['waktu_mulai' => 'Ruangan sudah dibooking di jam tersebut.']);
         }
 
-       $hari = Carbon::parse($request->tanggal_booking)->isWeekend() ? 'weekend' : 'weekday';
-        $pricing = MsPricing::where('ms_ruangan_id_ruangan', $request->ms_id_ruangan)
-            ->where('ms_paket_id_paket', $request->ms_id_paket)
-            ->where('hari_type', $hari)
-            ->where('durasi_menit', $request->durasi_sewa)
-            ->first();
-            
-        if (!$pricing) {
-            return back()->withInput()->withErrors([
-                'durasi_sewa' => 'Pricing tidak ditemukan untuk durasi tersebut'
-            ]);
-        }
+        $jumlahDp  = $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null;
+        $sisaBayar = $request->opsi_pembayaran === 'dp' ? ($ph->harga - $request->jumlah_dp) : 0;
 
-        $hargaSaatTransaksi = $pricing->harga;
+        do {
+            $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
+        } while (TrTransaksi::where('kode_sewa', $kode)->exists());
 
         TrTransaksi::create([
-            'kode_booking'         => $this->generateKodeBooking(),
-            'tanggal_booking'      => $request->tanggal_booking,
-            'waktu_mulai'          => $request->waktu_mulai,
-            'durasi_sewa'          => $request->durasi_sewa,
-            'ms_id_ruangan'        => $request->ms_id_ruangan,
-            'ms_id_paket'          => $request->ms_id_paket,
-            'ms_id_pengguna'       => $request->ms_id_pengguna,
-            'walkin_name'          => $request->ms_id_pengguna ? null : $request->walkin_name,
-            'walkin_phone'         => $request->ms_id_pengguna ? null : $request->walkin_phone,
-            'opsi_pembayaran'      => $request->opsi_pembayaran,
-            'jumlah_dp'            => $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null,
-            'total_harga'          => $hargaSaatTransaksi,
-            'harga_saat_transaksi' => $hargaSaatTransaksi,
-            'status_booking'       => 'pending',
-            'status_pembayaran'    => 'belum_bayar',
+            'id_penetapan_harga' => $ph->id_penetapan_harga,
+            'id_pengguna'        => $request->id_pengguna ?? auth()->id(),
+            'kode_sewa'          => $kode,
+            'waktu_mulai'        => $waktuMulai,
+            'waktu_selesai'      => $waktuSelesai,
+            'total_harga'        => $ph->harga,
+            'opsi_pembayaran'    => $request->opsi_pembayaran,
+            'jumlah_dp'          => $jumlahDp,
+            'status_sewa'        => 'ditahan',
+            'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
+            'sisa_bayar'         => $sisaBayar,
         ]);
 
         return redirect()->route('admin.booking.index')
@@ -139,12 +124,11 @@ class BookingController extends Controller
     }
 
     // ============================================================
-    // SHOW — Detail booking
-    // Route: GET /admin/booking/{id}
+    // SHOW
     // ============================================================
     public function show($id)
     {
-        $booking = TrTransaksi::with(['pengguna', 'ruangan', 'paket'])
+        $booking = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna'])
             ->where('id_transaksi', $id)
             ->firstOrFail();
 
@@ -152,138 +136,61 @@ class BookingController extends Controller
     }
 
     // ============================================================
-    // EDIT — Form edit booking (hanya kalau masih pending)
-    // Route: GET /admin/booking/{id}/edit
-    // ============================================================
-    public function edit($id)
-    {
-        $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
-
-        if ($booking->status_booking !== 'pending') {
-            return redirect()->route('admin.booking.show', $id)
-                ->with('error', 'Booking yang sudah dikonfirmasi atau ditolak tidak dapat diedit.');
-        }
-
-        $ruangans   = MsRuangan::where('is_active', 1)->with('kategori')->get();
-        $pakets     = MsPaket::where('is_active', 1)->get();
-        $pelanggans = User::where('role', 'pelanggan')->get();
-
-        return view('admin.bookings.edit', compact('booking', 'ruangans', 'pakets', 'pelanggans'));
-    }
-
-    // ============================================================
-    // UPDATE — Simpan perubahan booking
-    // Route: PUT /admin/booking/{id}
-    // ============================================================
-    public function update(Request $request, $id)
-    {
-        $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
-
-        if ($booking->status_booking !== 'pending') {
-            return redirect()->route('admin.booking.index')
-                ->with('error', 'Booking yang sudah dikonfirmasi atau ditolak tidak dapat diubah.');
-        }
-
-        $request->validate([
-            'tanggal_booking' => 'required|date',
-            'waktu_mulai'     => 'required',
-            'durasi_sewa'     => 'required',
-            'ms_id_ruangan'   => 'required|exists:ms_ruangan,id_ruangan',
-            'ms_id_paket'     => 'required|exists:ms_paket,id_paket',
-            'opsi_pembayaran' => 'required|in:full,dp',
-            'jumlah_dp'       => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
-            'walkin_name'     => 'required_without:ms_id_pengguna|nullable|string|max:100',
-            'walkin_phone'    => 'required_without:ms_id_pengguna|nullable|string|max:20',
-        ]);
-
-        $konflik = $this->cekKonflikJadwal(
-            $request->ms_id_ruangan,
-            $request->tanggal_booking,
-            $request->waktu_mulai,
-            $request->durasi_sewa,
-            $id
-        );
-
-        if ($konflik) {
-            return back()->withInput()
-                ->withErrors(['waktu_mulai' => 'Ruangan sudah dibooking di jam tersebut. Pilih waktu lain.']);
-        }
-
-        $booking->update([
-            'tanggal_booking' => $request->tanggal_booking,
-            'waktu_mulai'     => $request->waktu_mulai,
-            'durasi_sewa'     => $request->durasi_sewa,
-            'ms_id_ruangan'   => $request->ms_id_ruangan,
-            'ms_id_paket'     => $request->ms_id_paket,
-            'ms_id_pengguna'  => $request->ms_id_pengguna,
-            'walkin_name'     => $request->ms_id_pengguna ? null : $request->walkin_name,
-            'walkin_phone'    => $request->ms_id_pengguna ? null : $request->walkin_phone,
-            'opsi_pembayaran' => $request->opsi_pembayaran,
-            'jumlah_dp'       => $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null,
-        ]);
-
-        return redirect()->route('admin.booking.index')
-            ->with('success', 'Booking berhasil diperbarui.');
-    }
-
-    // ============================================================
-    // KONFIRMASI — Admin approve booking
-    // Route: PATCH /admin/booking/{id}/konfirmasi
+    // KONFIRMASI
     // ============================================================
     public function konfirmasi($id)
     {
         $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
 
-        if ($booking->status_booking !== 'pending') {
+        if ($booking->status_sewa !== 'ditahan') {
             return redirect()->route('admin.booking.index')
-                ->with('error', 'Hanya booking berstatus pending yang bisa dikonfirmasi.');
+                ->with('error', 'Hanya booking berstatus ditahan yang bisa dikonfirmasi.');
         }
 
-        $booking->update(['status_booking' => 'confirmed']);
+        $booking->update([
+            'status_sewa'        => 'dikonfirmasi',
+            'status_pembayaran'  => $booking->opsi_pembayaran === 'full' ? 'lunas' : 'dp',
+        ]);
 
         return redirect()->route('admin.booking.index')
-            ->with('success', "Booking {$booking->kode_booking} berhasil dikonfirmasi.");
+            ->with('success', "Booking {$booking->kode_sewa} berhasil dikonfirmasi.");
     }
 
     // ============================================================
-    // TOLAK — Admin reject booking
-    // Route: PATCH /admin/booking/{id}/tolak
+    // TOLAK
     // ============================================================
     public function tolak(Request $request, $id)
     {
         $request->validate([
             'alasan_tolak' => 'required|string|max:255',
-        ], [
-            'alasan_tolak.required' => 'Alasan penolakan wajib diisi.',
         ]);
 
         $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
 
-        if ($booking->status_booking !== 'pending') {
+        if ($booking->status_sewa !== 'ditahan') {
             return redirect()->route('admin.booking.index')
-                ->with('error', 'Hanya booking berstatus pending yang bisa ditolak.');
+                ->with('error', 'Hanya booking berstatus ditahan yang bisa ditolak.');
         }
 
         $booking->update([
-            'status_booking'     => 'rejected',
-            'catatan_pembayaran' => $request->alasan_tolak,
+            'status_sewa'          => 'dibatalkan',
+            'catatan_pembayaran'   => $request->alasan_tolak,
         ]);
 
         return redirect()->route('admin.booking.index')
-            ->with('success', "Booking {$booking->kode_booking} telah ditolak.");
+            ->with('success', "Booking {$booking->kode_sewa} telah ditolak.");
     }
 
     // ============================================================
-    // DESTROY — Hapus booking (hanya pending)
-    // Route: DELETE /admin/booking/{id}
+    // DESTROY
     // ============================================================
     public function destroy($id)
     {
         $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
 
-        if ($booking->status_booking !== 'pending') {
+        if ($booking->status_sewa !== 'ditahan') {
             return redirect()->route('admin.booking.index')
-                ->with('error', 'Hanya booking berstatus pending yang dapat dihapus.');
+                ->with('error', 'Hanya booking berstatus ditahan yang dapat dihapus.');
         }
 
         $booking->delete();
@@ -292,70 +199,23 @@ class BookingController extends Controller
             ->with('success', 'Booking berhasil dihapus.');
     }
 
-    // ============================================================
-    // CHECK SLOT — AJAX cek ketersediaan ruangan
-    // ============================================================
-    public function checkSlot(Request $request)
+    public function pembayaran(Request $request, $id)
     {
-        $request->validate([
-            'ms_id_ruangan'   => 'required',
-            'tanggal_booking' => 'required|date',
-            'waktu_mulai'     => 'required',
-            'durasi_sewa'     => 'required',
+        $booking = TrTransaksi::findOrFail($id);
+        $booking->update([
+            'status_pembayaran'  => $request->status_pembayaran,
+            'catatan_pembayaran' => $request->catatan_pembayaran,
+            'sisa_bayar'         => $request->status_pembayaran === 'lunas' ? 0 : $booking->sisa_bayar,
         ]);
-
-        $konflik = $this->cekKonflikJadwal(
-            $request->ms_id_ruangan,
-            $request->tanggal_booking,
-            $request->waktu_mulai,
-            $request->durasi_sewa,
-            $request->exclude_id
-        );
-
-        return response()->json([
-            'tersedia' => !$konflik,
-            'pesan'    => $konflik
-                ? 'Ruangan sudah dibooking di jam tersebut.'
-                : 'Ruangan tersedia.',
-        ]);
+        return redirect()->route('admin.booking.show', $id)
+            ->with('success', 'Pembayaran berhasil diupdate.');
     }
 
-    // ============================================================
-    // PRIVATE HELPERS
-    // ============================================================
-
-    private function generateKodeBooking(): string
+    public function selesai($id)
     {
-        do {
-            $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-        } while (TrTransaksi::where('kode_booking', $kode)->exists());
-
-        return $kode;
-    }
-
-    private function cekKonflikJadwal(
-    int $ruanganId,
-    string $tanggal,
-    string $waktuMulai,
-    int $durasiSewa,
-    ?int $excludeId = null
-    ): bool {
-        $mulai   = Carbon::parse("{$tanggal} {$waktuMulai}");
-        $selesai = $mulai->copy()->addMinutes($durasiSewa);
-
-        $query = TrTransaksi::where('ms_id_ruangan', $ruanganId)
-            ->whereDate('tanggal_booking', $tanggal)
-            ->whereIn('status_booking', ['pending', 'confirmed']);
-
-        if ($excludeId) {
-            $query->where('id_transaksi', '!=', $excludeId);
-        }
-
-        return $query->get()->contains(function ($trx) use ($mulai, $selesai) {
-            $trxMulai   = Carbon::parse($trx->tanggal_booking . ' ' . $trx->waktu_mulai);
-            $trxSelesai = $trxMulai->copy()->addMinutes($trx->durasi_sewa);
-
-            return ($mulai < $trxSelesai && $selesai > $trxMulai);
-        });
+        $booking = TrTransaksi::findOrFail($id);
+        $booking->update(['status_sewa' => 'selesai']);
+        return redirect()->route('admin.booking.show', $id)
+            ->with('success', 'Booking ditandai selesai.');
     }
 }
