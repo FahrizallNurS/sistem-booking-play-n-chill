@@ -53,14 +53,13 @@ class AuthController extends Controller
     // =====================
     // Logout
     // =====================
+    
     public function logout(Request $request)
     {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login');
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect()->route('login');
     }
 
     // =====================
@@ -95,6 +94,7 @@ class AuthController extends Controller
                 'email_verified_at' => now(),
             ]
         );
+    
 
         // Update google_id kalau user sudah ada tapi belum punya google_id
         if (!$user->google_id) {
@@ -114,7 +114,7 @@ class AuthController extends Controller
         return match ($user->role) {
             'superadmin' => redirect()->route('superadmin.dashboard'),
             'admin'      => redirect()->route('admin.dashboard'),
-            default      => redirect()->route('pelanggan.home'),
+            default      => redirect('/'), // ← ganti dari route('pelanggan.home') ke /
         };
     }
 }

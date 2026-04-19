@@ -300,6 +300,10 @@
 
     <button type="submit" class="btn-login">LOGIN</button>
 
+  <div style="text-align:right; margin-top: -12px; margin-bottom: 16px;">
+      <a href="{{ route('password.request') }}" style="color:#7c4dff; font-size:0.85rem; text-decoration:none;">Lupa password?</a>
+  </div>
+
   </form>
 
   <div class="divider">or</div>
@@ -316,10 +320,8 @@
   </a>
 
   <p class="register-link">
-    Belum punya akun? <a href="#">Daftar</a>
+    Belum punya akun? <a href="{{ route('register') }}">Daftar</a>
   </p>
-
-</div>
 
 <script src="{{ asset('adminLTE/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('adminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
