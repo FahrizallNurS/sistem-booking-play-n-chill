@@ -2,22 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; // Penting untuk Auth::login
+use Illuminate\Notifications\Notifiable;
 
-class Pengguna extends Model
+class Pengguna extends Authenticatable
 {
-    protected $table = 'ms_pengguna';
+    use Notifiable;
 
-    protected $primaryKey = 'id_pengguna';
+    protected $table = 'users'; 
+
+    // Berdasarkan gambar DB kamu, primary key-nya adalah 'id'
+    protected $primaryKey = 'id'; 
 
     protected $fillable = [
-        'nama_pengguna',
+        'name',      // Sesuai kolom di DB
         'email',
         'password',
+        'phone',     // Sesuai kolom di DB
         'no_hp',
         'status',
-        'google_id'
+        'role',
+        'google_id',
+        'alamat'
     ];
 
-    public $timestamps = false; // karena pakai created_at manual
+    public $timestamps = true; 
 }

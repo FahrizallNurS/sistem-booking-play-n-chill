@@ -76,8 +76,6 @@ Route::middleware('guest')->group(function () {
 */
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
-
-
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATED USER
@@ -110,7 +108,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 
-
+});
     /*
     |--------------------------------------------------------------------------
     | SUPERADMIN
@@ -200,8 +198,4 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
         Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
-        Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-        Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
     });
-
-});

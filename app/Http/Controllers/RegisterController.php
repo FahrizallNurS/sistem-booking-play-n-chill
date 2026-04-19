@@ -9,63 +9,45 @@ use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
-    // Tampilkan halaman register
     public function showRegistrationForm()
     {
-        // Kalau sudah login, redirect sesuai role
-        if (Auth::check()) {
-            return $this->redirectByRole(Auth::user());
-        }
-
+        // Mengarah ke resources/views/pelanggan/register.blade.php
         return view('pelanggan.register');
     }
 
-    // Proses simpan data
     public function register(Request $request)
     {
-        // Kalau sudah login, redirect sesuai role
-        if (Auth::check()) {
-            return $this->redirectByRole(Auth::user());
-        }
-
-        // Validasi input
+        $suspiciousPattern = '/[<>{}\[\];]/';
+        // 1. Validasi Input & Pesan Error Custom
         $request->validate([
-            'nama'     => 'required|string|max:45',
-            'email'    => 'required|email|max:100|unique:users,email',
-            'no_hp'    => 'required|string|max:15',
-            'password' => 'required|string|min:8',
+            'nama_pengguna' => [
+            'required', 'string', 'max:45', 'unique:users,name',
+            'not_regex:' . $suspiciousPattern 
+            ],
+            'email'         => 'required|email|max:30|unique:users,email',
+            'no_hp'         => 'required|string|max:15',
+            'password'      => 'required|string|min:8'
         ], [
-            'nama.required'     => 'Nama wajib diisi.',
-            'nama.max'          => 'Nama maksimal 45 karakter.',
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
-            'email.unique'      => 'Email sudah terdaftar.',
-            'no_hp.required'    => 'No HP wajib diisi.',
-            'no_hp.max'         => 'No HP maksimal 15 karakter.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min'      => 'Password minimal 8 karakter.',
+            'nama_pengguna.not_regex' => 'Username atau password salah.',
+            'nama_pengguna.unique'    => 'Username atau password salah.', 
+            'email.unique'            => 'Username atau password salah.',
+            'password.min'            => 'Username atau password salah.',
         ]);
-
-        // Simpan ke database — role selalu 'pelanggan', tidak bisa dimanipulasi dari form
-        User::create([
-            'name'      => $request->nama,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'no_hp'     => $request->no_hp,
-            'role'      => 'pelanggan',
-            'google_id' => null,
+    
+        // 2. Simpan ke Database (Mapping kolom)
+        $user = User::create([
+            'name'     => $request->nama_pengguna,
+            'email'    => $request->email,
+            'phone'    => $request->no_hp, // Masuk ke kolom phone
+            'no_hp'    => $request->no_hp, // Masuk ke kolom no_hp juga agar aman
+            'password' => $request->password,
+            'role'     => 'pelanggan',
+            'alamat'   => null, 
         ]);
-
-        return redirect()->route('login')->with('success', 'Berhasil daftar! Silakan login.');
-    }
-
-    // Helper redirect berdasarkan role
-    private function redirectByRole(User $user)
-    {
-        return match ($user->role) {
-            'superadmin' => redirect()->route('superadmin.dashboard'),
-            'admin'      => redirect()->route('admin.dashboard'),
-            default      => redirect()->route('pelanggan.home'),
-        };
+    
+        // 3. Langsung Login otomatis
+        \Illuminate\Support\Facades\Auth::login($user);
+        
+            return redirect()->route('pelanggan.home')->with('success', 'Pendaftaran berhasil!');
     }
 }
