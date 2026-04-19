@@ -8,25 +8,23 @@ class MsRuangan extends Model
 {
     protected $table = 'ms_ruangan';
     protected $primaryKey = 'id_ruangan';
-    protected $fillable = ['nama_ruangan', 'description', 'is_active', 'ms_kategori_id_kategori'];
+    protected $fillable = [
+        'nama_ruangan', 'kategori', 'deskripsi',
+        'perangkat', 'is_active', 'galeri'
+    ];
 
-    public function kategori()
+    public function penetapanHarga()
     {
-        return $this->belongsTo(MsKategori::class, 'ms_kategori_id_kategori', 'id_kategori');
-    }   
-
-    public function games()
-    {
-        return $this->belongsToMany(MsGame::class, 'ms_ruangan_has_ms_game', 'ms_ruangan_id_ruangan', 'ms_game_id_game');
+        return $this->hasMany(PenetapanHarga::class, 'id_ruangan', 'id_ruangan');
     }
 
-    public function galleries()
+    public function permainans()
     {
-        return $this->hasMany(MsGallery::class, 'ms_ruangan_id_ruangan', 'id_ruangan');
+        return $this->belongsToMany(
+            MsPermainan::class,
+            'ms_ruangan_ms_permainan',
+            'id_ruangan',
+            'id_permainan'
+        );
     }
-
-    public function pricings()
-{
-    return $this->hasMany(MsPricing::class, 'ms_ruangan_id_ruangan', 'id_ruangan');
-}
 }

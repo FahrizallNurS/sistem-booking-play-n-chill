@@ -1,9 +1,9 @@
-@extends('adminlte::page')
+@extends('superadmin.layouts.app')
 
-@section('title', 'Profil Superadmin')
+@section('title', 'Edit User')
 
-@section('content_header')
-    <h1>Profil Saya</h1>
+@section('content_header',)
+    <h1>Edit User</h1>
 @stop
 
 @section('content')
@@ -14,31 +14,38 @@
 
     <div class="row">
 
-        {{-- Edit Profil --}}
-        <div class="col-md-6">
+        {{-- Form Edit User --}}
+        <div class="col-md-7">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Edit Profil</h3>
+                    <h3 class="card-title">Edit Data User</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('superadmin.profil.update') }}" method="POST">
+                    <form action="{{ route('superadmin.users.update', $user->id) }}" method="POST">
                         @csrf
                         @method('PATCH')
 
                         <div class="form-group">
                             <label>Nama</label>
-                            <input type="text" name="name"
-                                class="form-control @error('name') is-invalid @enderror"
+                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                                 value="{{ old('name', $user->name) }}" required>
                             @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="form-group">
                             <label>Email</label>
-                            <input type="email" name="email"
-                                class="form-control @error('email') is-invalid @enderror"
+                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                                 value="{{ old('email', $user->email) }}" required>
                             @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select name="role" class="form-control" required>
+                                <option value="pelanggan" {{ $user->role == 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
+                                <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="superadmin" {{ $user->role == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
@@ -49,51 +56,37 @@
 
                         <div class="form-group">
                             <label>Alamat</label>
-                            <textarea name="alamat" class="form-control"
-                                rows="3">{{ old('alamat', $user->alamat) }}</textarea>
+                            <textarea name="alamat" class="form-control" rows="3">{{ old('alamat', $user->alamat) }}</textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fas fa-save"></i> Simpan Perubahan
-                        </button>
+                        <a href="{{ route('superadmin.users.index') }}" class="btn btn-secondary">Batal</a>
+                        <button type="submit" class="btn btn-primary">Update</button>
                     </form>
                 </div>
             </div>
         </div>
 
         {{-- Ganti Password --}}
-        <div class="col-md-6">
+        <div class="col-md-5">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header bg-warning">
                     <h3 class="card-title">Ganti Password</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('superadmin.profil.password') }}" method="POST">
+                    <form action="{{ route('superadmin.users.password', $user->id) }}" method="POST">
                         @csrf
                         @method('PATCH')
 
                         <div class="form-group">
-                            <label>Password Lama</label>
-                            <input type="password" name="password_lama"
-                                class="form-control @error('password_lama') is-invalid @enderror" required>
-                            @error('password_lama')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
                             <label>Password Baru</label>
-                            <input type="password" name="password_baru"
-                                class="form-control @error('password_baru') is-invalid @enderror" required>
-                            @error('password_baru')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="password" name="password"
+                                class="form-control @error('password') is-invalid @enderror" required>
+                            @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="form-group">
-                            <label>Konfirmasi Password Baru</label>
-                            <input type="password" name="password_baru_confirmation"
-                                class="form-control" required>
+                            <label>Konfirmasi Password</label>
+                            <input type="password" name="password_confirmation" class="form-control" required>
                         </div>
 
                         <button type="submit" class="btn btn-warning btn-block">
@@ -111,8 +104,8 @@
                 <div class="card-body">
                     <table class="table table-borderless">
                         <tr>
-                            <th width="120">Role</th>
-                            <td><span class="badge badge-danger">Superadmin</span></td>
+                            <th>Role</th>
+                            <td><span class="badge badge-primary">{{ ucfirst($user->role) }}</span></td>
                         </tr>
                         <tr>
                             <th>Terdaftar</th>

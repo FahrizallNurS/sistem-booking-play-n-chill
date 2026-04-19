@@ -6,26 +6,14 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
     <title>Status Pesanan - Play N Chill</title>
 
-    {{-- CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/status.css') }}">
-
-    {{-- Alpine (LOGIC LU) --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="pb-5"
-      x-data="{
-        bookingCode: '{{ $bookingCode ?? 'AIXOV' }}',
-        status: '{{ $status ?? 'pending' }}',
-        tanggal: '{{ $tanggal ?? now()->format('Y-m-d') }}',
-        waktu: '{{ $waktu ?? '20.00 - 22.00' }}',
-        room: '{{ $room['nama'] ?? 'VIP Room 1' }}'
-      }">
+<body class="pb-5">
 
 {{-- NAVBAR --}}
 <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm mb-5">
@@ -38,88 +26,155 @@
 
 <div class="container pb-5">
 
-    {{-- TITLE --}}
     <div class="text-center mb-5">
         <h2 class="display-5 text-white" style="font-family: 'Fredoka One';">
-            PESANAN BERHASIL ✅
+            PESANAN SAYA 📋
         </h2>
+        <p class="text-white-50">Daftar semua booking kamu di Play N Chill</p>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success text-center">{{ session('success') }}</div>
+    @endif
 
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10">
 
-            {{-- BOOKING CODE --}}
-            <div class="glass-card mb-4 text-center">
-                <span class="section-badge">Kode Booking</span>
+            @forelse($bookings as $booking)
+                @php
+                    $ph = $booking->penetapanHarga;
 
-                <div class="py-5">
-                    <h1 class="booking-id-text text-white" x-text="bookingCode"></h1>
+                    $badgeSewa = match($booking->status_sewa) {
+                        'dikonfirmasi' => ['color' => 'text-success', 'icon' => '✅', 'label' => 'Dikonfirmasi'],
+                        'dibatalkan'   => ['color' => 'text-danger',  'icon' => '❌', 'label' => 'Dibatalkan'],
+                        'selesai'      => ['color' => 'text-primary', 'icon' => '🏁', 'label' => 'Selesai'],
+                        default        => ['color' => 'text-warning', 'icon' => '⏳', 'label' => 'Menunggu Konfirmasi'],
+                    };
 
-                    {{-- STATUS DINAMIS --}}
-                    <div class="status-box-pending d-inline-flex align-items-center gap-2 px-4 py-2 rounded-4 shadow-lg">
-                        <span class="fw-bold text-uppercase h5 m-0"
-                              :class="status === 'pending' ? 'text-danger' : 'text-success'">
+                    $badgeBayar = match($booking->status_pembayaran) {
+                        'lunas'    => ['color' => 'text-success', 'icon' => '💰', 'label' => 'Lunas'],
+                        'dp'       => ['color' => 'text-info',    'icon' => '💳', 'label' => 'DP'],
+                        default    => ['color' => 'text-warning', 'icon' => '⏳', 'label' => 'Menunggu Pembayaran'],
+                    };
+                @endphp
 
-                            <span x-text="status === 'pending' ? 'Menunggu Pembayaran' : 'Sudah Dibayar'"></span>
-                        </span>
+                <div class="glass-card mb-4">
 
-                        <span class="h4 m-0"
-                              x-text="status === 'pending' ? '⏳' : '✅'"></span>
-                    </div>
-                </div>
-            </div>
+                    {{-- Kode Sewa + Status --}}
+                    <div class="text-center py-4">
+                        <span class="section-badge">Kode Sewa</span>
+                        <h1 class="booking-id-text text-white mt-3">{{ $booking->kode_sewa }}</h1>
 
-            {{-- CATATAN --}}
-            <div class="glass-card mb-4">
-                <span class="section-badge">Catatan Admin</span>
-                <div class="p-4 pt-2">
-                    <p class="h5 fw-bold text-white">
-                        Kirim bukti pembayaran + kode booking ke WhatsApp admin dalam 30 menit.
-                    </p>
-                </div>
-            </div>
+                        <div class="d-flex justify-content-center gap-3 mt-2 flex-wrap">
+                            {{-- Status Sewa --}}
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-4 shadow-sm"
+                                style="background: rgba(255,255,255,0.1)">
+                                <span class="fw-bold {{ $badgeSewa['color'] }}">
+                                    {{ $badgeSewa['icon'] }} {{ $badgeSewa['label'] }}
+                                </span>
+                            </div>
 
-            {{-- DETAIL --}}
-            <div class="glass-card mb-4">
-                <span class="section-badge">Detail Booking</span>
-
-                <div class="p-4 mt-2">
-                    <div class="row g-3">
-
-                        <div class="col-md-6">
-                            <div class="detail-item shadow-sm">
-                                <div class="detail-icon">📅</div>
-                                <div>
-                                    <p class="small fw-bold text-uppercase">Waktu</p>
-                                    <p class="fw-bold h5" x-text="tanggal"></p>
-                                    <p class="text-primary fw-bold small" x-text="waktu"></p>
-                                </div>
+                            {{-- Status Bayar --}}
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-4 shadow-sm"
+                                style="background: rgba(255,255,255,0.1)">
+                                <span class="fw-bold {{ $badgeBayar['color'] }}">
+                                    {{ $badgeBayar['icon'] }} {{ $badgeBayar['label'] }}
+                                </span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="detail-item shadow-sm">
-                                <div class="detail-icon">🛋️</div>
-                                <div>
-                                    <p class="small fw-bold text-uppercase">Ruangan</p>
-                                    <p class="fw-bold h5 text-uppercase" x-text="room"></p>
+                    {{-- Detail --}}
+                    <div class="p-4 pt-0">
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <div class="detail-item shadow-sm">
+                                    <div class="detail-icon">🛋️</div>
+                                    <div>
+                                        <p class="small fw-bold text-uppercase mb-1">Ruangan</p>
+                                        <p class="fw-bold h6 mb-0">{{ $ph->ruangan->nama_ruangan ?? '-' }}</p>
+                                        <p class="small text-white-50 mb-0">{{ $ph->ruangan->kategori ?? '-' }}</p>
+                                    </div>
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="detail-item shadow-sm">
+                                    <div class="detail-icon">🎮</div>
+                                    <div>
+                                        <p class="small fw-bold text-uppercase mb-1">Paket</p>
+                                        <p class="fw-bold h6 mb-0">{{ $ph->paket->nama_paket ?? '-' }}</p>
+                                        <p class="small text-white-50 mb-0">{{ $ph->durasi_jam ?? '-' }} Jam</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="detail-item shadow-sm">
+                                    <div class="detail-icon">📅</div>
+                                    <div>
+                                        <p class="small fw-bold text-uppercase mb-1">Waktu Mulai</p>
+                                        <p class="fw-bold h6 mb-0">
+                                            {{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('d/m/Y') }}
+                                        </p>
+                                        <p class="small text-primary fw-bold mb-0">
+                                            {{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('H:i') }}
+                                            —
+                                            {{ \Carbon\Carbon::parse($booking->waktu_selesai)->format('H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="detail-item shadow-sm">
+                                    <div class="detail-icon">💵</div>
+                                    <div>
+                                        <p class="small fw-bold text-uppercase mb-1">Pembayaran</p>
+                                        <p class="fw-bold h6 mb-0">
+                                            Rp {{ number_format($booking->total_harga, 0, ',', '.') }}
+                                        </p>
+                                        @if($booking->opsi_pembayaran === 'dp' && $booking->sisa_bayar > 0)
+                                            <p class="small text-warning mb-0">
+                                                Sisa: Rp {{ number_format($booking->sisa_bayar, 0, ',', '.') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
-                    </div>
-                </div>
-            </div>
+                        {{-- Catatan --}}
+                        @if($booking->catatan_pembayaran)
+                            <div class="mt-3 p-3 rounded-3" style="background: rgba(255,255,255,0.08)">
+                                <p class="small fw-bold text-uppercase text-white-50 mb-1">Catatan Admin</p>
+                                <p class="text-white mb-0">{{ $booking->catatan_pembayaran }}</p>
+                            </div>
+                        @endif
 
-            {{-- WA BUTTON --}}
-            <a :href="'https://wa.me/628123456789?text=Halo admin, saya konfirmasi booking ' + bookingCode"
-               class="btn-wa-confirm mb-4">
-                KONFIRMASI DI SINI
-                <i class="fa-brands fa-whatsapp fs-2 ms-2 text-success"></i>
-            </a>
+                        {{-- WA Button — hanya kalau masih menunggu --}}
+                        @if($booking->status_sewa === 'ditahan')
+                            <a href="https://wa.me/628123456789?text=Halo admin, saya konfirmasi booking {{ $booking->kode_sewa }}"
+                                class="btn-wa-confirm mt-4 d-block text-center">
+                                KONFIRMASI PEMBAYARAN
+                                <i class="fa-brands fa-whatsapp fs-5 ms-2 text-success"></i>
+                            </a>
+                        @endif
+                    </div>
+
+                </div>
+
+            @empty
+                <div class="glass-card text-center py-5">
+                    <p class="text-white fs-5">Kamu belum punya booking.</p>
+                    <a href="{{ url('/booking') }}" class="btn btn-warning mt-2">Booking Sekarang</a>
+                </div>
+            @endforelse
 
             <a href="{{ url('/') }}"
-               class="text-white text-center d-block opacity-75 fw-bold text-decoration-none mt-3">
+                class="text-white text-center d-block opacity-75 fw-bold text-decoration-none mt-3">
                 ← Kembali ke Beranda
             </a>
 
@@ -128,6 +183,5 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

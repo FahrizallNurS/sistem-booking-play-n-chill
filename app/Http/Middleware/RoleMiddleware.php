@@ -1,5 +1,3 @@
-bantu fix konflik
-
 <?php
 
 namespace App\Http\Middleware;
@@ -10,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-   public function handle(Request $request, Closure $next, ...$roles)
+
+public function handle(Request $request, Closure $next, ...$roles)
 {
     if (!Auth::check()) {
         return redirect()->route('login');
@@ -18,8 +17,13 @@ class RoleMiddleware
 
     $user = Auth::user();
 
-    // Superadmin bebas akses semua
-    if ($user->role === 'superadmin') {
+    // Kalau superadmin nyasar ke route admin, redirect ke superadmin dashboard
+    if ($user->role === 'superadmin' && in_array('admin', $roles)) {
+        return redirect()->route('superadmin.dashboard');
+    }
+
+    // Superadmin bebas akses route superadmin
+    if ($user->role === 'superadmin' && in_array('superadmin', $roles)) {
         return $next($request);
     }
 
@@ -29,5 +33,5 @@ class RoleMiddleware
     }
 
     abort(403, 'Maaf, Anda tidak memiliki akses ke halaman ini.');
-
+}
 }

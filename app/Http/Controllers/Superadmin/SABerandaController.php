@@ -16,6 +16,6 @@ class SABerandaController extends Controller
 
         // 3. Kirim variabel $totalPelanggan ke file view
         // Pastikan nama file kamu adalah resources/views/superadmin/dashboard.blade.php
-        return view('superadmin.dashboard', compact('totalPelanggan'));
+        return view('superadmin.beranda-sa.index', compact('totalPelanggan'));
     }
 }

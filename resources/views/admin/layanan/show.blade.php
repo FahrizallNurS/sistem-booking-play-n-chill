@@ -11,13 +11,17 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
 
     {{-- Info Ruangan --}}
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Informasi Ruangan</h3>
             <div class="card-tools">
-                <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}" class="btn btn-warning btn-sm">
+                <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}"
+                    class="btn btn-warning btn-sm">
                     <i class="fas fa-edit"></i> Edit
                 </a>
                 <a href="{{ route('admin.layanan.index') }}" class="btn btn-secondary btn-sm">
@@ -26,10 +30,11 @@
             </div>
         </div>
         <div class="card-body">
-            <table class="table">
+            <table class="table table-borderless">
                 <tr><th width="150">Nama Ruangan</th><td>{{ $ruangan->nama_ruangan }}</td></tr>
-                <tr><th>Kategori</th><td>{{ $ruangan->kategori->nama_kategori ?? '-' }}</td></tr>
-                <tr><th>Deskripsi</th><td>{{ $ruangan->description ?? '-' }}</td></tr>
+                <tr><th>Kategori</th><td><span class="badge badge-info">{{ $ruangan->kategori }}</span></td></tr>
+                <tr><th>Perangkat</th><td>{{ $ruangan->perangkat ?? '-' }}</td></tr>
+                <tr><th>Deskripsi</th><td>{{ $ruangan->deskripsi ?? '-' }}</td></tr>
                 <tr><th>Status</th><td>
                     @if($ruangan->is_active)
                         <span class="badge badge-success">Aktif</span>
@@ -41,21 +46,20 @@
         </div>
     </div>
 
-    {{-- Pricing --}}
+    {{-- Form Tambah Penetapan Harga --}}
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Daftar Paket & Harga</h3>
+            <h3 class="card-title">Penetapan Harga</h3>
         </div>
         <div class="card-body">
-
-            {{-- Form Tambah Pricing --}}
-            <form action="{{ route('admin.layanan.pricing.store', $ruangan->id_ruangan) }}" method="POST" class="mb-4">
+            <form action="{{ route('admin.layanan.penetapan.store', $ruangan->id_ruangan) }}"
+                method="POST" class="mb-4">
                 @csrf
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label>Paket</label>
-                            <select name="ms_paket_id_paket" class="form-control" required>
+                            <select name="id_paket" class="form-control" required>
                                 <option value="">-- Pilih Paket --</option>
                                 @foreach($pakets as $paket)
                                     <option value="{{ $paket->id_paket }}">{{ $paket->nama_paket }}</option>
@@ -66,33 +70,25 @@
                     <div class="col-md-2">
                         <div class="form-group">
                             <label>Tipe Hari</label>
-                            <select name="tipe_pricing" class="form-control" required>
-                                <option value="weekday">Weekday</option>
-                                <option value="weekend">Weekend</option>
-                                <option value="holiday">Holiday</option>
+                            <select name="tipe_hari" class="form-control" required>
+                                <option value="harian">Harian</option>
+                                <option value="akhir_pekan">Akhir Pekan</option>
+                                <option value="liburan">Liburan</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="form-group">
-                            <label>Hari Type</label>
-                            <select name="hari_type" class="form-control" required>
-                                <option value="weekday">Weekday</option>
-                                <option value="weekend">Weekend</option>
-                                <option value="holiday">Holiday</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Durasi (menit)</label>
-                            <input type="number" name="durasi_menit" class="form-control" min="30" required>
+                            <label>Durasi (jam)</label>
+                            <input type="number" name="durasi_jam" class="form-control"
+                                min="1" required placeholder="contoh: 1">
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="form-group">
                             <label>Harga (Rp)</label>
-                            <input type="number" name="harga" class="form-control" min="0" required>
+                            <input type="number" name="harga" class="form-control"
+                                min="0" required>
                         </div>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
@@ -105,7 +101,7 @@
                 </div>
             </form>
 
-            {{-- Tabel Pricing --}}
+            {{-- Tabel Penetapan Harga --}}
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
@@ -118,18 +114,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($ruangan->pricings as $index => $pricing)
+                    @forelse($ruangan->penetapanHarga as $index => $ph)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $pricing->paket->nama_paket ?? '-' }}</td>
-                            <td><span class="badge badge-info">{{ $pricing->tipe_pricing }}</span></td>
-                            <td>{{ $pricing->durasi_menit }} menit</td>
-                            <td>Rp {{ number_format($pricing->harga, 0, ',', '.') }}</td>
+                            <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
+                            <td><span class="badge badge-info">{{ $ph->tipe_hari }}</span></td>
+                            <td>{{ $ph->durasi_jam }} jam</td>
+                            <td>Rp {{ number_format($ph->harga, 0, ',', '.') }}</td>
                             <td>
-                                <form action="{{ route('admin.layanan.pricing.destroy', $pricing->id_pricing) }}" method="POST">
+                                <form action="{{ route('admin.layanan.penetapan.destroy', $ph->id_penetapan_harga) }}"
+                                    method="POST">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus pricing ini?')">
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Hapus penetapan harga ini?')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -137,7 +135,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">Belum ada paket harga</td>
+                            <td colspan="6" class="text-center">Belum ada penetapan harga</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('superadmin.layouts.app')
 
 @section('title', 'Dashboard Superadmin')
 

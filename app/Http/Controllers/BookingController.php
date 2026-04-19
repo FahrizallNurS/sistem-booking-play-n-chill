@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\TrTransaksi;
 use App\Models\MsRuangan;
 use App\Models\MsPaket;
-use App\Models\MsPricing;
+use App\Models\PenetapanHarga;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -18,14 +18,15 @@ class BookingController extends Controller
         $tipe = $request->input('tipe', 'reguler');
 
         $kategoriMap = [
-            'reguler' => 1,
-            'vip'     => 2,
-            'vvip'    => 3,
+            'reguler' => 'REGULAR',
+            'regular' => 'REGULAR',
+            'vip'     => 'VIP',
+            'vvip'    => 'VVIP',
         ];
 
-        $idKategori = $kategoriMap[$tipe] ?? 1;
+        $kategori = $kategoriMap[strtolower($tipe)] ?? 'REGULAR';
 
-        $rooms = MsRuangan::where('ms_kategori_id_kategori', $idKategori)
+        $rooms = MsRuangan::where('kategori', $kategori)
             ->where('is_active', 1)
             ->get();
 
@@ -33,21 +34,20 @@ class BookingController extends Controller
     }
 
     public function paket(Request $request)
-{
-    $roomId = $request->input('room');
-    $tipe   = $request->input('tipe', 'reguler');
+    {
+        $roomId = $request->input('room');
+        $tipe   = $request->input('tipe', 'reguler');
 
-    $room = MsRuangan::with('kategori')->findOrFail($roomId);
+        $room = MsRuangan::findOrFail($roomId);
 
-    $pricings = MsPricing::with(['paket.fasilitas'])
-        ->where('ms_ruangan_id_ruangan', $roomId)
-        ->get()
-        ->groupBy('ms_paket_id_paket');
+        $penetapanHarga = PenetapanHarga::with('paket')
+            ->where('id_ruangan', $roomId)
+            ->get()
+            ->groupBy('id_paket');
 
-    return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room', 'pricings'));
+        return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room', 'penetapanHarga'));
     }
 
-    
     public function form(Request $request)
     {
         $roomId  = $request->input('room');
@@ -57,60 +57,51 @@ class BookingController extends Controller
         $room  = MsRuangan::findOrFail($roomId);
         $paket = MsPaket::findOrFail($paketId);
 
-        $pricings = MsPricing::where('ms_ruangan_id_ruangan', $roomId)
-            ->where('ms_paket_id_paket', $paketId)
+        // Tambah ->get() dengan select eksplisit biar harga tidak terpotong
+        $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
+            ->where('id_paket', $paketId)
+            ->select('id_penetapan_harga', 'id_ruangan', 'id_paket', 'harga', 'durasi_jam', 'tipe_hari')
             ->get();
 
-        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'pricings'));
+        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'penetapanHarga'));
     }
-
 
     public function store(Request $request)
     {
         $request->validate([
-            'ms_id_ruangan'   => 'required|exists:ms_ruangan,id_ruangan',
-            'ms_id_paket'     => 'required|exists:ms_paket,id_paket',
-            'tanggal_booking' => 'required|date|after_or_equal:today',
-            'waktu_mulai'     => 'required',
-            'durasi_sewa'     => 'required|integer|min:30',
-            'opsi_pembayaran' => 'required|in:full,dp',
-            'jumlah_dp'       => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
-        ], [
-            'tanggal_booking.after_or_equal' => 'Tanggal tidak boleh sebelum hari ini.',
-            'waktu_mulai.required'           => 'Jam main wajib dipilih.',
+            'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
+            'tanggal'            => 'required|date|after_or_equal:today',
+            'waktu_mulai'        => 'required',
+            'opsi_pembayaran'    => 'required|in:full,dp',
+            'jumlah_dp'          => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
         ]);
 
-        $hari = Carbon::parse($request->tanggal_booking)->isWeekend() ? 'weekend' : 'weekday';
-        $pricing = MsPricing::where('ms_ruangan_id_ruangan', $request->ms_id_ruangan)
-            ->where('ms_paket_id_paket', $request->ms_id_paket)
-            ->where('hari_type', $hari)
-            ->where('durasi_menit', $request->durasi_sewa)
-            ->first();
+        $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
 
-        if (!$pricing) {
-            return back()->withInput()->withErrors([
-                'durasi_sewa' => 'Paket tidak tersedia untuk durasi dan hari tersebut.'
-            ]);
-        }
+        // Gabungin tanggal + waktu jadi DATETIME
+        $waktuMulai   = Carbon::parse($request->tanggal . ' ' . str_replace('.', ':', $request->waktu_mulai));
+        $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
 
+        // Generate kode sewa
         do {
             $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-        } while (TrTransaksi::where('kode_booking', $kode)->exists());
+        } while (TrTransaksi::where('kode_sewa', $kode)->exists());
+
+        $jumlahDp  = $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null;
+        $sisaBayar = $request->opsi_pembayaran === 'dp' ? ($ph->harga - $request->jumlah_dp) : 0;
 
         TrTransaksi::create([
-            'kode_booking'         => $kode,
-            'tanggal_booking'      => $request->tanggal_booking,
-            'waktu_mulai'          => $request->waktu_mulai,
-            'durasi_sewa'          => $request->durasi_sewa,
-            'ms_id_ruangan'        => $request->ms_id_ruangan,
-            'ms_id_paket'          => $request->ms_id_paket,
-            'ms_id_pengguna'       => Auth::id(),
-            'opsi_pembayaran'      => $request->opsi_pembayaran,
-            'jumlah_dp'            => $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null,
-            'total_harga'          => $pricing->harga,
-            'harga_saat_transaksi' => $pricing->harga,
-            'status_booking'       => 'pending',
-            'status_pembayaran'    => 'unpaid',
+            'id_penetapan_harga' => $ph->id_penetapan_harga,
+            'id_pengguna'        => Auth::id(),
+            'kode_sewa'          => $kode,
+            'waktu_mulai'        => $waktuMulai,
+            'waktu_selesai'      => $waktuSelesai,
+            'total_harga'        => $ph->harga,
+            'opsi_pembayaran'    => $request->opsi_pembayaran,
+            'jumlah_dp'          => $jumlahDp,
+            'status_sewa'        => 'ditahan',
+            'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
+            'sisa_bayar'         => $sisaBayar,
         ]);
 
         return redirect()->route('booking.status')
@@ -119,8 +110,8 @@ class BookingController extends Controller
 
     public function status()
     {
-        $bookings = TrTransaksi::with(['ruangan', 'paket'])
-            ->where('ms_id_pengguna', Auth::id())
+        $bookings = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
+            ->where('id_pengguna', Auth::id())
             ->latest()
             ->get();
 

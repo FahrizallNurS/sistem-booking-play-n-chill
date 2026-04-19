@@ -1,122 +1,85 @@
-@extends('adminlte::page')
+@extends('superadmin.layouts.app')
 
-@section('title', 'Kelola Data User')
+@section('title', 'Kelola User')
+
+@section('content_header')
+    <h1>Kelola User</h1>
+@stop
 
 @section('content')
-<div class="container-fluid pt-4">
-    {{-- Tombol Tambah Pengguna --}}
-    <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary" style="border-radius: 10px; background-color: #6c5ce7; border: none; padding: 10px 20px;">
-            <i class="fas fa-plus"></i> Tambah Pengguna
-        </button>
-    </div>
 
-    {{-- Container Tabel Ungu --}}
-    <div class="custom-card">
-        <div class="table-responsive">
-            <table class="table table-borderless custom-table">
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Daftar User</h3>
+            <div class="card-tools">
+                <a href="{{ route('superadmin.users.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Tambah User
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <th>Id.</th>
-                        <th>User Name</th>
+                        <th>#</th>
+                        <th>Nama</th>
                         <th>Email</th>
-                        <th>Nomor Telp.</th>
+                        <th>No. HP</th>
                         <th>Role</th>
-                        <th class="text-center">Aksi</th>
+                        <th>Terdaftar</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- Baris dengan Sorotan Kuning/Hijau --}}
-                    <tr class="highlight-row">
-                        <td>1.</td>
-                        <td>PPP</td>
-                        <td>p@gmail.com</td>
-                        <td>08123456789</td>
-                        <td>Pelanggan</td>
-                        <td class="text-center">
-                            {{-- Tombol Edit untuk memicu Modal --}}
-                            <button class="btn-edit" data-toggle="modal" data-target="#modalEditUser">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            {{-- Tombol Hapus --}}
-                            <button class="btn-delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {{-- Baris Standar --}}
-                    <tr>
-                        <td>2.</td>
-                        <td>Gojo Satoru</td>
-                        <td>gojo@pnc.com</td>
-                        <td>085731907665</td>
-                        <td>Pelanggan</td>
-                        <td class="text-center">
-                            <button class="btn-edit" data-toggle="modal" data-target="#modalEditUser">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            <button class="btn-delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @forelse($users as $index => $user)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->no_hp ?? '-' }}</td>
+                            <td>
+                                @if($user->role === 'superadmin')
+                                    <span class="badge badge-danger">Superadmin</span>
+                                @elseif($user->role === 'admin')
+                                    <span class="badge badge-warning">Admin</span>
+                                @else
+                                    <span class="badge badge-info">Pelanggan</span>
+                                @endif
+                            </td>
+                            <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                            <td>
+                                <a href="{{ route('superadmin.users.edit', $user->id) }}"
+                                    class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                @if($user->id !== auth()->id())
+                                    <form action="{{ route('superadmin.users.destroy', $user->id) }}"
+                                        method="POST" style="display:inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Yakin hapus user ini?')">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center">Belum ada data user</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
-</div>
 
-{{-- Memanggil file Modal --}}
-@include('superadmin.kelola-user.modal-edit')
-@stop
-
-@section('css')
-<style>
-    /* Mengatur background utama agar bersih */
-    .content-wrapper { background-color: #f4f6f9 !important; }
-
-    /* Container Ungu Bulat */
-    .custom-card {
-        background-color: #8c7ae6; 
-        border-radius: 25px;
-        padding: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-
-    .custom-table { color: white !important; margin-bottom: 0; }
-    .custom-table thead th { 
-        border: none; 
-        font-weight: 600; 
-        font-size: 1.1rem;
-        padding: 20px 15px;
-    }
-
-    /* Gaya Baris Sorotan (Kuning Terang) */
-    .highlight-row { 
-        background-color: #d1ff00 !important; 
-        color: #2d3436 !important; 
-        font-weight: bold; 
-    }
-    .highlight-row td { color: #2d3436 !important; }
-
-    /* Baris Tabel Biasa */
-    .custom-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .custom-table td { vertical-align: middle; padding: 15px; }
-
-    /* Tombol Aksi Bulat */
-    .btn-edit, .btn-delete {
-        border: none;
-        border-radius: 50%;
-        width: 38px;
-        height: 38px;
-        margin: 0 5px;
-        transition: all 0.3s ease;
-    }
-    .btn-edit { background-color: #a29bfe; color: #6c5ce7; }
-    .btn-delete { background-color: #ff7675; color: white; }
-
-    .btn-edit:hover { background-color: white; transform: scale(1.1); }
-    .btn-delete:hover { background-color: #d63031; transform: scale(1.1); }
-</style>
 @stop

@@ -7,26 +7,43 @@
 @stop
 
 @section('content')
-<div class="card">
-    <div class="card-body">
+            <div class="card">
+                <div class="card-body">
+                    @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         <form action="{{ route('admin.paket.store') }}" method="POST">
             @csrf
 
-            {{-- Info Paket --}}
             <div class="form-group">
                 <label>Nama Paket</label>
-                <input type="text" name="nama_paket" class="form-control" required maxlength="50"
+                <input type="text" name="nama_paket"
+                    class="form-control @error('nama_paket') is-invalid @enderror"
+                    value="{{ old('nama_paket') }}" required maxlength="40"
                     placeholder="contoh: Gaming Private Room">
+                @error('nama_paket')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
+
             <div class="form-group">
-                <label>Deskripsi</label>
-                <textarea name="deskripsi_paket" class="form-control" rows="3"></textarea>
+                <label>Deskripsi <small class="text-muted">(pisahkan dengan enter, tampil sebagai list ✅)</small></label>
+                <textarea name="deskripsi_paket" class="form-control" rows="4"
+                    placeholder="AC & WiFi&#10;PS5 Terbaru&#10;Sofa Nyaman">{{ old('deskripsi_paket') }}</textarea>
             </div>
+
             <div class="form-group">
                 <label>Maksimal Orang</label>
-                <input type="number" name="maksimal_orang" class="form-control" min="1"
-                    placeholder="Kosongkan jika tidak dibatasi">
+                <input type="number" name="maksimal_orang" class="form-control"
+                    value="{{ old('maksimal_orang') }}" min="1" required>
             </div>
+
             <div class="form-group">
                 <label>Status</label>
                 <select name="is_active" class="form-control">
@@ -36,205 +53,110 @@
             </div>
 
             <hr>
-            <h5>Assign ke Ruangan</h5>
+            <h5>Penetapan Harga <small class="text-muted">(opsional, bisa diatur nanti)</small></h5>
 
-        {{-- Kategori --}}
-        <div class="form-group">
-            <label>Kategori Ruangan</label>
-            <select id="kategori_select" class="form-control">
-                <option value="">-- Pilih Kategori --</option>
-                @foreach($kategoris as $kategori)
-                    <option value="{{ $kategori->id_kategori }}">{{ $kategori->nama_kategori }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        {{-- Ruangan multi-select --}}
-        <div class="form-group">
-            <label>Pilih Ruangan <small class="text-muted">(bisa pilih lebih dari satu)</small></label>
-            <div id="ruangan_container" class="border rounded p-2" style="min-height:50px">
-                <small class="text-muted">Pilih kategori dulu...</small>
+            <div class="form-group">
+                <label>Kategori Ruangan</label>
+                <select id="kategori_select" class="form-control">
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="REGULAR">Regular</option>
+                    <option value="VIP">VIP</option>
+                    <option value="VVIP">VVIP</option>
+                </select>
             </div>
-        </div>
 
-        {{-- Tipe Hari --}}
-        <div class="form-group">
-            <label>Tipe Hari</label>
-            <select name="tipe_hari" id="tipe_hari" class="form-control" required>
-                <option value="">-- Pilih Hari --</option>
-                <option value="weekday">Weekday (Senin - Jumat)</option>
-                <option value="weekend">Weekend (Sabtu - Minggu)</option>
-                <option value="holiday">Holiday</option>
-            </select>
-            <small id="label_hari" class="text-muted"></small>
-        </div>
-
-
-            <h5>Fasilitas Paket</h5>
-
-            <div id="fasilitas_container">
-                <div class="fasilitas-row d-flex align-items-center mb-2">
-                    <input type="text" name="fasilitas[]" class="form-control mr-2"
-                        placeholder="contoh: AC, Snack, PS5">
-
-                    <button type="button" class="btn btn-danger btn-hapus-fasilitas">
-                        <i class="fas fa-times"></i>
-                    </button>
+            <div class="form-group">
+                <label>Pilih Ruangan <small class="text-muted">(bisa pilih lebih dari satu)</small></label>
+                <div id="ruangan_container" class="border rounded p-2" style="min-height:50px">
+                    <small class="text-muted">Pilih kategori dulu...</small>
                 </div>
             </div>
 
-            <button type="button" id="btn_tambah_fasilitas" class="btn btn-secondary btn-sm mb-3">
-                <i class="fas fa-plus"></i> Tambah Fasilitas
-            </button>
-
-            <hr>
-            <h5>Pricing (Durasi & Harga)</h5>
+            <div class="form-group">
+                <label>Tipe Hari</label>
+                <select name="tipe_hari" class="form-control">
+                    <option value="">-- Pilih Hari --</option>
+                    <option value="harian">Harian (Senin - Jumat)</option>
+                    <option value="akhir_pekan">Akhir Pekan (Sabtu - Minggu)</option>
+                    <option value="liburan">Liburan</option>
+                </select>
+            </div>
 
             <div id="pricing_container">
                 <div class="pricing-row d-flex align-items-center mb-2">
-                    <input type="number" name="durasi_menit[]" class="form-control mr-2"
-                        placeholder="Durasi (menit)" min="30" required>
-
+                    <input type="number" name="durasi_jam[]" class="form-control mr-2"
+                        placeholder="Durasi (jam)" min="1">
                     <input type="number" name="harga[]" class="form-control mr-2"
-                        placeholder="Harga" min="0" required>
-
+                        placeholder="Harga (Rp)" min="0">
                     <button type="button" class="btn btn-danger btn-hapus-pricing">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
-
             <button type="button" id="btn_tambah_pricing" class="btn btn-secondary btn-sm mb-3">
                 <i class="fas fa-plus"></i> Tambah Durasi
             </button>
 
             <hr>
-
-            <div class="d-flex justify-content-end">
-                <a href="{{ route('admin.paket.index') }}" class="btn btn-secondary mr-2">
-                    Batal
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    Simpan
-                </button>
-            </div>
-
-            </div>
-            </div>
-
-
+            <a href="{{ route('admin.paket.index') }}" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
-
-
+    </div>
 </div>
 @stop
 
 @section('js')
 <script>
-
     document.getElementById('kategori_select').addEventListener('change', function() {
-    const idKategori = this.value;
-    const container = document.getElementById('ruangan_container');
+        const kategori = this.value;
+        const container = document.getElementById('ruangan_container');
+        container.innerHTML = '<small class="text-muted">Loading...</small>';
 
-    container.innerHTML = '<small class="text-muted">Loading...</small>';
-
-    if (!idKategori) {
-        container.innerHTML = '<small class="text-muted">Pilih kategori dulu...</small>';
-        return;
-    }
-
-    fetch(`/admin/kategori/${idKategori}/ruangan`)
-        .then(res => res.text())
-        .then(text => {
-            const clean = text.replace(/^[^[{]*/, '');
-            const data = JSON.parse(clean);
-            container.innerHTML = '';
-            if (data.length === 0) {
-                container.innerHTML = '<small class="text-muted">Tidak ada ruangan tersedia.</small>';
-                return;
-            }
-            data.forEach(r => {
-                container.innerHTML += `
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox"
-                            name="ms_ruangan_ids[]" value="${r.id_ruangan}" id="ruangan_${r.id_ruangan}">
-                        <label class="form-check-label" for="ruangan_${r.id_ruangan}">
-                            ${r.nama_ruangan}
-                        </label>
-                    </div>
-                `;
-            });
-        });
-    });
-
-    // Label hari otomatis
-    document.getElementById('tipe_hari').addEventListener('change', function() {
-        const label = document.getElementById('label_hari');
-        if (this.value === 'weekday') label.textContent = 'Berlaku Senin - Jumat';
-        else if (this.value === 'weekend') label.textContent = 'Berlaku Sabtu - Minggu';
-        else if (this.value === 'holiday') label.textContent = 'Berlaku Hari Libur Nasional';
-        else label.textContent = '';
-    });
-
-    const fasilitasTemplate = `
-    <input type="text" name="fasilitas[]" class="form-control mr-2"
-        placeholder="contoh: AC, Snack, PS5">
-
-    <button type="button" class="btn btn-danger btn-hapus-fasilitas">
-        <i class="fas fa-times"></i>
-    </button>
-    `;
-
-    document.getElementById('btn_tambah_fasilitas').addEventListener('click', function() {
-        const div = document.createElement('div');
-        div.className = 'fasilitas-row d-flex mb-2';
-        div.innerHTML = fasilitasTemplate;
-        document.getElementById('fasilitas_container').appendChild(div);
-    });
-
-    // Hapus fasilitas
-    document.getElementById('fasilitas_container').addEventListener('click', function(e) {
-        if (e.target.closest('.btn-hapus-fasilitas')) {
-            const rows = document.querySelectorAll('.fasilitas-row');
-            if (rows.length > 1) {
-                e.target.closest('.fasilitas-row').remove();
-            }
+        if (!kategori) {
+            container.innerHTML = '<small class="text-muted">Pilih kategori dulu...</small>';
+            return;
         }
+
+        fetch(`/admin/kategori/${kategori}/ruangan`)
+            .then(res => res.text())
+            .then(text => {
+                const clean = text.replace(/^[^[{]*/, '');
+                const data = JSON.parse(clean);
+                container.innerHTML = '';
+                if (data.length === 0) {
+                    container.innerHTML = '<small class="text-muted">Tidak ada ruangan tersedia.</small>';
+                    return;
+                }
+                data.forEach(r => {
+                    container.innerHTML += `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                name="ruangan_ids[]" value="${r.id_ruangan}" id="ruangan_${r.id_ruangan}">
+                            <label class="form-check-label" for="ruangan_${r.id_ruangan}">
+                                ${r.nama_ruangan}
+                            </label>
+                        </div>
+                    `;
+                });
+            });
     });
 
     const pricingTemplate = `
-    <input type="number" name="durasi_menit[]" class="form-control mr-2"
-        placeholder="Durasi (menit)" min="30" required>
-
-    <input type="number" name="harga[]" class="form-control mr-2"
-        placeholder="Harga" min="0" required>
-
-    <button type="button" class="btn btn-danger btn-hapus-pricing">
-        <i class="fas fa-times"></i>
-    </button>
+        <input type="number" name="durasi_jam[]" class="form-control mr-2" placeholder="Durasi (jam)" min="1">
+        <input type="number" name="harga[]" class="form-control mr-2" placeholder="Harga (Rp)" min="0">
+        <button type="button" class="btn btn-danger btn-hapus-pricing"><i class="fas fa-times"></i></button>
     `;
-
-    // tambah pricing
     document.getElementById('btn_tambah_pricing').addEventListener('click', function() {
         const div = document.createElement('div');
         div.className = 'pricing-row d-flex mb-2';
         div.innerHTML = pricingTemplate;
         document.getElementById('pricing_container').appendChild(div);
     });
-
-    // hapus pricing
     document.getElementById('pricing_container').addEventListener('click', function(e) {
         if (e.target.closest('.btn-hapus-pricing')) {
             const rows = document.querySelectorAll('.pricing-row');
-            if (rows.length > 1) {
-                e.target.closest('.pricing-row').remove();
-            }
+            if (rows.length > 1) e.target.closest('.pricing-row').remove();
         }
     });
-
-    
-    
 </script>
-
-
 @stop
