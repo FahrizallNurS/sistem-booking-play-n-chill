@@ -35,12 +35,12 @@ class RegisterController extends Controller
         ]);
     
         // 2. Simpan ke Database (Mapping kolom)
-        $user = Pengguna::create([
+        $user = User::create([
             'name'     => $request->nama_pengguna,
             'email'    => $request->email,
             'phone'    => $request->no_hp, // Masuk ke kolom phone
             'no_hp'    => $request->no_hp, // Masuk ke kolom no_hp juga agar aman
-            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'password' => $request->password,
             'role'     => 'pelanggan',
             'alamat'   => null, 
         ]);
@@ -48,6 +48,6 @@ class RegisterController extends Controller
         // 3. Langsung Login otomatis
         \Illuminate\Support\Facades\Auth::login($user);
         
-            return redirect('pelanggan.home')->with('success', 'Pendaftaran berhasil!');
+            return redirect()->route('pelanggan.home')->with('success', 'Pendaftaran berhasil!');
     }
 }

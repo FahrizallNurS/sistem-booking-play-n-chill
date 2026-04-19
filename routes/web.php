@@ -108,7 +108,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 
-
+});
     /*
     |--------------------------------------------------------------------------
     | SUPERADMIN
@@ -198,12 +198,4 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
         Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
-        Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-        Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
     });
-
-<<<<<<< HEAD
-    Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
-=======
-});
->>>>>>> c6b5a3714006c2097208129b665147d90b8a0d71
