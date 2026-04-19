@@ -8,33 +8,45 @@ use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
-    // tampilkan halaman register
-    public function showRegistrationForm(){
-        return view('register');
+    public function showRegistrationForm()
+    {
+        // Mengarah ke resources/views/pelanggan/register.blade.php
+        return view('pelanggan.register');
     }
 
-    // proses simpan data
-    public function register(Request $request){
-
-        // validasi input
+    public function register(Request $request)
+    {
+        $suspiciousPattern = '/[<>{}\[\];]/';
+        // 1. Validasi Input & Pesan Error Custom
         $request->validate([
-            'nama' => 'required|string|max:45',
-            'email' => 'required|email|max:30|unique:ms_pengguna,email',
-            'no_hp' => 'required|string|max:15',
-            'password' => 'required|string|min:8'
+            'nama_pengguna' => [
+            'required', 'string', 'max:45', 'unique:users,name',
+            'not_regex:' . $suspiciousPattern 
+            ],
+            'email'         => 'required|email|max:30|unique:users,email',
+            'no_hp'         => 'required|string|max:15',
+            'password'      => 'required|string|min:8'
+        ], [
+            'nama_pengguna.not_regex' => 'Username atau password salah.',
+            'nama_pengguna.unique'    => 'Username atau password salah.', 
+            'email.unique'            => 'Username atau password salah.',
+            'password.min'            => 'Username atau password salah.',
         ]);
-
-        // simpan ke database
-        Pengguna::create([
-            'nama_pengguna' => $request->nama,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'no_hp' => $request->no_hp,
-            'status' => 'aktif',
-            'google_id' => null
+    
+        // 2. Simpan ke Database (Mapping kolom)
+        $user = Pengguna::create([
+            'name'     => $request->nama_pengguna,
+            'email'    => $request->email,
+            'phone'    => $request->no_hp, // Masuk ke kolom phone
+            'no_hp'    => $request->no_hp, // Masuk ke kolom no_hp juga agar aman
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'role'     => 'pelanggan',
+            'alamat'   => null, 
         ]);
-
-        // redirect + pesan sukses
-        return redirect('/register')->with('success', 'Berhasil daftar');
+    
+        // 3. Langsung Login otomatis
+        \Illuminate\Support\Facades\Auth::login($user);
+        
+            return redirect('pelanggan.home')->with('success', 'Pendaftaran berhasil!');
     }
 }

@@ -21,8 +21,8 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // register routes
-Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register-proses', [RegisterController::class, 'register'])->name('register.post');
 
 // beranda routes
 Route::middleware(['auth', RoleMiddleware::class.':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
@@ -36,6 +36,4 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->na
     Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
 });
 
-Route::middleware(['auth', RoleMiddleware::class.':pelanggan'])->group(function () {
     Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
-});
