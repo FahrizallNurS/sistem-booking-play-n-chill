@@ -114,7 +114,7 @@
 
                     <div class="container-fluid py-4">
                         {{-- KOTAK LUAR (Dark Blue) - Dipertahankan di semua slide agar ukuran tinggi tetap stabil --}}
-                        <div class="rounded-4 p-3" style="background:#122034; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                        <div class="rounded-4 p-3" style="background: var(--purple-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
 
                             @if ($i == 4)
                                 {{-- 🌟 SLIDE 1: Desain Lengkap (Ada Teks, Tombol, dan Gradasi) 🌟 --}}
