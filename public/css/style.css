@@ -131,7 +131,7 @@ body {
 
 /* Container Daftar Game */
 .game-section {
-    padding: 0px 0px 10px;
+    padding: 0px 0px 5px;
     background: var(--purple-dark);
     text-align: center;
 }
