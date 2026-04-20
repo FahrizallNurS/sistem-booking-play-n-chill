@@ -331,10 +331,10 @@ body {
     background: var(--yellow);
     text-align: center;
     position: relative;
-    padding: 32px 32px 64px;
+    padding: 32px 64px 64px;
     margin: 20px 14px 60px;
     border-radius: 50px;
-
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
 .tour-section h2 {
@@ -353,7 +353,8 @@ body {
 
 .vid-wrap {
     max-width: 750px;
-    margin: 0 auto; 
+    align-items: center;
+    margin: 32px auto;
     overflow: hidden;
     box-shadow: 0 10px 44px rgba(0, 0, 0, .28);
     aspect-ratio: 16 / 9;
