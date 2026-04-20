@@ -99,7 +99,7 @@ body {
    HERO / CAROUSEL
 ════════════════════════ */
 .hero {
-    background: var(--purple);
+    background: var(--purple-dark);
     padding: 0 !important;
     text-align: center;
     position: relative;
@@ -185,12 +185,12 @@ body {
 ════════════════════════ */
 .white-card {
     background: #fff;
-    margin-top: -60px;
-    padding: 44px 36px 52px;
+    padding: 20px 36px 52px;
+    margin: 0px 14px 0px;
     box-shadow: 0 8px 36px rgba(0, 0, 0, .09);
     position: relative;
     z-index: 5;
-    border-radius: 20px 20px 0 0;
+    border-radius: 50px;
 }
 
 .white-card h2 {
@@ -331,12 +331,15 @@ body {
     background: var(--yellow);
     text-align: center;
     position: relative;
-    padding: 32px 0;
+    padding: 32px 32px 64px;
+    margin: 20px 14px 60px;
+    border-radius: 50px;
+
 }
 
 .tour-section h2 {
     font-family: 'Fredoka One', cursive;
-    color: var(--purple);
+    color: var(--purple-dark);
     font-size: clamp(2rem, 5.5vw, 3.2rem);
     margin-bottom: 6px;
 }
