@@ -121,39 +121,41 @@
             @foreach($rooms as $room)
         <div class="room-card-booking">
 
-            {{-- Badge status --}}
-            <span class="room-status {{ $room->is_active ? 'tersedia' : 'penuh' }}">
-                {{ $room->is_active ? 'Tersedia' : 'Penuh' }}
-            </span>
 
-            {{-- Icon sofa --}}
-            <div class="room-icon">
-                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4"  y="28" width="12" height="16" rx="4"/>
-                    <rect x="48" y="28" width="12" height="16" rx="4"/>
-                    <rect x="10" y="20" width="44" height="14" rx="5"/>
-                    <rect x="16" y="34" width="32" height="12" rx="4"/>
-                    <rect x="12" y="44" width="6"  height="8"  rx="2"/>
-                    <rect x="46" y="44" width="6"  height="8"  rx="2"/>
-                </svg>
-            </div>
+        {{-- Badge status --}}
+        <span class="room-status {{ $room->tersedia ? 'tersedia' : 'penuh' }}">
+            {{ $room->tersedia ? 'Tersedia' : 'Sedang Dipakai' }}
+        </span>
 
-            {{-- Info ruangan --}}
-            <div class="room-name">{{ $room->nama_ruangan }}</div>
-            <div class="room-device">Kategori: {{ $room->kategori->nama_kategori ?? '-' }}</div>
+        {{-- Icon sofa --}}
+        <div class="room-icon">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4"  y="28" width="12" height="16" rx="4"/>
+                <rect x="48" y="28" width="12" height="16" rx="4"/>
+                <rect x="10" y="20" width="44" height="14" rx="5"/>
+                <rect x="16" y="34" width="32" height="12" rx="4"/>
+                <rect x="12" y="44" width="6"  height="8"  rx="2"/>
+                <rect x="46" y="44" width="6"  height="8"  rx="2"/>
+            </svg>
+        </div>
 
-            {{-- Tombol Booking --}}
-            @if($room->is_active)
-                @auth
-                    <a href="{{ url('/booking/paket?room='.$room->id_ruangan.'&tipe='.$tipe) }}"
-                    class="btn-booking">Booking</a>
-                @else
-                    <a href="{{ url('/login') }}" class="btn-booking">Login dulu</a>
-                @endauth
+        {{-- Info ruangan --}}
+        <div class="room-name">{{ $room->nama_ruangan }}</div>
+
+        {{-- FIX: tampilkan perangkat dari database --}}
+        <div class="room-device">{{ $room->perangkat ?? '-' }}</div>
+
+        {{-- Tombol Booking --}}
+        @if($room->tersedia)
+            @auth
+                <a href="{{ url('/booking/paket?room='.$room->id_ruangan.'&tipe='.$tipe) }}"
+                class="btn-booking">Booking</a>
             @else
-                <button class="btn-booking disabled" disabled>Penuh</button>
-            @endif
-
+                <a href="{{ url('/login') }}" class="btn-booking">Login dulu</a>
+            @endauth
+        @else
+            <button class="btn-booking disabled" disabled>Sedang Dipakai</button>
+        @endif
         </div>
     @endforeach
 
