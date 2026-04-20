@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
     <title>Play N Chill</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
@@ -90,54 +91,102 @@
 </nav>
 
 {{-- ═══ HERO / CAROUSEL ═══ --}}
-<section class="hero p-0">
-    <div id="heroCarousel" class="carousel slide carousel-fade"
-        data-bs-ride="carousel" data-bs-touch="true">
+{{-- ═══ HERO / CAROUSEL ═══ --}}
+<section class="hero p-0" style="background: var(--purple-dark);">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
 
+        {{-- Indicator --}}
         <div class="carousel-indicators">
-            @for ($i = 0; $i < 10; $i++)
-                <button type="button" data-bs-target="#heroCarousel"
+            @for ($i = 0; $i < 4; $i++) {{-- Sesuaikan angka 5 dengan jumlah fotomu --}}
+                <button type="button"
+                        data-bs-target="#heroCarousel"
                         data-bs-slide-to="{{ $i }}"
-                        class="{{ $i == 0 ? 'active' : '' }}"
-                        aria-current="{{ $i == 0 ? 'true' : 'false' }}">
+                        class="{{ $i == 0 ? 'active' : '' }}">
                 </button>
             @endfor
         </div>
 
+        {{-- Slides --}}
         <div class="carousel-inner">
-            @for ($i = 1; $i <= 5; $i++)
-                <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="3000">
-                    @if ($i == 1)
-                        {{-- Slide 1: Teks Play N Chill --}}
-                        <div class="hero-slide-img" style="background-color: var(--purple);">
-                            <div class="hero-overlay">
-                                <div class="hero-title">
-                                    <span>Play</span>
-                                    <span style="color: var(--orange); margin: 0 15px;">N</span>
-                                    <span>Chill</span>
+
+            @for ($i = 1; $i <= 4; $i++) {{-- Sesuaikan angka 5 dengan jumlah fotomu --}}
+                <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="4000">
+
+                    <div class="container-fluid py-4">
+                        {{-- KOTAK LUAR (Dark Blue) - Dipertahankan di semua slide agar ukuran tinggi tetap stabil --}}
+                        <div class="rounded-4 p-3" style="background:#122034; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+                            @if ($i == 4)
+                                {{-- 🌟 SLIDE 1: Desain Lengkap (Ada Teks, Tombol, dan Gradasi) 🌟 --}}
+                                <div class="rounded-4 px-5 py-5 d-flex flex-column flex-lg-row align-items-center justify-content-between"
+                                     style="
+                                     min-height:420px;
+                                     background:
+                                     linear-gradient(rgba(60,0,110,.65),rgba(20,0,60,.65)),
+                                     url('{{ asset("images/banner/slide{$i}.jpg") }}');
+                                     background-size:cover;
+                                     background-position:center;
+                                     ">
+
+                                    {{-- Bagian Kiri --}}
+                                    <div class="text-white">
+                                        <p class="text-uppercase mb-3" style="letter-spacing:3px;color:#d8b8ff;">
+                                            Premium Gaming
+                                        </p>
+                                        <h1 class="fw-bold display-2 mb-3">
+                                            PlaynChill
+                                        </h1>
+                                        <p class="fs-4 mb-4" style="max-width: 600px;">
+                                            Rental PlayStation dengan suasana nyaman dan harga terjangkau
+                                        </p>
+                                        <div class="d-flex gap-3 flex-wrap">
+                                            <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="background:#a020f0; border-radius: 10px;">
+                                                Book Now
+                                            </a>
+                                            <a href="{{ url('/gallery') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
+                                                Lihat Paket
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {{-- Bagian Kanan --}}
+                                    <div class="text-white mt-5 mt-lg-0 d-none d-md-block">
+                                        <div style="font-size:170px; opacity:.15; transform: rotate(15deg);">🎮</div>
+                                    </div>
+
                                 </div>
-                            </div>
+
+                            @else
+                                {{-- 🖼️ SLIDE 2 DAN SETERUSNYA: Gambar Polos (Tanpa Teks & Tombol) 🖼️ --}}
+                                <div class="rounded-4"
+                                     style="
+                                     min-height:420px;
+                                     background: url('{{ asset("images/banner/slide{$i}.jpg") }}');
+                                     background-size:cover;
+                                     background-position:center;
+                                     ">
+                                </div>
+                            @endif
+
                         </div>
-                    @else
-                        {{-- Slide 2-10: Foto --}}
-                        <div class="hero-slide-img"
-                            style="background-image: url('{{ asset("images/banner/slide{$i}.jpg") }}')">
-                        </div>
-                    @endif
+                    </div>
+
                 </div>
             @endfor
+
         </div>
 
+        {{-- Arrow Navigation --}}
         <button class="carousel-control-prev" type="button"
-                data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+                data-bs-target="#heroCarousel" data-bs-slide="prev" style="width: 5%;">
+            <span class="carousel-control-prev-icon"></span>
         </button>
+
         <button class="carousel-control-next" type="button"
-                data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
+                data-bs-target="#heroCarousel" data-bs-slide="next" style="width: 5%;">
+            <span class="carousel-control-next-icon"></span>
         </button>
+
     </div>
 </section>
 
@@ -200,7 +249,12 @@
     <p class="tour-sub">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
 
     <div class="vid-wrap" id="vidWrap" onclick="startVideo()">
-        <div class="vid-thumb"></div>
+        <div class="vid-thumb" 
+            style="background-image: url('https://img.youtube.com/vi/P3yd4BX9aaU/maxresdefault.jpg'); 
+                    background-size: cover; 
+                    background-position: center; 
+                    background-repeat: no-repeat;">
+        </div>
         <div class="vid-overlay">
             <div class="vid-play">
                 <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
