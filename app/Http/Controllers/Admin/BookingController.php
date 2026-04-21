@@ -16,7 +16,7 @@ class BookingController extends Controller
 {
     // ============================================================
     // INDEX
-    // ============================================================
+    //   ============================================================
     public function index(Request $request)
     {
         $query = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna'])

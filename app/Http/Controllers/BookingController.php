@@ -13,6 +13,7 @@ use Carbon\Carbon;
 
 class BookingController extends Controller
 {
+
     public function index(Request $request)
     {
         $tipe = $request->input('tipe', 'reguler');
@@ -28,7 +29,20 @@ class BookingController extends Controller
 
         $rooms = MsRuangan::where('kategori', $kategori)
             ->where('is_active', 1)
-            ->get();
+            ->get()
+            ->map(function ($room) {
+                // Cek apakah ruangan sedang dibooking sekarang
+                $sedangDipakai = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($room) {
+                        $q->where('id_ruangan', $room->id_ruangan);
+                    })
+                    ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                    ->where('waktu_mulai', '<=', now())
+                    ->where('waktu_selesai', '>=', now())
+                    ->exists();
+
+                $room->tersedia = !$sedangDipakai;
+                return $room;
+            });
 
         return view('pelanggan.booking', compact('rooms', 'tipe'));
     }
