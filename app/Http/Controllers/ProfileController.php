@@ -46,7 +46,7 @@ class ProfileController extends Controller
         // Cek password lama jika ingin ganti password
         if ($request->filled('new_password')) {
 
-        if (true) {
+        if (empty($user->password)) {
             // Login Google, langsung set password baru tanpa cek password lama
             $user->password = Hash::make($request->new_password);
 
