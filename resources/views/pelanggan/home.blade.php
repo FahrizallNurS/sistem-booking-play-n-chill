@@ -113,11 +113,13 @@
                 <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="4000">
 
                     <div class="container-fluid py-4">
-                        {{-- KOTAK LUAR (Dark Blue) - Dipertahankan di semua slide agar ukuran tinggi tetap stabil --}}
-                        <div class="rounded-4 p-3" style="background: var(--purple-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-
+                       
+                        
                             @if ($i == 4)
                                 {{-- 🌟 SLIDE 1: Desain Lengkap (Ada Teks, Tombol, dan Gradasi) 🌟 --}}
+                                {{-- KOTAK LUAR (Dark Blue) - Dipertahankan di semua slide agar ukuran tinggi tetap stabil --}}
+                                <div class="rounded-4 p-3" style="background: rgb(14, 23, 0); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
                                 <div class="rounded-4 px-5 py-5 d-flex flex-column flex-lg-row align-items-center justify-content-between"
                                      style="
                                      min-height:420px;
@@ -155,8 +157,9 @@
                                     </div>
 
                                 </div>
-
+                            </div> 
                             @else
+                            <div class="rounded-4 p-3" style="box-shadow: 0 10px 30px rgba(0, 0, 0, 0.085);">
                                 {{-- 🖼️ SLIDE 2 DAN SETERUSNYA: Gambar Polos (Tanpa Teks & Tombol) 🖼️ --}}
                                 <div class="rounded-4"
                                      style="
@@ -166,9 +169,9 @@
                                      background-position:center;
                                      ">
                                 </div>
+                            </div>    
                             @endif
-
-                        </div>
+                        
                     </div>
 
                 </div>
@@ -191,7 +194,7 @@
 </section>
 
 {{-- ═══ SEMUA DALAM SATU TEMPAT ═══ --}}
-<div class="white-card">
+<div class="white-card" data-aos="fade-up"> {{-- Animasi fade-up untuk judul --}}
     <h2>Semua ada dalam Satu Tempat</h2>
     <p class="sub-desc">
         Nikmati tiga jenis hiburan berbeda tanpa perlu pindah tempat. Hemat waktu, maksimalkan keseruan!
@@ -200,7 +203,7 @@
    <div class="room-grid">
 
     {{-- Gaming Room --}}
-    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none">
+    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="100">
         <div class="r-card">
             <div class="r-img gaming" style="background-image: url('{{ asset('images/gaming.jpg') }}'); background-size: cover; background-position: center;">
                 <span class="r-badge">🎮</span>
@@ -214,7 +217,7 @@
     </a>
 
     {{-- Karaoke Room --}}
-    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none">
+    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="200">
         <div class="r-card">
             <div class="r-img karaoke" style="background-image: url('{{ asset('images/karaoke.jpg') }}'); background-size: cover; background-position: center;">
                 <span class="r-badge">🎤</span>
@@ -228,7 +231,7 @@
     </a>
 
     {{-- Private Bioskop --}}
-    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none">
+    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="300">
         <div class="r-card">
             <div class="r-img bioskop" style="background-image: url('{{ asset('images/cinema.jpg') }}'); background-size: cover; background-position: center;">
                 <span class="r-badge">🎞️</span>
@@ -245,10 +248,10 @@
 
 {{-- ═══ ROOM TOUR ═══ --}}
 <section class="tour-section">
-    <h2>Room Tour</h2>
-    <p class="tour-sub">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
+    <h2 data-aos="fade-down">Room Tour</h2>
+    <p class="tour-sub" data-aos="fade-down" data-aos-delay="100">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
 
-    <div class="vid-wrap" id="vidWrap" onclick="startVideo()">
+    <div class="vid-wrap" id="vidWrap" onclick="startVideo()" data-aos="zoom-in" data-aos-duration="1000">
         <div class="vid-thumb" 
             style="background-image: url('https://img.youtube.com/vi/P3yd4BX9aaU/maxresdefault.jpg'); 
                     background-size: cover; 
@@ -266,10 +269,10 @@
 {{-- ═══ DAFTAR GAME ═══ --}}
 <section class="game-section">
     <div class="container-fluid px-4">
-        <h2>Koleksi Game Kami</h2>
+        <h2 data-aos="fade-right">Koleksi Game Kami</h2>
 
         {{-- Navigasi Filter --}}
-        <div class="game-filter">
+        <div class="game-filter" data-aos="fade-left">
             <button class="filter-game-btn active" onclick="filterGames('all')">Semua</button>
             <button class="filter-game-btn" onclick="filterGames('ps3')">PS 3</button>
             <button class="filter-game-btn" onclick="filterGames('ps4')">PS 4</button>
@@ -291,8 +294,8 @@
                 ];
             @endphp
 
-            @foreach ($games as $game)
-                <div class="game-card" data-platform="{{ $game['platform'] }}">
+            @foreach ($games as $index => $game)
+                <div class="game-card" data-platform="{{ $game['platform'] }}" data-aos="fade-up" data-aos-delay="{{ $index * 50 }}">
                     {{-- Pastikan kamu punya gambar di public/images/games/ --}}
                     <img src="{{ asset('images/games/' . $game['img']) }}" 
                          onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'" alt="Game">
@@ -305,7 +308,7 @@
 </section>
 
 {{-- ═══ CTA ═══ --}}
-<section class="cta-section" id="booking">
+<section class="cta-section" id="booking" data-aos="zoom-in-up">
     <h2>Siap untuk nongkrong Seru?</h2>
     <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
     <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
@@ -326,8 +329,8 @@
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Hubungi Kami</div>
                 <ul class="f-list">
-                    <li><span class="fi">📞</span><span>+62 812-XXXX-XXXX</span></li>
-                    <li><span class="fi">📧</span><span>hello@playchill.id</span></li>
+                    <li><span class="fi">📞</span><span>+62 857-3532-9227</span></li>
+                    <li><span class="fi">📧</span><span>playnchillmadiun@gmail.com</span></li>
                     <li>
                         <span class="fi">📍</span>
                         <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
@@ -402,6 +405,16 @@
             }
         });
     }
+</script>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    // Memulai (Inisialisasi) animasi AOS
+    AOS.init({
+        duration: 800, // Durasi animasi (800ms)
+        once: false,   // false = animasi diputar lagi setiap kali discroll
+        offset: 100,   // Berapa pixel jarak sebelum elemen terlihat
+    });
 </script>
 
 </body>
