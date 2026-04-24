@@ -196,6 +196,8 @@ Route::middleware(['auth'])->group(function () {
     */
 
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
-        Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
-        Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
+    Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
+    Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
+    Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
+
     });
