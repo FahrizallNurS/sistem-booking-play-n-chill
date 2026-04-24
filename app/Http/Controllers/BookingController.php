@@ -133,67 +133,86 @@ class BookingController extends Controller
         return array_values(array_unique($occupiedSlots));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
-            'tanggal'            => 'required|date|after_or_equal:today',
-            'waktu_mulai'        => ['required', 'regex:/^([01]?[0-9]|2[0-3])[.:][0-5][0-9]$/'], // Support 14.00 atau 14:00
-            'opsi_pembayaran'    => 'required|in:full,dp',
-            'jumlah_dp'          => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
+   public function store(Request $request)
+{
+    $request->validate([
+        'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
+        'tanggal'            => 'required|date|after_or_equal:today',
+        'waktu_mulai'        => ['required', 'regex:/^([01]?[0-9]|2[0-3])[.:][0-5][0-9]$/'],
+        'opsi_pembayaran'    => 'required|in:full,dp',
+        'jumlah_dp'          => [
+            'required_if:opsi_pembayaran,dp',
+            'nullable',
+            function ($attribute, $value, $fail) use ($request) {
+                if ($request->opsi_pembayaran === 'dp') {
+                    $dp = (int) str_replace('.', '', $value);
+                    $ph = PenetapanHarga::find($request->id_penetapan_harga);
+                    if ($dp <= 0) {
+                        $fail('Jumlah DP harus lebih dari 0.');
+                    }
+                    if ($ph && $dp >= $ph->harga) {
+                        $fail('Jumlah DP tidak boleh melebihi atau sama dengan total harga.');
+                    }
+                }
+            }
+        ],
+    ]);
+
+    return DB::transaction(function () use ($request) {
+        $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
+
+        $jamInput     = str_replace('.', ':', $request->waktu_mulai);
+        $waktuMulai   = Carbon::parse($request->tanggal . ' ' . $jamInput);
+        $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
+
+        // Cek konflik jadwal
+        $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
+                $q->where('id_ruangan', $ph->id_ruangan);
+            })
+            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+            ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
+                $query->where('waktu_mulai', '<', $waktuSelesai)
+                      ->where('waktu_selesai', '>', $waktuMulai);
+            })
+            ->lockForUpdate()
+            ->exists();
+
+        if ($konflik) {
+            return back()->withInput()->withErrors([
+                'waktu_mulai' => 'Waduh, jam segini ruangannya udah ada yang nempetin, bro. Coba geser jamnya dikit!'
+            ]);
+        }
+
+        // Generate kode sewa
+        $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
+
+        // Hitung DP dan sisa bayar
+        $jumlahDp  = null;
+        $sisaBayar = 0;
+
+        if ($request->opsi_pembayaran === 'dp') {
+            $jumlahDp  = (int) str_replace('.', '', $request->jumlah_dp);
+            $sisaBayar = $ph->harga - $jumlahDp;
+        }
+
+        TrTransaksi::create([
+            'id_penetapan_harga' => $ph->id_penetapan_harga,
+            'id_pengguna'        => Auth::id(),
+            'kode_sewa'          => $kode,
+            'waktu_mulai'        => $waktuMulai,
+            'waktu_selesai'      => $waktuSelesai,
+            'total_harga'        => $ph->harga,
+            'opsi_pembayaran'    => $request->opsi_pembayaran,
+            'jumlah_dp'          => $jumlahDp,
+            'status_sewa'        => 'ditahan',
+            'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
+            'sisa_bayar'         => $sisaBayar,
         ]);
 
-        return DB::transaction(function () use ($request) {
-            $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
-
-            // Standarisasi format jam ke H:i
-            $jamInput = str_replace('.', ':', $request->waktu_mulai);
-            $waktuMulai = Carbon::parse($request->tanggal . ' ' . $jamInput);
-            $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
-
-            // CEK KONFLIK - Pakai whereHas biar lebih clean
-            $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
-                    $q->where('id_ruangan', $ph->id_ruangan);
-                })
-                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
-                ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
-                    $query->where('waktu_mulai', '<', $waktuSelesai)
-                        ->where('waktu_selesai', '>', $waktuMulai);
-                })
-                // Tambahkan lock biar gak "balapan" kalau ada 2 user klik bareng
-                ->lockForUpdate() 
-                ->exists();
-
-            if ($konflik) {
-                return back()->withInput()->withErrors([
-                    'waktu_mulai' => 'Waduh, jam segini ruangannya udah ada yang nempetin, bro. Coba geser jamnya dikit!'
-                ]);
-            }
-
-            // Generate Kode Sewa
-            $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-
-            $jumlahDp  = $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null;
-            $sisaBayar = $request->opsi_pembayaran === 'dp' ? ($ph->harga - $request->jumlah_dp) : 0;
-
-            TrTransaksi::create([
-                'id_penetapan_harga' => $ph->id_penetapan_harga,
-                'id_pengguna'        => Auth::id(),
-                'kode_sewa'          => $kode,
-                'waktu_mulai'        => $waktuMulai,
-                'waktu_selesai'      => $waktuSelesai,
-                'total_harga'        => $ph->harga,
-                'opsi_pembayaran'    => $request->opsi_pembayaran,
-                'jumlah_dp'          => $jumlahDp,
-                'status_sewa'        => 'ditahan',
-                'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
-                'sisa_bayar'         => $sisaBayar,
-            ]);
-
-            return redirect()->route('booking.status')
-                ->with('success', 'Booking berhasil! Langsung gas bayar biar dikonfirmasi admin.');
-        });
-    }
+        return redirect()->route('booking.status')
+            ->with('success', 'Booking berhasil! Langsung gas bayar biar dikonfirmasi admin.');
+    });
+}
 
     public function status()
     {
