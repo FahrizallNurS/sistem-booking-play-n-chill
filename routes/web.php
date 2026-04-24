@@ -8,6 +8,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\HomeController;
 
 // Admin
 use App\Http\Controllers\Admin\DashboardController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ProfilController;
 
+
 // Auth
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -31,6 +33,7 @@ use App\Http\Controllers\Superadmin\KelolaUserController;
 use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | PUBLIC
@@ -38,8 +41,7 @@ use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 */
 
 Route::get('/', fn () => redirect()->route('pelanggan.home'));
-
-Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
+Route::get('/home', [HomeController::class, 'index'])->name('pelanggan.home');
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
@@ -177,7 +179,8 @@ Route::middleware(['auth'])->group(function () {
 
             // Konten
             Route::get('/gallery', [AdminGalleryController::class, 'index'])->name('gallery.index');
-            Route::get('/game', [GameController::class, 'index'])->name('game.index');
+            Route::resource('game', GameController::class);
+            
 
             // Laporan
             Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
