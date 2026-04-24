@@ -405,20 +405,13 @@
     }
 </script>
 
-
-//to do - perbaiki filter 
 <script>
-    function filterGames(platform) {
-        // 1. Ubah status tombol aktif
-        const buttons = document.querySelectorAll('.filter-game-btn');
-        document.querySelectorAll('.filter-game-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        event.target.classList.add('active');
+function filterGames(platform, btn) {
+    document.querySelectorAll('.filter-game-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-        // 2. Filter kartu game
-         document.querySelectorAll('.game-card').forEach(card => {
+    document.querySelectorAll('.game-card').forEach(card => {
         const cardPlatforms = card.getAttribute('data-platform') || '';
-        
         if (platform === 'all' || cardPlatforms.includes(platform)) {
             card.style.display = 'block';
             card.style.opacity = '0';
@@ -427,7 +420,7 @@
             card.style.display = 'none';
         }
     });
-    }
+}
 </script>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
