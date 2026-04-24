@@ -10,6 +10,9 @@ use App\Models\PenetapanHarga;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;   
+
 
 class BookingController extends Controller
 {
@@ -62,22 +65,72 @@ class BookingController extends Controller
         return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room', 'penetapanHarga'));
     }
 
-    public function form(Request $request)
-    {
-        $roomId  = $request->input('room');
-        $tipe    = $request->input('tipe');
-        $paketId = $request->input('paket');
+        public function form(Request $request)
+        {
+            $roomId  = $request->input('room');
+            $tipe    = $request->input('tipe');
+            $paketId = $request->input('paket');
+            $tanggal = now()->format('Y-m-d');
+            $room  = MsRuangan::findOrFail($roomId);
+            $paket = MsPaket::findOrFail($paketId);
 
-        $room  = MsRuangan::findOrFail($roomId);
-        $paket = MsPaket::findOrFail($paketId);
-
-        // Tambah ->get() dengan select eksplisit biar harga tidak terpotong
-        $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
+            $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
             ->where('id_paket', $paketId)
-            ->select('id_penetapan_harga', 'id_ruangan', 'id_paket', 'harga', 'durasi_jam', 'tipe_hari')
             ->get();
 
-        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'penetapanHarga'));
+            $jamTerpakai = $this->calculateOccupiedSlots($roomId, $tanggal);
+
+            return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'penetapanHarga', 'jamTerpakai'));
+        }
+
+        public function getJamTerpakai(Request $request): JsonResponse
+    {
+        $roomId = $request->query('room');
+        $tanggal = $request->query('tanggal');
+
+        $terpakai = $this->calculateOccupiedSlots($roomId, $tanggal);
+
+        return response()->json(['terpakai' => $terpakai]);
+    }
+
+    private function calculateOccupiedSlots($roomId, $tanggal)
+    {
+        // List semua slot jam yang ada di UI lo
+        $allSlots = [
+            '10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
+            '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
+            '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
+            '22.00','22.30','23.00','23.30'
+        ];
+
+        $occupiedSlots = [];
+
+        // Ambil transaksi yang aktif di ruangan & tanggal tersebut
+        $bookings = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($roomId) {
+                $q->where('id_ruangan', $roomId);
+            })
+            ->whereDate('waktu_mulai', $tanggal)
+            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+            ->get(['waktu_mulai', 'waktu_selesai']);
+
+        foreach ($bookings as $booking) {
+            $start = Carbon::parse($booking->waktu_mulai);
+            $end = Carbon::parse($booking->waktu_selesai);
+
+            foreach ($allSlots as $slot) {
+                // Ubah format '10.30' jadi '10:30' biar bisa di-parse Carbon
+                $currentSlot = Carbon::parse($tanggal . ' ' . str_replace('.', ':', $slot));
+
+                // LOGIC: Slot dianggap penuh jika (WaktuMulai <= Slot < WaktuSelesai)
+                // Kenapa pakai < (kurang dari)? Biar kalau orang selesai jam 12.00, 
+                // orang berikutnya bisa booking mulai jam 12.00 pas.
+                if ($currentSlot >= $start && $currentSlot < $end) {
+                    $occupiedSlots[] = $slot;
+                }
+            }
+        }
+
+        return array_values(array_unique($occupiedSlots));
     }
 
     public function store(Request $request)
@@ -85,41 +138,61 @@ class BookingController extends Controller
         $request->validate([
             'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
             'tanggal'            => 'required|date|after_or_equal:today',
-            'waktu_mulai'        => 'required',
+            'waktu_mulai'        => ['required', 'regex:/^([01]?[0-9]|2[0-3])[.:][0-5][0-9]$/'], // Support 14.00 atau 14:00
             'opsi_pembayaran'    => 'required|in:full,dp',
             'jumlah_dp'          => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
         ]);
 
-        $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
+        return DB::transaction(function () use ($request) {
+            $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
 
-        // Gabungin tanggal + waktu jadi DATETIME
-        $waktuMulai   = Carbon::parse($request->tanggal . ' ' . str_replace('.', ':', $request->waktu_mulai));
-        $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
+            // Standarisasi format jam ke H:i
+            $jamInput = str_replace('.', ':', $request->waktu_mulai);
+            $waktuMulai = Carbon::parse($request->tanggal . ' ' . $jamInput);
+            $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
 
-        // Generate kode sewa
-        do {
+            // CEK KONFLIK - Pakai whereHas biar lebih clean
+            $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
+                    $q->where('id_ruangan', $ph->id_ruangan);
+                })
+                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
+                    $query->where('waktu_mulai', '<', $waktuSelesai)
+                        ->where('waktu_selesai', '>', $waktuMulai);
+                })
+                // Tambahkan lock biar gak "balapan" kalau ada 2 user klik bareng
+                ->lockForUpdate() 
+                ->exists();
+
+            if ($konflik) {
+                return back()->withInput()->withErrors([
+                    'waktu_mulai' => 'Waduh, jam segini ruangannya udah ada yang nempetin, bro. Coba geser jamnya dikit!'
+                ]);
+            }
+
+            // Generate Kode Sewa
             $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-        } while (TrTransaksi::where('kode_sewa', $kode)->exists());
 
-        $jumlahDp  = $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null;
-        $sisaBayar = $request->opsi_pembayaran === 'dp' ? ($ph->harga - $request->jumlah_dp) : 0;
+            $jumlahDp  = $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null;
+            $sisaBayar = $request->opsi_pembayaran === 'dp' ? ($ph->harga - $request->jumlah_dp) : 0;
 
-        TrTransaksi::create([
-            'id_penetapan_harga' => $ph->id_penetapan_harga,
-            'id_pengguna'        => Auth::id(),
-            'kode_sewa'          => $kode,
-            'waktu_mulai'        => $waktuMulai,
-            'waktu_selesai'      => $waktuSelesai,
-            'total_harga'        => $ph->harga,
-            'opsi_pembayaran'    => $request->opsi_pembayaran,
-            'jumlah_dp'          => $jumlahDp,
-            'status_sewa'        => 'ditahan',
-            'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
-            'sisa_bayar'         => $sisaBayar,
-        ]);
+            TrTransaksi::create([
+                'id_penetapan_harga' => $ph->id_penetapan_harga,
+                'id_pengguna'        => Auth::id(),
+                'kode_sewa'          => $kode,
+                'waktu_mulai'        => $waktuMulai,
+                'waktu_selesai'      => $waktuSelesai,
+                'total_harga'        => $ph->harga,
+                'opsi_pembayaran'    => $request->opsi_pembayaran,
+                'jumlah_dp'          => $jumlahDp,
+                'status_sewa'        => 'ditahan',
+                'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
+                'sisa_bayar'         => $sisaBayar,
+            ]);
 
-        return redirect()->route('booking.status')
-            ->with('success', 'Booking berhasil! Menunggu konfirmasi admin.');
+            return redirect()->route('booking.status')
+                ->with('success', 'Booking berhasil! Langsung gas bayar biar dikonfirmasi admin.');
+        });
     }
 
     public function status()
@@ -145,4 +218,6 @@ class BookingController extends Controller
         }
         return view('pelanggan.payment');
     }
+
+    
 }
