@@ -129,9 +129,95 @@ body {
     pointer-events: none;
 }
 
+/* Container Daftar Game */
+.game-section {
+    padding: 0px 0px 5px;
+    background: var(--purple-dark);
+    text-align: center;
+}
+
+.game-section h2 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--yellow);
+    font-size: 2.8rem;
+    margin-bottom: 30px;
+}
+
+/* Tab Filter Game */
+.game-filter {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.filter-game-btn {
+    font-family: 'Fredoka One', cursive;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 2px solid var(--purple-light);
+    padding: 8px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filter-game-btn.active, .filter-game-btn:hover {
+    background: var(--yellow);
+    color: var(--purple-dark);
+    border-color: var(--yellow);
+}
+
+/* Grid Game */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.game-card {
+    background: rgba(163, 145, 227, 0.2);
+    border-radius: 20px;
+    padding: 10px;
+    transition: 0.3s;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.game-card:hover {
+    transform: translateY(-10px);
+    background: rgba(163, 145, 227, 0.4);
+}
+
+.game-card img {
+    width: 100%;
+    aspect-ratio: 3/4; /* Standar cover game */
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
+
+.game-card h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 5px 0;
+    color: #fff;
+}
+
+.game-badge {
+    font-size: 0.7rem;
+    background: var(--orange);
+    padding: 2px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
 /* ────────────────────────
    RESPONSIVE (Shared)
 ──────────────────────── */
 @media (max-width: 480px) {
     .hero-slide-img { height: 300px; }
 }
+

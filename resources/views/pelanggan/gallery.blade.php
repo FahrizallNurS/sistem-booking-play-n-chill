@@ -68,9 +68,6 @@
 
     <div class="gallery-container">
         {{-- Dekorasi Segitiga Kuning --}}
-        <div class="bg-decoration" style="top: 50px; right: -150px; transform: rotate(-15deg);"></div>
-        <div class="bg-decoration" style="top: 400px; left: -200px; transform: rotate(15deg);"></div>
-        <div class="bg-decoration" style="bottom: -100px; right: -100px; transform: rotate(160deg);"></div>
 
         <h1>Gallery Room</h1>
         <p>Jelajahi ruangan dengan fasilitas premium sesuai kebutuhan Anda</p>
@@ -100,8 +97,22 @@
 
                 {{-- Grid Gambar --}}
                 <div class="gallery-grid mb-5">
-                    @for ($i = 1; $i <= 3; $i++)
-                        <img src="{{ asset('images/gallery/room_sample.jpg') }}" class="gallery-item" alt="{{ $cat }}">
+                    @php
+                        // Jika tipe reguler, nama file diawali 'reguler'
+                        // Jika VIP/VVIP, nama file diawali sesuai kategori (gaming-room, dll)
+                        $fileNamePrefix = ($type == 'reguler') ? 'reguler' : Str::slug($cat);
+                        
+                        // Tentukan berapa banyak foto yang mau ditampilkan untuk bagian ini
+                        $jumlahFoto = ($type == 'reguler') ? 6 : 3;
+                    @endphp
+
+                    @for ($i = 1; $i <= $jumlahFoto; $i++)
+                        <div class="gallery-item-wrapper">
+                            <img src="{{ asset('images/gallery/' . $type . '/' . $fileNamePrefix . $i . '.jpg') }}" 
+                                class="gallery-item" 
+                                alt="{{ $cat }}"
+                                onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
+                        </div>
                     @endfor
                 </div>
             @endforeach

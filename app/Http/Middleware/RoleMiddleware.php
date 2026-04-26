@@ -8,16 +8,30 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string ...$roles)
+
+public function handle(Request $request, Closure $next, ...$roles)
 {
     if (!Auth::check()) {
         return redirect()->route('login');
     }
 
-    if (!in_array(Auth::user()->role, $roles)) {
-        abort(403, 'Akses ditolak.');
+    $user = Auth::user();
+
+    // Kalau superadmin nyasar ke route admin, redirect ke superadmin dashboard
+    if ($user->role === 'superadmin' && in_array('admin', $roles)) {
+        return redirect()->route('superadmin.dashboard');
     }
 
-    return $next($request);
+    // Superadmin bebas akses route superadmin
+    if ($user->role === 'superadmin' && in_array('superadmin', $roles)) {
+        return $next($request);
+    }
+
+    // Role sesuai middleware
+    if (in_array($user->role, $roles)) {
+        return $next($request);
+    }
+
+    abort(403, 'Maaf, Anda tidak memiliki akses ke halaman ini.');
 }
 }

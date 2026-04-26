@@ -117,63 +117,47 @@
                 Ganti @foreach($rooms as $room) setelah database tersambung.
             --}}
 
-                    @php
-                        $tipe = request('tipe', 'reguler');
 
-                        // Data dummy — ganti dengan $rooms dari controller nanti
-                        $dummyRooms = [
-                            ['nama' => ucfirst($tipe).' 1', 'device' => 'PS3', 'status' => 'tersedia'],
-                            ['nama' => ucfirst($tipe).' 2', 'device' => 'PS3', 'status' => 'tersedia'],
-                            ['nama' => ucfirst($tipe).' 3', 'device' => 'PS4', 'status' => 'penuh'],
-                            ['nama' => ucfirst($tipe).' 4', 'device' => 'PS4', 'status' => 'tersedia'],
-                            ['nama' => ucfirst($tipe).' 5', 'device' => 'PS5', 'status' => 'tersedia'],
-                            ['nama' => ucfirst($tipe).' 6', 'device' => 'PS5', 'status' => 'tersedia'],
-                        ];
-                    @endphp
+            @foreach($rooms as $room)
+        <div class="room-card-booking">
 
-                    @foreach($rooms as $index => $room)
-                <div class="room-card-booking">
 
-                    {{-- Badge status --}}
-                    <span class="room-status {{ $room['status'] }}">
-                        {{ ucfirst($room['status']) }}
-                    </span>
+        {{-- Badge status --}}
+        <span class="room-status {{ $room->tersedia ? 'tersedia' : 'penuh' }}">
+            {{ $room->tersedia ? 'Tersedia' : 'Sedang Dipakai' }}
+        </span>
 
-                    {{-- Icon sofa --}}
-                    <div class="room-icon">
-                        {{-- Sofa SVG icon --}}
-                        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="4"  y="28" width="12" height="16" rx="4"/>
-                            <rect x="48" y="28" width="12" height="16" rx="4"/>
-                            <rect x="10" y="20" width="44" height="14" rx="5"/>
-                            <rect x="16" y="34" width="32" height="12" rx="4"/>
-                            <rect x="12" y="44" width="6"  height="8"  rx="2"/>
-                            <rect x="46" y="44" width="6"  height="8"  rx="2"/>
-                        </svg>
-                    </div>
+        {{-- Icon sofa --}}
+        <div class="room-icon">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4"  y="28" width="12" height="16" rx="4"/>
+                <rect x="48" y="28" width="12" height="16" rx="4"/>
+                <rect x="10" y="20" width="44" height="14" rx="5"/>
+                <rect x="16" y="34" width="32" height="12" rx="4"/>
+                <rect x="12" y="44" width="6"  height="8"  rx="2"/>
+                <rect x="46" y="44" width="6"  height="8"  rx="2"/>
+            </svg>
+        </div>
 
-                    {{-- Info ruangan --}}
-                    <div class="room-name">{{ $room['nama'] }}</div>
-                    <div class="room-device">Device : {{ $room['device'] }}</div>
+        {{-- Info ruangan --}}
+        <div class="room-name">{{ $room->nama_ruangan }}</div>
 
-                    {{-- Tombol Booking --}}
-                    @if($room['status'] === 'tersedia')
-                        @auth
-                            <a href="{{ url('/booking/form?room='.($index+1).'&tipe='.$tipe) }}"
-                               class="btn-booking">
-                                Booking
-                            </a>
-                        @else
-                            <a href="{{ url('/login') }}" class="btn-booking">
-                                Booking
-                            </a>
-                        @endauth
-                    @else
-                        <button class="btn-booking disabled" disabled>Booking</button>
-                    @endif
+        {{-- FIX: tampilkan perangkat dari database --}}
+        <div class="room-device">{{ $room->perangkat ?? '-' }}</div>
 
-                </div>
-            @endforeach
+        {{-- Tombol Booking --}}
+        @if($room->tersedia)
+            @auth
+                <a href="{{ url('/booking/paket?room='.$room->id_ruangan.'&tipe='.$tipe) }}"
+                class="btn-booking">Booking</a>
+            @else
+                <a href="{{ url('/login') }}" class="btn-booking">Login dulu</a>
+            @endauth
+        @else
+            <button class="btn-booking disabled" disabled>Sedang Dipakai</button>
+        @endif
+        </div>
+    @endforeach
 
         </div>{{-- end room-grid-booking --}}
     </div>{{-- end room-container --}}

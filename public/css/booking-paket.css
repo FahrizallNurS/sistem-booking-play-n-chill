@@ -1,0 +1,115 @@
+/* ══════════════════════════════════════════
+   BOOKING PAKET STYLES (REVISI SESUAI GAMBAR)
+   ══════════════════════════════════════════ */
+
+body {
+    background-color: #472CA1; /* Warna Ungu Utama */
+    font-family: 'Nunito', sans-serif;
+    color: white;
+}
+
+/* ────────────────────────
+   HERO JUDUL
+──────────────────────── */
+.paket-hero {
+    background: var(--purple-dark);
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.paket-hero h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.paket-hero p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Container utama kategori */
+.paket-section {
+    border-radius: 50px 50px 50px 50px;
+    padding: 40px 20px 80px;
+    margin-top: 40px;
+    margin: 10px;
+}
+
+/* Variasi Warna Section */
+.section-ps { background-color: #FFFFFF; color: #E86B32; }
+.section-karaoke { background-color: #E86B32; color: #FFFFFF; }
+.section-bioskop { background-color: #C5D92D; color: #FFFFFF; }
+
+.section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+/* Grid & Cards */
+.paket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.paket-card {
+    background: #9B87F5; /* Warna Ungu Muda sesuai gambar */
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.paket-card-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.paket-card-sub { font-size: 0.8rem; opacity: 0.9; margin-bottom: 10px; }
+.paket-card-price { font-weight: 800; font-size: 1.6rem; margin-bottom: 15px; }
+
+.paket-card-meta {
+    font-size: 0.75rem;
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.paket-features {
+    list-style: none;
+    padding: 0;
+    font-size: 0.8rem;
+    margin-bottom: 25px;
+    flex-grow: 1;
+}
+
+.paket-features li { margin-bottom: 5px; }
+.paket-features li::before { content: "✓ "; font-weight: bold; }
+
+/* Tombol Pilih Paket */
+.btn-pilih-paket {
+    background: #E86B32;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.btn-pilih-paket:hover {
+    background: white;
+    color: #E86B32;
+}
