@@ -21,7 +21,7 @@
         <div class="ms-auto d-flex align-items-center gap-3">
             <a href="{{ url('/') }}" class="nav-link fw-bold text-dark">Home</a>
             <a href="{{ url('/booking') }}" class="nav-link nav-btn-active">Booking</a>
-            <a href="{{ url('/gallery') }}" class="nav-link fw-bold text-dark">Gallery</a>
+            <a href="{{ url('/gallery') }}" class="nav-link fw-bold text-dark">Tentang Kami</a>
             @auth
             <div class="nav-avatar">
                 <svg viewBox="0 0 24 24" width="22">
