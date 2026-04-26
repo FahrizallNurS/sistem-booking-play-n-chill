@@ -35,7 +35,7 @@
                     <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
                 </li>
                 <li class="nav-item ms-2">
 

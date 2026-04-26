@@ -17,7 +17,6 @@ use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LayananController;
 use App\Http\Controllers\Admin\PaketController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
-use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ProfilController;
@@ -43,7 +42,6 @@ use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 
 Route::get('/', fn () => redirect()->route('pelanggan.home'));
 Route::get('/home', [HomeController::class, 'index'])->name('pelanggan.home');
-Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
@@ -108,8 +106,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
 
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
-    Route::get('/booking/payment', [BookingController::class, 'showPayment'])->name('booking.payment.show');
-
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
 
 });
@@ -180,7 +176,6 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
 
             // Konten
-            Route::get('/gallery', [AdminGalleryController::class, 'index'])->name('gallery.index');
             Route::resource('game', GameController::class);
             
 
@@ -201,7 +196,7 @@ Route::middleware(['auth'])->group(function () {
     */
 
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
-    Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
+    Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
     Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
     Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
 
