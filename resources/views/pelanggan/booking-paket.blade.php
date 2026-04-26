@@ -12,9 +12,9 @@
 </head>
 <body>
 
-{{-- NAVBAR --}}
-<nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
+<nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
+
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
