@@ -8,6 +8,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\TentangKamiController;
 
 // Admin
 use App\Http\Controllers\Admin\DashboardController;
@@ -41,6 +42,7 @@ Route::get('/', fn () => redirect()->route('pelanggan.home'));
 
 Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
 
