@@ -66,57 +66,59 @@
         </div>
     </nav>
 
-    <div class="gallery-container">
-        {{-- Dekorasi Segitiga Kuning --}}
+        <div class="gallery-container">
+            {{-- Dekorasi Segitiga Kuning --}}
 
-        <h1>Gallery Room</h1>
-        <p>Jelajahi ruangan dengan fasilitas premium sesuai kebutuhan Anda</p>
+            <h1>Gallery Room</h1>
+            <p>Jelajahi ruangan dengan fasilitas premium sesuai kebutuhan Anda</p>
 
-        {{-- Navigasi Filter --}}
-        <div class="filter-nav">
-            <a href="{{ url('/gallery?type=reguler') }}" class="filter-link {{ request('type') == 'reguler' || !request('type') ? 'active' : '' }}">Reguler</a>
-            <a href="{{ url('/gallery?type=vip') }}" class="filter-link {{ request('type') == 'vip' ? 'active' : '' }}">VIP</a>
-            <a href="{{ url('/gallery?type=vvip') }}" class="filter-link {{ request('type') == 'vvip' ? 'active' : '' }}">VVIP</a>
-        </div>
+            {{-- Navigasi Filter --}}
+            <div class="filter-nav">
+                <a href="{{ url('/gallery?type=reguler') }}" class="filter-link {{ request('type') == 'reguler' || !request('type') ? 'active' : '' }}">Reguler</a>
+                <a href="{{ url('/gallery?type=vip') }}" class="filter-link {{ request('type') == 'vip' ? 'active' : '' }}">VIP</a>
+                <a href="{{ url('/gallery?type=vvip') }}" class="filter-link {{ request('type') == 'vvip' ? 'active' : '' }}">VVIP</a>
+            </div>
 
-        <div class="gallery-box">
-            @php
-                $type = request('type', 'reguler');
-                // Definisikan kategori untuk VIP & VVIP
-                $categories = ($type == 'vip' || $type == 'vvip') 
-                            ? ['Gaming Room', 'Karaoke Room', 'Private Bioskop'] 
-                              : ['Our Rooms']; // Jika reguler, tampilkan satu sekat saja
-            @endphp
-
-            @foreach ($categories as $cat)
-                {{-- Sekat Judul --}}
-                <div class="category-divider">
-                    <h3>{{ $cat }}</h3>
-                    <div class="category-line"></div>
-                </div>
-
-                {{-- Grid Gambar --}}
-                <div class="gallery-grid mb-5">
-                    @php
-                        // Jika tipe reguler, nama file diawali 'reguler'
-                        // Jika VIP/VVIP, nama file diawali sesuai kategori (gaming-room, dll)
-                        $fileNamePrefix = ($type == 'reguler') ? 'reguler' : Str::slug($cat);
-                        
-                        // Tentukan berapa banyak foto yang mau ditampilkan untuk bagian ini
-                        $jumlahFoto = ($type == 'reguler') ? 6 : 3;
-                    @endphp
-
-                    @for ($i = 1; $i <= $jumlahFoto; $i++)
-                        <div class="gallery-item-wrapper">
-                            <img src="{{ asset('images/gallery/' . $type . '/' . $fileNamePrefix . $i . '.jpg') }}" 
-                                class="gallery-item" 
-                                alt="{{ $cat }}"
+            <div class="gallery-box">
+        @if($ruangans->isEmpty())
+            <div class="text-center py-5">
+                <p style="color: rgba(255,255,255,0.5); font-size: 1.1rem;">
+                    Belum ada ruangan tersedia untuk kategori ini.
+                </p>
+            </div>
+        @else
+            <div class="gallery-grid">
+                @foreach($ruangans as $ruangan)
+                    <div class="gallery-item-wrapper">
+                        @if($ruangan->galeri)
+                            <img src="{{ asset('storage/' . $ruangan->galeri) }}"
+                                class="gallery-item"
+                                alt="{{ $ruangan->nama_ruangan }}"
                                 onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
+                        @else
+                            <div class="gallery-placeholder">
+                                <span>🎮</span>
+                                <p>{{ $ruangan->nama_ruangan }}</p>
+                            </div>
+                        @endif
+
+                        {{-- Overlay info ruangan --}}
+                        <div class="gallery-overlay">
+                            <h5>{{ $ruangan->nama_ruangan }}</h5>
+                            <p>{{ $ruangan->perangkat ?? '-' }}</p>
+                            <p class="small">{{ $ruangan->deskripsi ?? '' }}</p>
+                            @auth
+                                <a href="{{ url('/booking?tipe='.strtolower($type)) }}" 
+                                    class="btn-gallery-booking">Booking</a>
+                            @else
+                                <a href="{{ url('/login') }}" 
+                                    class="btn-gallery-booking">Login dulu</a>
+                            @endauth
                         </div>
-                    @endfor
-                </div>
-            @endforeach
-        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

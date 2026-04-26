@@ -10,4 +10,4 @@ class GalleryController extends Controller
     {
         return view('admin.gallery.index');
     }
-}
+}   
