@@ -19,6 +19,7 @@
 
         public function index(Request $request)
         {
+            $this->cancelExpiredBookings();
             $tipe = $request->input('tipe', 'reguler');
 
             $kategoriMap = [
@@ -215,6 +216,7 @@
 
         public function status()
         {
+            $this->cancelExpiredBookings();
             $bookings = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
                 ->where('id_pengguna', Auth::id())
                 ->latest()
@@ -231,6 +233,7 @@
         
         public function showPayment($id)
         {
+            $this->cancelExpiredBookings(); 
             $transaksi = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
                 ->where('id_transaksi', $id)
                 ->where('id_pengguna', Auth::id())
@@ -239,5 +242,21 @@
             return view('pelanggan.payment', compact('transaksi'));
         }
 
+
+        private function cancelExpiredBookings()
+        {
+            $count = TrTransaksi::where('status_sewa', 'ditahan')
+                ->where('created_at', '<', now()->subMinutes(1))
+                ->count();
+
+            \Log::info('cancelExpiredBookings', ['count' => $count, 'now' => now()]);
+
+            TrTransaksi::where('status_sewa', 'ditahan')
+                ->where('created_at', '<', now()->subMinutes(1))
+                ->update([
+                    'status_sewa'        => 'dibatalkan',
+                    'catatan_pembayaran' => 'Waktu pembayaran habis!',
+                ]);
+        }
         
     }

@@ -91,6 +91,32 @@
         </div>
     </div>
 </nav>
+
+    {{-- Countdown Timer --}}
+    @php
+        $expiredAt = \Carbon\Carbon::parse($transaksi->created_at)->addMinutes(30);
+        $sisaDetik = max(0, now()->diffInSeconds($expiredAt, false));
+    @endphp
+
+    @if($sisaDetik > 0)
+    <div class="container mt-3">
+        <div class="alert text-center fw-bold" 
+            style="background:rgba(255,165,0,0.2);border:1px solid orange;color:white;border-radius:12px;">
+            ⏳ Selesaikan pembayaran dalam: 
+            <span id="countdown" style="color:var(--yellow);font-size:1.2rem;">
+                {{ gmdate('i:s', $sisaDetik) }}
+            </span>
+        </div>
+    </div>
+    @else
+    <div class="container mt-3">
+        <div class="alert text-center fw-bold"
+            style="background:rgba(255,0,0,0.2);border:1px solid red;color:white;border-radius:12px;">
+            ❌ Waktu pembayaran telah habis. Booking ini sudah dibatalkan otomatis.
+        </div>
+    </div>
+    @endif
+
     {{-- ═══ CONTENT ═══ --}}
     <div class="container pb-5">
         <h2 class="payment-title text-white">Informasi Pembayaran</h2>
@@ -208,5 +234,32 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let sisaDetik = {{ $sisaDetik }};
+        
+        if (sisaDetik > 0) {
+            const interval = setInterval(() => {
+                sisaDetik--;
+                
+                if (sisaDetik <= 0) {
+                    clearInterval(interval);
+                    // Reload halaman biar status terupdate
+                    location.reload();
+                    return;
+                }
+
+                const menit = Math.floor(sisaDetik / 60).toString().padStart(2, '0');
+                const detik = Math.floor(sisaDetik % 60).toString().padStart(2, '0'); // ← tambah Math.floor()
+                const el     = document.getElementById('countdown');
+                if (el) el.textContent = menit + ':' + detik;
+
+                // Warna merah kalau tinggal 5 menit
+                if (sisaDetik <= 300 && el) {
+                    el.style.color = 'red';
+                }
+            }, 1000);
+    }
+</script>
 </body>
 </html>
