@@ -9,7 +9,7 @@
 @section('content')
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.layanan.store') }}" method="POST">
+        <form action="{{ route('admin.layanan.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-group">
@@ -57,9 +57,47 @@
                 </select>
             </div>
 
+            {{-- Upload Foto --}}
+            <div class="form-group">
+                <label>Foto Ruangan</label>
+                <div class="custom-file">
+                    <input type="file" name="galeri" class="custom-file-input" id="galeriInput"
+                        accept="image/jpg,image/jpeg,image/png,image/webp"
+                        onchange="previewFoto(this)">
+                    <label class="custom-file-label" for="galeriInput">Pilih foto...</label>
+                </div>
+                <small class="text-muted">Format: JPG, PNG, WEBP. Maksimal 2MB. Opsional.</small>
+
+                <div id="previewContainer" class="mt-2" style="display:none">
+                    <p class="text-muted small mb-1">Preview:</p>
+                    <img id="previewFoto" src="" alt="Preview"
+                        style="width:200px;height:130px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;">
+                </div>
+            </div>
+
             <a href="{{ route('admin.layanan.index') }}" class="btn btn-secondary">Batal</a>
             <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
     </div>
 </div>
+@stop
+
+@section('js')
+<script>
+function previewFoto(input) {
+    const label = input.nextElementSibling;
+    const preview = document.getElementById('previewFoto');
+    const container = document.getElementById('previewContainer');
+
+    if (input.files && input.files[0]) {
+        label.textContent = input.files[0].name;
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.src = e.target.result;
+            container.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 @stop

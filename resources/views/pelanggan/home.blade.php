@@ -90,7 +90,7 @@
     </div>
 </nav>
 
-{{-- ═══ HERO / CAROUSEL ═══ --}}
+
 {{-- ═══ HERO / CAROUSEL ═══ --}}
 <section class="hero p-0" style="background: var(--purple-dark);">
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">

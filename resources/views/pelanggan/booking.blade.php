@@ -127,17 +127,23 @@
             {{ $room->tersedia ? 'Tersedia' : 'Sedang Dipakai' }}
         </span>
 
-        {{-- Icon sofa --}}
-        <div class="room-icon">
-            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4"  y="28" width="12" height="16" rx="4"/>
-                <rect x="48" y="28" width="12" height="16" rx="4"/>
-                <rect x="10" y="20" width="44" height="14" rx="5"/>
-                <rect x="16" y="34" width="32" height="12" rx="4"/>
-                <rect x="12" y="44" width="6"  height="8"  rx="2"/>
-                <rect x="46" y="44" width="6"  height="8"  rx="2"/>
-            </svg>
-        </div>
+        @if($room->galeri)
+            <div class="room-foto">
+                <img src="{{ asset('storage/' . $room->galeri) }}"
+                    alt="{{ $room->nama_ruangan }}">
+            </div>
+        @else
+            <div class="room-icon">
+                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4"  y="28" width="12" height="16" rx="4"/>
+                    <rect x="48" y="28" width="12" height="16" rx="4"/>
+                    <rect x="10" y="20" width="44" height="14" rx="5"/>
+                    <rect x="16" y="34" width="32" height="12" rx="4"/>
+                    <rect x="12" y="44" width="6"  height="8"  rx="2"/>
+                    <rect x="46" y="44" width="6"  height="8"  rx="2"/>
+                </svg>
+            </div>
+        @endif
 
         {{-- Info ruangan --}}
         <div class="room-name">{{ $room->nama_ruangan }}</div>
