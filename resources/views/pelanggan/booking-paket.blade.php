@@ -71,7 +71,8 @@
 
                         {{-- Meta --}}
                         <div class="paket-card-meta">
-                            <span>👥 Max {{ $paket->maksimal_orang }} Orang</span>
+                            <span>🕐 Durasi {{ $items->first()->durasi_jam }} jam</span>
+                            <span>👥 {{ $paket->maksimal_orang }} Orang</span>
                         </div>
 
                         {{-- Deskripsi sebagai list --}}
