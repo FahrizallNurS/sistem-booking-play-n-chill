@@ -74,6 +74,38 @@ class BookingController extends Controller
         $waktuMulai   = Carbon::parse($request->tanggal . ' ' . str_replace('.', ':', $request->waktu_mulai));
         $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
 
+        // Validasi jam operasional ─
+        $hari = $waktuMulai->dayOfWeek; 
+
+        $jamBuka = match(true) {
+            in_array($hari, [1, 2, 3, 4]) => '14:00', // Senin–Kamis
+            $hari === 5                    => '14:00', // Jumat
+            in_array($hari, [0, 6])        => '10:00', // Sabtu–Minggu
+        };
+
+        $jamTutup = match(true) {
+            in_array($hari, [1, 2, 3, 4]) => '22:00', // Senin–Kamis
+            $hari === 5                    => '23:00', // Jumat
+            in_array($hari, [0, 6])        => '23:00', // Sabtu–Minggu
+        };
+
+        $bukaDt  = Carbon::parse($request->tanggal . ' ' . $jamBuka);
+        $tutupDt = Carbon::parse($request->tanggal . ' ' . $jamTutup);
+
+        if ($waktuMulai->lt($bukaDt) || $waktuSelesai->gt($tutupDt)) {
+            $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
+            return back()->withInput()->withErrors([
+                'waktu_mulai' => "Hari {$namaHari} jam operasional {$jamBuka}–{$jamTutup}. Booking kamu ({$waktuMulai->format('H:i')}–{$waktuSelesai->format('H:i')}) di luar jam operasional."
+            ]);
+        }
+
+        if ($waktuSelesai->gt($tutupDt)) {
+            $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
+            return back()->withInput()->withErrors([
+                'waktu_mulai' => "Booking berakhir jam {$waktuSelesai->format('H:i')}, melebihi jam tutup {$jamTutup} hari {$namaHari}."
+            ]);
+        }
+
         // Cek konflik jadwal
         $konflik = TrTransaksi::where('id_penetapan_harga', $ph->id_penetapan_harga)
             ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])

@@ -62,7 +62,7 @@
                                 aria-labelledby="userDropdown">
                                 <li>
                                     <span class="dropdown-item-text fw-bold">
-                                        {{ auth()->user()->name }}
+                                        {{ auth()->user()->nama_pengguna }}
                                     </span>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -115,7 +115,7 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-header-info">
-                <h2>{{ $user->name }}</h2>
+                <h2>{{ $user->nama_pengguna }}</h2>
                 <p><i class="fas fa-envelope me-1"></i> {{ $user->email }}</p>
                 @if($user->no_hp)
                     <p><i class="fas fa-phone me-1"></i> {{ $user->no_hp }}</p>
