@@ -27,10 +27,10 @@
 
                         <div class="form-group">
                             <label>Nama</label>
-                            <input type="text" name="name"
-                                class="form-control @error('name') is-invalid @enderror"
-                                value="{{ old('name', $user->name) }}" required>
-                            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <input type="text" name="nama_pengguna"
+                                class="form-control @error('nama_pengguna') is-invalid @enderror"
+                                value="{{ old('nama_pengguna', $user->nama_pengguna) }}" required>
+                            @error('nama_pengguna') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="form-group">

@@ -9,25 +9,16 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    // =====================
-    // Tampilkan halaman login
-    // =====================
     public function showLogin()
     {
-        // Kalau sudah login, langsung redirect sesuai role
         if (Auth::check()) {
             return $this->redirectByRole(Auth::user());
         }
-
         return view('auth.login');
     }
 
-    // =====================
-    // Proses login
-    // =====================
     public function login(Request $request)
     {
-        // Validasi input
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
@@ -44,35 +35,35 @@ class AuthController extends Controller
             return $this->redirectByRole(Auth::user());
         }
 
-        // Login gagal
         return back()->withErrors([
             'email' => 'Email atau password salah.',
         ])->onlyInput('email');
+
+                if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            return $this->redirectByRole(Auth::user());
+        }
+
+        // Tambah log ini
+        \Log::info('Login gagal', [
+            'email' => $request->email,
+            'user'  => User::where('email', $request->email)->first()?->toArray()
+        ]);
     }
 
-    // =====================
-    // Logout
-    // =====================
-    
     public function logout(Request $request)
     {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
     }
 
-    // =====================
-    // Redirect ke Google
-    // =====================
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();
     }
 
-    // =====================
-    // Callback dari Google
-    // =====================
     public function handleGoogleCallback()
     {
         try {
@@ -83,38 +74,35 @@ class AuthController extends Controller
             ]);
         }
 
-        // Cari user berdasarkan email, kalau belum ada buat baru
+        // FIX: nama_pengguna bukan name
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
             [
-                'name'              => $googleUser->getName(),
+                'nama_pengguna'     => $googleUser->getName(),
                 'password'          => bcrypt(\Illuminate\Support\Str::random(24)),
-                'role'              => 'pelanggan', // default role untuk user Google
+                'role'              => 'pelanggan',
                 'google_id'         => $googleUser->getId(),
                 'email_verified_at' => now(),
             ]
         );
-    
 
-        // Update google_id kalau user sudah ada tapi belum punya google_id
         if (!$user->google_id) {
-            $user->update(['google_id' => $googleUser->getId()]);
+            $user->update([
+                'google_id'         => $googleUser->getId(),
+                'email_verified_at' => now(),
+            ]);
         }
 
         Auth::login($user);
-
         return $this->redirectByRole($user);
     }
 
-    // =====================
-    // Helper: redirect berdasarkan role
-    // =====================
     private function redirectByRole(User $user)
     {
         return match ($user->role) {
             'superadmin' => redirect()->route('superadmin.dashboard'),
             'admin'      => redirect()->route('admin.dashboard'),
-            default      => redirect('/'), // ← ganti dari route('pelanggan.home') ke /
+            default      => redirect('/'),
         };
     }
 }
