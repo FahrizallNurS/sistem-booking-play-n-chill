@@ -160,39 +160,44 @@
                                 $times = ['10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
                                         '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
                                         '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
-                                        '22.00','22.30','23.00','23.30'];
+                                        '22.00'];
                             @endphp
 
                             <div class="time-grid">
-                                @foreach($times as $time)
-                                <button type="button"
-                                    @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
-                                    class="btn-time"
-                                    :class="{
-                                        'active': tempTime === '{{ $time }}',
-                                        'blocked': isBlocked('{{ $time }}')
-                                    }"
-                                    :disabled="isBlocked('{{ $time }}')">
-                                    {{ $time }}
-                                </button>
-                                @endforeach
+                            @foreach($times as $time)
+                            <button type="button"
+                                @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
+                                class="btn-time"
+                                :class="{
+                                    'active': tempTime === '{{ $time }}',
+                                    'blocked': isBlocked('{{ $time }}')
+                                }"
+                                :disabled="isBlocked('{{ $time }}')">
+                                {{ $time }}
+                            </button>
+                            @endforeach
                             </div>
                             <div class="d-flex gap-3 mt-2 small text-white-50">
                                 <span>⬜ Tersedia</span>
                                 <span style="text-decoration:line-through">⬜ Penuh</span>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <button type="button" @click="batalWaktu()" class="btn btn-light">Batal</button>
+                            <div class="d-flex align-items-center mt-3" style="gap:10px;">
+                                <button type="button" @click="batalWaktu()" 
+                                    class="btn btn-light" style="flex-shrink:0;">
+                                    Batal
+                                </button>
 
-                                <span class="text-white-50 small" x-show="tempTime !== ''">
+                                <span class="text-white-50 small text-center" x-show="tempTime !== ''" 
+                                    style="flex:1;">
                                     Dipilih: <strong x-text="tempTime"></strong>
                                 </span>
 
                                 <button type="button"
                                     @click="pilihWaktu()"
                                     :disabled="tempTime === '' || isBlocked(tempTime)"
-                                    class="btn-submit-booking">
+                                    class="btn-pilih"
+                                    style="flex-shrink:0;">
                                     Pilih
                                 </button>
                             </div>
@@ -210,7 +215,7 @@
                             <div class="duration-grid">
                                 @foreach($penetapanHarga as $ph)
                                 <button type="button"
-                                    @click='selectedPricing = {{ json_encode($ph) }}'
+                                    @click='selectedPricing = {{ json_encode($ph) }}; tempTime = ""; confirmedTime = ""'
                                     class="btn-duration"
                                     :class="{ 'active': selectedPricing && selectedPricing.id_penetapan_harga === {{ $ph->id_penetapan_harga }} }">
                                     {{ $ph->durasi_jam }} Jam
@@ -219,6 +224,7 @@
                                 @endforeach
                             </div>
                         </div>
+
 
                         {{-- PAYMENT --}}
                         <div class="booking-card">
@@ -280,17 +286,13 @@
                                 </div>
                             </div>
 
-                            <div class="row mt-4">
-                                <div class="col-6">
-                                    <a href="{{ url('/booking') }}" class="btn btn-outline-light w-100">Kembali</a>
-                                </div>
-                                <div class="col-6">
-                                    <button type="submit"
-                                        :disabled="!confirmedTime || !selectedPricing"
-                                        class="btn-submit-booking w-100">
-                                        LANJUTKAN
-                                    </button>
-                                </div>
+                            <div class="btn-action-row">
+                                <a href="{{ url('/booking') }}" class="btn-back">Kembali</a>
+                                <button type="submit"
+                                    :disabled="!confirmedTime || !selectedPricing"
+                                    class="btn-submit-booking">
+                                    LANJUTKAN
+                                </button>
                             </div>
                         </div>
 
@@ -330,6 +332,22 @@
                     if (this.jamTerpakai.includes(slot)) return true;
                     if (!this.tanggal) return false;
 
+                    const now = new Date();
+                    const [y, m, d] = this.tanggal.split('-').map(Number);
+                    const tanggalDate = new Date(y, m - 1, d);  
+                    const hariIni = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+   
+
+                    // Blokir jam yang sudah lewat jika tanggal yang dipilih adalah hari ini
+                    if (tanggalDate.getTime() === hariIni.getTime()) {
+                        const normalized = slot.replace('.', ':');
+                        const [jamSlot, menitSlot] = normalized.split(':').map(Number);
+                        const slotMenit = jamSlot * 60 + menitSlot;
+                        const sekarangMenit = now.getHours() * 60 + now.getMinutes();
+
+                        if (slotMenit <= sekarangMenit) return true;
+                    }
+
                     const hari = new Date(this.tanggal).getDay();
                     const normalized = slot.replace('.', ':');
                     const [jam, menit] = normalized.split(':').map(Number);
@@ -347,6 +365,8 @@
                         bukaMenit  = 14 * 60; // Senin-Rabu, Jumat: 14:00 - 23:00
                         tutupMenit = 23 * 60;
                     }
+
+
 
                     if ((slotMenit < bukaMenit || slotMenit >= tutupMenit)) return true;
                      const durasi = this.selectedPricing ? this.selectedPricing.durasi_jam * 60 : 0;
