@@ -49,8 +49,6 @@
     },
 }">
 
-<<<<<<< HEAD
-=======
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
 
@@ -127,7 +125,6 @@
     </div>
 </nav>
 
->>>>>>> origin/presentasi
 <div class="max-w-2xl mx-auto py-12 px-6">
     <div class="text-center mb-10">
         <h1 class="text-4xl font-extrabold text-white tracking-tight">Play <span class="text-orange-400">N</span> Chill</h1>

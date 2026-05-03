@@ -8,7 +8,11 @@ body {
     font-family: 'Nunito', sans-serif;
 }
 
-.booking-form-container { max-width: 800px; margin: 0 auto; }
+/* Container utama */
+.booking-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
 
 .page-title {
     font-family: 'Fredoka One', cursive;
@@ -18,8 +22,9 @@ body {
     text-transform: uppercase;
 }
 
+/* Card pembungkus section */
 .booking-card {
-    background-color: rgba(163, 145, 227, 0.2);
+    background-color: rgba(163, 145, 227, 0.2); /* Ungu transparan tipis */
     border-radius: 20px;
     padding: 30px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -27,6 +32,7 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
+/* Badge judul section */
 .section-badge {
     background: var(--orange);
     color: white;
@@ -40,7 +46,7 @@ body {
     box-shadow: 0 4px 10px rgba(230, 90, 41, 0.3);
 }
 
-/* TIME GRID */
+/* Grid pemilihan waktu */
 .time-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
@@ -73,64 +79,16 @@ body {
     border-color: white;
 }
 
-.btn-time.blocked {
+.time-full {
+    background: #d9f99d !important; /* Warna Lime untuk tanda penuh */
+    color: #333 !important;
     opacity: 0.5;
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: rgba(255, 255, 255, 0.25) !important;
-    cursor: not-allowed !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    text-decoration: line-through;
-    pointer-events: none;
+    cursor: not-allowed;
+    font-style: italic;
+    border: none;
 }
 
-.btn-time.blocked:hover {
-    transform: none !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* DURATION GRID */
-.duration-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 16px;
-    margin-top: 15px;
-    margin-bottom: 4px;
-}
-
-.btn-duration {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--purple-light);
-    color: white;
-    font-weight: 800;
-    padding: 16px 12px;
-    border-radius: 14px;
-    transition: all 0.3s ease;
-    line-height: 1.4;
-}
-
-.btn-duration small {
-    display: block;
-    margin-top: 4px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    opacity: 0.85;
-}
-
-.btn-duration:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: white;
-    transform: translateY(-2px);
-}
-
-.btn-duration.active {
-    background: var(--yellow) !important;
-    color: var(--purple-dark) !important;
-    border-color: var(--yellow);
-    transform: scale(0.97);
-    box-shadow: 0 6px 18px rgba(215, 227, 25, 0.35);
-}
-
-/* PAYMENT */
+/* Opsi Pembayaran */
 .payment-btn {
     background: rgba(255, 255, 255, 0.1);
     color: white;
@@ -147,12 +105,12 @@ body {
     background: white;
     color: var(--purple-dark);
     border: 2px solid var(--orange);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* SUMMARY */
+/* Ringkasan & Total */
 .total-box {
-    background: rgba(20, 8, 58, 0.4);
+    background: rgba(20, 8, 58, 0.4); /* Lebih gelap */
     border-radius: 15px;
     padding: 25px;
     margin-top: 10px;
@@ -172,6 +130,11 @@ body {
     padding-bottom: 0;
 }
 
+.text-highlight {
+    color: var(--yellow);
+    font-weight: 800;
+}
+
 .price-final {
     font-size: 1.8rem;
     font-weight: 900;
@@ -179,41 +142,7 @@ body {
     font-family: 'Fredoka One', cursive;
 }
 
-/* ACTION BUTTONS Kembali & Lanjutkan */
-.btn-action-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 1.5rem;
-}
-
-.btn-back {
-    background: transparent;
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-radius: 15px;
-    padding: 16px;
-    font-weight: 800;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-align: center;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-.btn-back:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: white;
-    color: white;
-    transform: translateY(-2px);
-}
-
-/* Tombol LANJUTKAN - full width dalam grid */
+/* Button Lanjutkan */
 .btn-submit-booking {
     background: var(--orange);
     color: white;
@@ -221,14 +150,9 @@ body {
     border-radius: 15px;
     padding: 16px;
     font-weight: 800;
-    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    width: 100%;
     transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .btn-submit-booking:hover:not(:disabled) {
@@ -242,37 +166,53 @@ body {
     cursor: not-allowed;
 }
 
-/* TOMBOL PILIH - class terpisah, tidak ikut width:100% */
-.btn-pilih {
-    background: var(--orange);
+/* Grid Durasi Jam */
+.duration-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.btn-duration {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--purple-light);
     color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 10px 28px;
     font-weight: 800;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    width: auto;
-    flex-shrink: 0;
-    flex-grow: 0;
+    padding: 12px;
+    border-radius: 12px;
     transition: all 0.3s ease;
 }
 
-.btn-pilih:hover:not(:disabled) {
-    background: #ff7b4d;
-    transform: translateY(-2px);
+.btn-duration.active {
+    background: var(--yellow) !important;
+    color: var(--purple-dark) !important;
+    border-color: var(--yellow);
+    transform: scale(0.95);
 }
 
-.btn-pilih:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* RESPONSIVE */
+/* Responsive */
 @media (max-width: 576px) {
-    .time-grid { grid-template-columns: repeat(3, 1fr); }
-    .duration-grid { grid-template-columns: repeat(2, 1fr); }
-    .booking-card { padding: 20px; }
-    .btn-action-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .time-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .booking-card {
+        padding: 20px;
+    }
+}   
+
+.btn-time.blocked {
+    opacity: 0.5;
+    background-color: #333 !important; /* Warna gelap */
+    pointer-events: none; /* User beneran gak bisa klik */
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.25) !important;
+    cursor: not-allowed !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    text-decoration: line-through;
+}
+
+.btn-time.blocked:hover {
+    transform: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
