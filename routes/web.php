@@ -102,9 +102,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Booking
-    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
-    Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
-    Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket')->middleware('verified');
+    Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form')->middleware('verified');
+    Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store')->middleware('verified');
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);

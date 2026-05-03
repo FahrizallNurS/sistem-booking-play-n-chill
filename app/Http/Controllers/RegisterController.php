@@ -21,10 +21,10 @@ class RegisterController extends Controller
         $request->validate([
             'nama_pengguna' => [
                 'required', 'string', 'max:45',
-                'unique:users,name', // FIX: kolom nama_pengguna
+                'unique:users,nama_pengguna',
                 'not_regex:' . $suspiciousPattern
             ],
-            'email' => 'required|string|email:rfc,dns|max:30|unique:users',
+            'email'    => 'required|string|email:rfc,dns|max:30|unique:users,email',
             'no_hp'    => 'required|string|max:15',
             'password' => 'required|string|min:8'
         ], [
@@ -35,21 +35,21 @@ class RegisterController extends Controller
         ]);
 
         $user = User::create([
-            'name'              => $request->nama_pengguna, // FIX: nama_pengguna
+            'nama_pengguna'     => $request->nama_pengguna,
             'email'             => $request->email,
             'no_hp'             => $request->no_hp,
-            'password'          => Hash::make($request->password), // FIX: Hash::make
+            'password'          => Hash::make($request->password),
             'role'              => 'pelanggan',
             'alamat'            => null,
         ]);
 
-       // Login otomatis setelah daftar
+        // Login otomatis setelah daftar
         Auth::login($user);
 
-        // Kirim email verifikasi di background
+        // Kirim email verifikasi
         $user->sendEmailVerificationNotification();
 
-        return redirect()->route('pelanggan.home')
-            ->with('success', 'Pendaftaran berhasil! Selamat datang di Play N Chill 🎮');
-            }
+        return redirect()->route('verification.notice')
+            ->with('success', 'Pendaftaran berhasil! Cek email untuk verifikasi.');
+    }
 }

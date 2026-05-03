@@ -12,10 +12,10 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable;
 
     protected $table      = 'users';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id_pengguna';
 
     protected $fillable = [
-        'name',
+        'nama_pengguna',
         'email',
         'password',
         'no_hp',
@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'alamat',
         'role',
         'email_verified_at',
+        'remember_token',
     ];
 
     protected $hidden = [
@@ -41,18 +42,18 @@ class User extends Authenticatable implements MustVerifyEmail
     // Relasi ke transaksi
     public function transaksis()
     {
-        return $this->hasMany(TrTransaksi::class, 'id_pengguna', 'id');
+        return $this->hasMany(TrTransaksi::class, 'id_pengguna', 'id_pengguna');
     }
 
         
     public function getAuthIdentifierName()
     {
-        return 'id';
+        return 'id_pengguna';
     }
 
     public function getAuthIdentifier()
     {
-        return $this->id;      
+        return $this->id_pengguna;      
     }
 
     public function getAuthPassword()
@@ -61,6 +62,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function getKey()
     {
-        return $this->id;
+        return $this->id_pengguna;
     }
 }
