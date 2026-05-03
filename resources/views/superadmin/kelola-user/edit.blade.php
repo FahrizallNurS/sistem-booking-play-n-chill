@@ -21,15 +21,15 @@
                     <h3 class="card-title">Edit Data User</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('superadmin.users.update', $user->id) }}" method="POST">
+                    <form action="{{ route('superadmin.users.update', $user->id_pengguna) }}" method="POST">
                         @csrf
                         @method('PATCH')
 
                         <div class="form-group">
                             <label>Nama</label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                                value="{{ old('name', $user->name) }}" required>
-                            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <input type="text" name="nama_pengguna" class="form-control @error('nama_pengguna') is-invalid @enderror"
+                                value="{{ old('nama_pengguna', $user->nama_pengguna) }}" required>
+                            @error('nama_pengguna') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="form-group">
@@ -73,7 +73,7 @@
                     <h3 class="card-title">Ganti Password</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('superadmin.users.password', $user->id) }}" method="POST">
+                    <form action="{{ route('superadmin.users.password', $user->id_pengguna) }}" method="POST">
                         @csrf
                         @method('PATCH')
 

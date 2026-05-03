@@ -44,7 +44,7 @@ class BookingController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('kode_sewa', 'like', "%{$search}%")
-                  ->orWhereHas('pengguna', fn ($u) => $u->where('name', 'like', "%{$search}%"));
+                  ->orWhereHas('pengguna', fn ($u) => $u->where('nama_pengguna', 'like', "%{$search}%"));
             });
         }
 
@@ -54,17 +54,6 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings', 'ruangans'));
     }
 
-    // ============================================================
-    // CREATE — walk-in dari admin
-    // ============================================================
-    public function create()
-    {
-        $ruangans   = MsRuangan::where('is_active', 1)->get();
-        $pakets     = MsPaket::where('is_active', 1)->get();
-        $pelanggans = User::where('role', 'pelanggan')->get();
-
-        return view('admin.bookings.create', compact('ruangans', 'pakets', 'pelanggans'));
-    }
 
     // ============================================================
     // STORE
@@ -77,7 +66,7 @@ class BookingController extends Controller
             'waktu_mulai'        => 'required',
             'opsi_pembayaran'    => 'required|in:full,dp',
             'jumlah_dp'          => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
-            'id_pengguna'        => 'nullable|exists:users,id',
+            'id_pengguna'        => 'nullable|exists:users,id_pengguna',
         ]);
 
         $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
@@ -85,13 +74,63 @@ class BookingController extends Controller
         $waktuMulai   = Carbon::parse($request->tanggal . ' ' . str_replace('.', ':', $request->waktu_mulai));
         $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
 
+        // Validasi jam operasional ─
+        $hari = $waktuMulai->dayOfWeek; 
+
+        $jamBuka = match(true) {
+            in_array($hari, [0, 6]) => '10:00', // Sabtu–Minggu
+            default                  => '14:00', // Senin–Jumat
+        };
+
+        $jamTutup = match(true) {
+            $hari === 4              => '22:00', // Kamis saja
+            in_array($hari, [0, 6]) => '23:00', // Sabtu–Minggu
+            default                  => '23:00', // Senin–Rabu, Jumat
+        };
+
+        $bukaDt  = Carbon::parse($request->tanggal . ' ' . $jamBuka);
+        $tutupDt = Carbon::parse($request->tanggal . ' ' . $jamTutup);
+
+        if ($waktuMulai->lt($bukaDt) || $waktuSelesai->gt($tutupDt)) {
+            $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
+            return back()->withInput()->withErrors([
+                'waktu_mulai' => "Hari {$namaHari} jam operasional {$jamBuka}–{$jamTutup}. Booking kamu ({$waktuMulai->format('H:i')}–{$waktuSelesai->format('H:i')}) di luar jam operasional."
+            ]);
+        }
+
+        if ($waktuSelesai->gt($tutupDt)) {
+            $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
+            return back()->withInput()->withErrors([
+                'waktu_mulai' => "Booking berakhir jam {$waktuSelesai->format('H:i')}, melebihi jam tutup {$jamTutup} hari {$namaHari}."
+            ]);
+        }
+
+           // Validasi DP
+        if ($request->opsi_pembayaran === 'dp') {
+            $minDp = $ph->harga * 0.3;
+            if ($request->jumlah_dp < $minDp) {
+                return back()->withInput()->withErrors([
+                    'jumlah_dp' => 'Minimal DP adalah Rp ' . number_format($minDp, 0, ',', '.')
+                ]);
+            }
+            if ($request->jumlah_dp >= $ph->harga) {
+                return back()->withInput()->withErrors([
+                    'jumlah_dp' => 'Jumlah DP tidak boleh sama/melebihi total. Gunakan Full Payment.'
+                ]);
+            }
+        }
+
         // Cek konflik jadwal
-        $konflik = TrTransaksi::where('id_penetapan_harga', $ph->id_penetapan_harga)
-            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
-            ->where(function ($q) use ($waktuMulai, $waktuSelesai) {
-                $q->whereBetween('waktu_mulai', [$waktuMulai, $waktuSelesai])
-                  ->orWhereBetween('waktu_selesai', [$waktuMulai, $waktuSelesai]);
-            })->exists();
+       $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
+            $q->where('id_ruangan', $ph->id_ruangan);
+        })
+        ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+        ->where(function ($q) use ($waktuMulai, $waktuSelesai) {
+            // Overlap terjadi jika: mulai_existing < selesai_baru AND selesai_existing > mulai_baru
+            $q->where('waktu_mulai', '<', $waktuSelesai)
+            ->where('waktu_selesai', '>', $waktuMulai);
+        })
+        ->exists();
 
         if ($konflik) {
             return back()->withInput()
@@ -107,7 +146,7 @@ class BookingController extends Controller
 
         TrTransaksi::create([
             'id_penetapan_harga' => $ph->id_penetapan_harga,
-            'id_pengguna'        => $request->id_pengguna ?? auth()->id(),
+            'id_pengguna'        => $request->id_pengguna ?? auth()->user()->id_pengguna,
             'kode_sewa'          => $kode,
             'waktu_mulai'        => $waktuMulai,
             'waktu_selesai'      => $waktuSelesai,

@@ -26,11 +26,48 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url('/gallery') }}">Gallery</a></li>
                 <li class="nav-item ms-2">
                     @auth
+<<<<<<< HEAD
                     <div class="dropdown">
                         <div class="nav-avatar" id="userDropdown" data-bs-toggle="dropdown">
                             <svg viewBox="0 0 24 24">
                                 <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="var(--purple-dark)"/>
                             </svg>
+=======
+                        {{-- Sudah login: tampilkan avatar + dropdown --}}
+                        <div class="dropdown">
+                            <div class="nav-avatar" id="userDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
+                                            7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
+                                            1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                                        fill="var(--purple-dark)"/>
+                                </svg>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                                aria-labelledby="userDropdown">
+                                <li>
+                                    <span class="dropdown-item-text fw-bold">
+                                        {{ auth()->user()->nama_pengguna }}
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url('/profile') }}">
+                                        Profil Saya
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Keluar (Logout)
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+>>>>>>> origin/presentasi
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
@@ -77,7 +114,7 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-header-info">
-                <h2>{{ $user->name }}</h2>
+                <h2>{{ $user->nama_pengguna }}</h2>
                 <p><i class="fas fa-envelope me-1"></i> {{ $user->email }}</p>
                 @if($user->no_hp)
                     <p><i class="fas fa-phone me-1"></i> {{ $user->no_hp }}</p>
