@@ -21,17 +21,17 @@ class SAProfilController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name'   => 'required|string|max:255',
-            'email'  => 'required|email|unique:users,email,' . $user->id,
-            'no_hp'  => 'nullable|string|max:15',
-            'alamat' => 'nullable|string',
+            'nama_pengguna' => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email,' . $user->id_pengguna . ',id_pengguna',
+            'no_hp'         => 'nullable|string|max:15',
+            'alamat'        => 'nullable|string',
         ]);
 
         $user->update([
-            'name'   => $request->name,
-            'email'  => $request->email,
-            'no_hp'  => $request->no_hp,
-            'alamat' => $request->alamat,
+            'nama_pengguna' => $request->nama_pengguna,
+            'email'         => $request->email,
+            'no_hp'         => $request->no_hp,
+            'alamat'        => $request->alamat,
         ]);
 
         return back()->with('success', 'Profil berhasil diupdate!');

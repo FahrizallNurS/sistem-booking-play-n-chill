@@ -38,46 +38,46 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($users as $index => $user)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->no_hp ?? '-' }}</td>
-                            <td>
-                                @if($user->role === 'superadmin')
-                                    <span class="badge badge-danger">Superadmin</span>
-                                @elseif($user->role === 'admin')
-                                    <span class="badge badge-warning">Admin</span>
-                                @else
-                                    <span class="badge badge-info">Pelanggan</span>
-                                @endif
-                            </td>
-                            <td>{{ $user->created_at->format('d/m/Y') }}</td>
-                            <td>
-                                <a href="{{ route('superadmin.users.edit', $user->id) }}"
-                                    class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                @if($user->id !== auth()->id())
-                                    <form action="{{ route('superadmin.users.destroy', $user->id) }}"
-                                        method="POST" style="display:inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Yakin hapus user ini?')">
-                                            <i class="fas fa-trash"></i> Hapus
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center">Belum ada data user</td>
-                        </tr>
-                    @endforelse
-                </tbody>
+                @forelse($users as $index => $user)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $user->nama_pengguna }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>{{ $user->no_hp ?? '-' }}</td>
+                        <td>
+                            @if($user->role === 'superadmin')
+                                <span class="badge badge-danger">Superadmin</span>
+                            @elseif($user->role === 'admin')
+                                <span class="badge badge-warning">Admin</span>
+                            @else
+                                <span class="badge badge-info">Pelanggan</span>
+                            @endif
+                        </td>
+                        <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                        <td>
+                            <a href="{{ route('superadmin.users.edit', $user->id_pengguna) }}"
+                                class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            @if($user->id_pengguna !== auth()->user()->id_pengguna)
+                                <form action="{{ route('superadmin.users.destroy', $user->id_pengguna) }}"
+                                    method="POST" style="display:inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Yakin hapus user ini?')">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center">Belum ada data user</td>
+                    </tr>
+                @endforelse
+            </tbody>
             </table>
         </div>
     </div>

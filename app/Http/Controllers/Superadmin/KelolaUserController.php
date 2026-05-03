@@ -11,7 +11,7 @@ class KelolaUserController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->get();
+        $users = User::latest('created_at')->get();
         return view('superadmin.kelola-user.index', compact('users'));
     }
 
@@ -23,21 +23,23 @@ class KelolaUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
-            'role'     => 'required|in:admin,pelanggan,superadmin',
-            'no_hp'    => 'nullable|string|max:15',
-            'alamat'   => 'nullable|string',
+            'nama_pengguna' => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|min:8|confirmed',
+            'role'          => 'required|in:admin,pelanggan,superadmin',
+            'no_hp'         => 'nullable|string|max:15',
+            'alamat'        => 'nullable|string',
         ]);
 
         User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
-            'no_hp'    => $request->no_hp,
-            'alamat'   => $request->alamat,
+            'nama_pengguna'      => $request->nama_pengguna,
+            'email'              => $request->email,
+            'password'           => Hash::make($request->password),
+            'role'               => $request->role,
+            'no_hp'              => $request->no_hp,
+            'alamat'             => $request->alamat,
+            'status'             => 1,
+            'email_verified_at'  => now(),
         ]);
 
         return redirect()->route('superadmin.users.index')
@@ -55,19 +57,19 @@ class KelolaUserController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'   => 'required|string|max:255',
-            'email'  => 'required|email|unique:users,email,' . $user->id,
-            'role'   => 'required|in:admin,pelanggan,superadmin',
-            'no_hp'  => 'nullable|string|max:15',
-            'alamat' => 'nullable|string',
+            'nama_pengguna' => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email,' . $user->id_pengguna . ',id_pengguna',
+            'role'          => 'required|in:admin,pelanggan,superadmin',
+            'no_hp'         => 'nullable|string|max:15',
+            'alamat'        => 'nullable|string',
         ]);
 
         $user->update([
-            'name'   => $request->name,
-            'email'  => $request->email,
-            'role'   => $request->role,
-            'no_hp'  => $request->no_hp,
-            'alamat' => $request->alamat,
+            'nama_pengguna' => $request->nama_pengguna,
+            'email'         => $request->email,
+            'role'          => $request->role,
+            'no_hp'         => $request->no_hp,
+            'alamat'        => $request->alamat,
         ]);
 
         return redirect()->route('superadmin.users.index')
@@ -79,7 +81,7 @@ class KelolaUserController extends Controller
         $user = User::findOrFail($id);
 
         // Cegah superadmin hapus diri sendiri
-        if ($user->id === auth()->id()) {
+        if ($user->id_pengguna === auth()->id()) {
             return back()->with('error', 'Tidak bisa menghapus akun sendiri!');
         }
 

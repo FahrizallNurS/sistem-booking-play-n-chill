@@ -21,7 +21,6 @@ use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ProfilController;
 
-
 // Auth
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -32,28 +31,22 @@ use App\Http\Controllers\Superadmin\SAProfilController;
 use App\Http\Controllers\Superadmin\KelolaUserController;
 use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 
-
-
 /*
 |--------------------------------------------------------------------------
 | PUBLIC
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', fn () => redirect()->route('pelanggan.home'));
 Route::get('/home', [HomeController::class, 'index'])->name('pelanggan.home');
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
-
 
 /*
 |--------------------------------------------------------------------------
 | AUTH (GUEST)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware('guest')->group(function () {
-
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
@@ -70,66 +63,48 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | LOGOUT
 |--------------------------------------------------------------------------
 */
-
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATED USER
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth'])->group(function () {
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | BOOKING (PELANGGAN)
-    |--------------------------------------------------------------------------
-    */
-
+    // Booking
     Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
     Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
-
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
+    Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
+    Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
+    Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
 
+    // Jadwal
     Route::get('/jadwal', [JadwalController::class, 'index'])->name('pelanggan.jadwal');
     Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
 
-    Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
-    Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
-
-});
     /*
     |--------------------------------------------------------------------------
     | SUPERADMIN
     |--------------------------------------------------------------------------
     */
-
     Route::middleware([RoleMiddleware::class . ':superadmin'])
         ->prefix('superadmin')
         ->name('superadmin.')
         ->group(function () {
-
             Route::get('/dashboard', [SABerandaController::class, 'index'])->name('dashboard');
 
-            Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
-
-            Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
-            Route::patch('/data-user/{id}', [KelolaUserController::class, 'update'])->name('users.update');
-
-            Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index'); // FIXED
-
-
+            // Data User
             Route::get('/data-user', [KelolaUserController::class, 'index'])->name('users.index');
             Route::get('/data-user/create', [KelolaUserController::class, 'create'])->name('users.create');
             Route::post('/data-user', [KelolaUserController::class, 'store'])->name('users.store');
@@ -138,23 +113,24 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/data-user/{id}', [KelolaUserController::class, 'destroy'])->name('users.destroy');
             Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
 
+            // Laporan
+            Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
+
+            // Profil
             Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
             Route::patch('/profil', [SAProfilController::class, 'update'])->name('profil.update');
             Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');
         });
-
 
     /*
     |--------------------------------------------------------------------------
     | ADMIN
     |--------------------------------------------------------------------------
     */
-
     Route::middleware([RoleMiddleware::class . ':admin'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
             Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
@@ -168,16 +144,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/layanan/{id}/penetapan-harga', [LayananController::class, 'storePenetapanHarga'])->name('layanan.penetapan.store');
             Route::delete('/penetapan-harga/{id}', [LayananController::class, 'destroyPenetapanHarga'])->name('layanan.penetapan.destroy');
 
-            //booking
+            // Booking
             Route::resource('booking', AdminBookingController::class);
             Route::patch('/booking/{id}/konfirmasi', [AdminBookingController::class, 'konfirmasi'])->name('booking.konfirmasi');
             Route::patch('/booking/{id}/tolak', [AdminBookingController::class, 'tolak'])->name('booking.tolak');
             Route::patch('/booking/{id}/pembayaran', [AdminBookingController::class, 'pembayaran'])->name('booking.pembayaran');
             Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
 
-            // Konten
+            // Game
             Route::resource('game', GameController::class);
-            
 
             // Laporan
             Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
@@ -188,16 +163,14 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
         });
 
-
     /*
     |--------------------------------------------------------------------------
     | PELANGGAN ONLY
     |--------------------------------------------------------------------------
     */
-
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
-    Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
-    Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
-    Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
-
+        Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
+        Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
     });
+
+});

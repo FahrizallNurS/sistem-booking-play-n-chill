@@ -22,7 +22,7 @@ class TrTransaksi extends Model
 
     public function pengguna()
     {
-        return $this->belongsTo(User::class, 'id_pengguna', 'id');
+        return $this->belongsTo(User::class, 'id_pengguna', 'id_pengguna');
     }
 
     // Helper — akses ruangan via penetapan_harga

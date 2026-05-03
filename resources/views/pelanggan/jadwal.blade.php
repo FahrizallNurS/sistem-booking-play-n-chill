@@ -29,6 +29,24 @@
         let jamBaru = (jam + parseInt(this.durasi)) % 24;
         return (jamBaru < 10 ? '0' : '') + jamBaru + ':' + (menit < 10 ? '0' : '') + menit;
     }
+
+    getJamBuka() {
+        const hari = new Date(this.tanggal).getDay();
+        return (hari === 0 || hari === 6) ? '10:00' : '14:00';
+    },
+
+    getJamTutup() {
+        const hari = new Date(this.tanggal).getDay();
+        if (hari === 4) return '22:00'; // Kamis
+        return '23:00';
+    },
+
+    isBlocked(slot) {
+        const [jamSlot] = slot.split(':').map(Number);
+        const [jamBuka] = this.getJamBuka().split(':').map(Number);
+        const [jamTutup] = this.getJamTutup().split(':').map(Number);
+        return jamSlot < jamBuka || jamSlot >= jamTutup;
+    },
 }">
 
 <nav class="navbar navbar-expand-lg sticky-top">
@@ -80,7 +98,7 @@
                                 aria-labelledby="userDropdown">
                                 <li>
                                     <span class="dropdown-item-text fw-bold">
-                                        {{ auth()->user()->name }}
+                                        {{ auth()->user()->nama_pengguna }}
                                     </span>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -157,10 +175,17 @@
             <div class="border-t border-slate-100 pt-4">
                 <label class="block text-sm font-bold text-slate-700 uppercase mb-4">Pilih Jam Mulai</label>
                 <div class="grid grid-cols-5 gap-2">
-                    @php $times = ['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']; @endphp
+                    @php 
+                    $times = ['10:00','11:00','12:00','13:00','14:00','15:00',
+                            '16:00','17:00','18:00','19:00','20:00','21:00','22:00']; 
+                    @endphp
                     @foreach($times as $time)
-                        <button type="button" @click="tempTime = '{{ $time }}'"
-                            :class="tempTime === '{{ $time }}' ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                        <button type="button" 
+                            @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
+                            :disabled="isBlocked('{{ $time }}')"
+                            :class="tempTime === '{{ $time }}' ? 'bg-orange-500 text-white' : 
+                                    isBlocked('{{ $time }}') ? 'bg-slate-200 text-slate-400 cursor-not-allowed line-through' : 
+                                    'bg-slate-50 text-slate-600 hover:bg-slate-100'"
                             class="py-2 rounded-lg font-bold text-xs border border-slate-200 transition-all">
                             {{ $time }}
                         </button>

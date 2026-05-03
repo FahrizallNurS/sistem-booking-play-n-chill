@@ -348,11 +348,6 @@ return [
 
     ['header' => 'KONTEN'],
     [
-        'text' => 'Gallery',
-        'url'  => 'admin/gallery',
-        'icon' => 'fas fa-fw fa-images',
-    ],
-    [
         'text' => 'Upload Game',
         'url'  => 'admin/game',
         'icon' => 'fas fa-fw fa-gamepad',
