@@ -151,8 +151,9 @@
 </section>
 
 <div style="background-color: #472CA1; padding: 40px 0; text-align: center;">
-    <a href="{{ url('/booking?tipe='.$tipe) }}"
-        style="color: white; text-decoration: none; font-weight: bold;">← Kembali Pilih Ruangan</a>
+    <a href="{{ url('/booking?tipe='.$tipe) }}" class="btn-back-ruangan">
+        Kembali Pilih Ruangan
+    </a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

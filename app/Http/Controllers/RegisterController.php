@@ -21,10 +21,10 @@ class RegisterController extends Controller
         $request->validate([
             'nama_pengguna' => [
                 'required', 'string', 'max:45',
-                'unique:users,nama_pengguna', // FIX: kolom nama_pengguna
+                'unique:users,nama_pengguna',
                 'not_regex:' . $suspiciousPattern
             ],
-            'email'    => 'required|email|max:30|unique:users,email',
+            'email'    => 'required|string|email:rfc,dns|max:30|unique:users,email',
             'no_hp'    => 'required|string|max:15',
             'password' => 'required|string|min:8'
         ], [
@@ -35,14 +35,16 @@ class RegisterController extends Controller
         ]);
 
         $user = User::create([
-            'nama_pengguna'     => $request->nama_pengguna, // FIX: nama_pengguna
+            'nama_pengguna'     => $request->nama_pengguna,
             'email'             => $request->email,
             'no_hp'             => $request->no_hp,
-            'password'          => Hash::make($request->password), // FIX: Hash::make
+            'password'          => Hash::make($request->password),
             'role'              => 'pelanggan',
             'alamat'            => null,
-            'status'            => 1,
         ]);
+
+        // Login otomatis setelah daftar
+        Auth::login($user);
 
         // Kirim email verifikasi
         $user->sendEmailVerificationNotification();

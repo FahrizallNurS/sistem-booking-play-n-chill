@@ -280,7 +280,6 @@ body {
 
 .nav-link {
     font-weight: 700;
-    color: #333 !important;
 }
 
 .nav-avatar {
@@ -399,6 +398,8 @@ body {
 .booking-aktif-info {
     flex: 1;
     padding: 28px;
+    color: #1e1b4b;
+
 }
 
 .booking-aktif-gambar {
@@ -471,7 +472,13 @@ body {
     font-size: 0.9rem;
     padding: 8px 0;
     border-bottom: 1px solid #f0f0f0;
+    color: #333; /* tambah ini */
 }
+
+.payment-info-item span { color: #555; }
+.payment-info-item strong { color: #1e1b4b; }
+.payment-info-item strong.text-success { color: #16a34a !important; }
+.payment-info-item strong.text-danger  { color: #dc2626 !important; }
 
 .payment-info-item:last-child { border-bottom: none; }
 
@@ -516,7 +523,9 @@ body {
     gap: 16px;
 }
 
-.riwayat-info { flex: 1; }
+.riwayat-info h5{
+    color: #1e1b4b;
+    flex: 1; }
 
 .riwayat-detail-grid {
     display: flex;
@@ -558,4 +567,21 @@ body {
     .booking-aktif-gambar { width: 100%; height: 200px; }
     .profile-header-card { flex-direction: column; }
     .riwayat-main { flex-direction: column; align-items: flex-start; }
+}
+
+.btn-bayar-payment {
+    background: var(--purple-dark);
+    border: 2px solid var(--purple-light);
+}
+
+.btn-bayar-payment:hover {
+    background: #3b0764;
+    color: white;
+}
+
+/* Card profil — beda dari background ungu */
+.profile-header-card {
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }

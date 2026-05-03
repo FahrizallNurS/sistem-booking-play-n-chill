@@ -27,7 +27,7 @@
                     @forelse($pelanggans as $index => $pelanggan)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $pelanggan->name }}</td>
+                            <td>{{ $pelanggan->nama_pengguna ?? '-' }}</td>
                             <td>{{ $pelanggan->email }}</td>
                             <td>{{ $pelanggan->no_hp ?? '-' }}</td>
                             <td>{{ $pelanggan->alamat ?? '-' }}</td>
