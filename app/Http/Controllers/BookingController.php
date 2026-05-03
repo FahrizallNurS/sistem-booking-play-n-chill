@@ -198,4 +198,18 @@ class BookingController extends Controller
         return redirect()->route('booking.payment.show', $transaksi->id_transaksi);
     });
 }
+
+private function cancelExpiredBookings()
+    {
+        // Mencari transaksi yang masih 'ditahan' dan sudah melewati batas waktu bayar (misal 15 menit)
+        // Jika belum bayar dalam 15 menit, status otomatis diubah jadi 'dibatalkan'
+        $limit = now()->subMinutes(15);
+
+        TrTransaksi::where('status_sewa', 'ditahan')
+            ->where('status_pembayaran', 'menunggu')
+            ->where('created_at', '<', $limit)
+            ->update([
+                'status_sewa' => 'dibatalkan'
+            ]);
+    }
 }
