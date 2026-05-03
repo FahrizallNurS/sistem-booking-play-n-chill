@@ -59,7 +59,7 @@
                                 aria-labelledby="userDropdown">
                                 <li>
                                     <span class="dropdown-item-text fw-bold">
-                                        {{ auth()->user()->name }}
+                                        {{ auth()->user()->nama_pengguna }}
                                     </span>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>

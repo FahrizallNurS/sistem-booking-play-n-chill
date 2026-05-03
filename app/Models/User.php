@@ -2,27 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
-    // Tambahkan ini jika nama tabel di database kamu bukan 'users' (tapi biasanya defaultnya 'users')
-    protected $table = 'users'; 
+    protected $table      = 'users';
+    protected $primaryKey = 'id_pengguna';
 
     protected $fillable = [
-        'name',
+        'nama_pengguna',
         'email',
         'password',
-        'phone',     // Tambahkan dari Pengguna.php
         'no_hp',
-        'status',    // Tambahkan dari Pengguna.php
-        'role',
+        'status',
         'google_id',
         'alamat',
+        'role',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -34,7 +35,29 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed', // Ini keren, password otomatis di-hash!
+            'password'          => 'hashed',
         ];
+    }
+
+    // Relasi ke transaksi
+    public function transaksis()
+    {
+        return $this->hasMany(TrTransaksi::class, 'id_pengguna', 'id_pengguna');
+    }
+
+        
+    public function getAuthIdentifierName()
+    {
+        return 'id_pengguna';
+    }
+
+    public function getAuthIdentifier()
+    {
+        return $this->id_pengguna;      
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->password;
     }
 }
