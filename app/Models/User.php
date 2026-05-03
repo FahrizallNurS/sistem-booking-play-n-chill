@@ -44,7 +44,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(TrTransaksi::class, 'id_pengguna', 'id_pengguna');
     }
-
         
     public function getAuthIdentifierName()
     {
