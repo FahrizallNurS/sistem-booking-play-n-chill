@@ -37,21 +37,14 @@ class LayananController extends Controller
             'kategori'     => 'required|in:REGULAR,VIP,VVIP',
             'perangkat' => 'nullable|in:PS3,PS4,PS5',
             'is_active'    => 'required|in:0,1',
-            'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $data = [
+        MsRuangan::create([
             'nama_ruangan' => $request->nama_ruangan,
             'kategori'     => $request->kategori,
             'perangkat'    => $request->perangkat,
             'is_active'    => $request->is_active,
-        ];
-
-        if ($request->hasFile('galeri')) {
-            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
-        }
-
-        MsRuangan::create($data);
+        ]);
 
         return redirect()->route('admin.layanan.index')
             ->with('success', 'Ruangan berhasil ditambahkan!');
@@ -75,6 +68,21 @@ class LayananController extends Controller
         $request->validate([
             'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan,' . $id . ',id_ruangan',
             'kategori'     => 'required|in:REGULAR,VIP,VVIP',
+<<<<<<< HEAD
+            'deskripsi'    => 'nullable|string|max:60',
+            'perangkat'    => 'nullable|string|max:10',
+            'is_active'    => 'required|in:0,1',
+        ]);
+
+        MsRuangan::findOrFail($id)->update([
+            'nama_ruangan' => $request->nama_ruangan,
+            'kategori'     => $request->kategori,
+            'deskripsi'    => $request->deskripsi,
+            'perangkat'    => $request->perangkat,
+            'is_active'    => $request->is_active,
+        ]);
+
+=======
             'perangkat'    => 'nullable|in:PS3,PS4,PS5',
             'is_active'    => 'required|in:0,1',
             'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -98,6 +106,7 @@ class LayananController extends Controller
 
         $ruangan->update($data);
 
+>>>>>>> origin/presentasi
         return redirect()->route('admin.layanan.index')
             ->with('success', 'Ruangan berhasil diupdate!');
     }

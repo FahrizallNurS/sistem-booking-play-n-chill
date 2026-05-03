@@ -9,7 +9,6 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\TentangKamiController;
-use App\Http\Controllers\HomeController;
 
 // Admin
 use App\Http\Controllers\Admin\DashboardController;
@@ -17,6 +16,7 @@ use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LayananController;
 use App\Http\Controllers\Admin\PaketController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ProfilController;
@@ -37,7 +37,9 @@ use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 |--------------------------------------------------------------------------
 */
 Route::get('/', fn () => redirect()->route('pelanggan.home'));
-Route::get('/home', [HomeController::class, 'index'])->name('pelanggan.home');
+
+Route::get('/home', fn () => view('pelanggan.home'))->name('pelanggan.home');
+Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 

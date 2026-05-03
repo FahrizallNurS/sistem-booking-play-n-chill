@@ -78,7 +78,7 @@
                     <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
                 </li>
                 <li class="nav-item ms-2">
 
@@ -133,7 +133,7 @@
     </div>
 </nav>
 
-
+{{-- ═══ HERO / CAROUSEL ═══ --}}
 {{-- ═══ HERO / CAROUSEL ═══ --}}
 <section class="hero p-0" style="background: transparent;">
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -258,7 +258,7 @@
             </div>
         </div>  
     </a>
-    
+
     {{-- Karaoke Room --}}
     <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="200">
         <div class="r-card">
@@ -314,60 +314,40 @@
     <div class="container-fluid px-4">
         <h2 class="teks-outline font-modak" data-aos="fade-right">Koleksi Game Kami</h2>
 
-       {{-- Navigasi Filter --}}
-<div class="game-filter" data-aos="fade-left">
-    <button class="filter-game-btn active" onclick="filterGames('all', this)">Semua</button>
-    @foreach($perangkats as $perangkat)
-        <button class="filter-game-btn" onclick="filterGames('{{ strtolower($perangkat) }}', this)">
-            {{ $perangkat }}
-        </button>
-    @endforeach
-</div>
-
-{{-- Grid Game --}}
-<div class="game-grid" id="gameGrid">
-    @forelse($permainans as $index => $permainan)
-        @php
-            // Ambil semua perangkat dari ruangan yang di-assign ke game ini
-            $platforms = $permainan->ruangans
-                ->pluck('perangkat')
-                ->filter()
-                ->unique()
-                ->map(fn($p) => strtolower($p))
-                ->values()
-                ->toArray();
-            
-            $platformStr = implode(' ', $platforms);
-        @endphp
-
-        <div class="game-card"
-            data-platform="{{ $platformStr }}"
-            data-aos="fade-up"
-            data-aos-delay="{{ $index * 50 }}">
-
-            @if($permainan->gambar)
-                <img src="{{ asset('storage/' . $permainan->gambar) }}"
-                    alt="{{ $permainan->nama_permainan }}"
-                    onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
-            @else
-                <div style="width:100%;height:200px;background:#2d1b69;display:flex;align-items:center;justify-content:center;border-radius:12px;">
-                    <span style="font-size:3rem">🎮</span>
-                </div>
-            @endif
-
-            {{-- Badge semua platform --}}
-            <div class="d-flex gap-1 flex-wrap justify-content-center mt-1">
-                @foreach($platforms as $p)
-                    <span class="game-badge">{{ strtoupper($p) }}</span>
-                @endforeach
-            </div>
-
-            <h5>{{ $permainan->nama_permainan }}</h5>
+        {{-- Navigasi Filter --}}
+        <div class="game-filter" data-aos="fade-left">
+            <button class="filter-game-btn active" onclick="filterGames('all')">Semua</button>
+            <button class="filter-game-btn" onclick="filterGames('ps3')">PS 3</button>
+            <button class="filter-game-btn" onclick="filterGames('ps4')">PS 4</button>
+            <button class="filter-game-btn" onclick="filterGames('ps5')">PS 5</button>
+            <button class="filter-game-btn" onclick="filterGames('switch')">Switch</button>
         </div>
-    @empty
-        <p class="text-white text-center w-100">Belum ada game tersedia.</p>
-    @endforelse
-</div>
+
+        {{-- Grid Game --}}
+        <div class="game-grid" id="gameGrid">
+            @php
+                // Data Dummy Game (Nanti bisa dipindah ke Controller)
+                $games = [
+                    ['title' => 'GTA V', 'platform' => 'ps4', 'img' => 'gta5.jpg'],
+                    ['title' => 'God of War Ragnarok', 'platform' => 'ps5', 'img' => 'gow.jpg'],
+                    ['title' => 'Mario Kart 8', 'platform' => 'switch', 'img' => 'mario.jpg'],
+                    ['title' => 'FIFA 23', 'platform' => 'ps5', 'img' => 'fifa23.jpg'],
+                    ['title' => 'The Last of Us', 'platform' => 'ps3', 'img' => 'tlou.jpg'],
+                    ['title' => 'Naruto Storm 4', 'platform' => 'ps4', 'img' => 'naruto.jpg'],
+                ];
+            @endphp
+
+            @foreach ($games as $index => $game)
+                <div class="game-card" data-platform="{{ $game['platform'] }}" data-aos="fade-up" data-aos-delay="{{ $index * 50 }}">
+                    {{-- Pastikan kamu punya gambar di public/images/games/ --}}
+                    <img src="{{ asset('images/games/' . $game['img']) }}" 
+                         onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'" alt="Game">
+                    <span class="game-badge">{{ $game['platform'] }}</span>
+                    <h5>{{ $game['title'] }}</h5>
+                </div>
+            @endforeach
+        </div>
+    </div>
 </section>
 
 {{-- ═══ CTA ═══ --}}
@@ -449,21 +429,25 @@
 </script>
 
 <script>
-function filterGames(platform, btn) {
-    document.querySelectorAll('.filter-game-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    function filterGames(platform) {
+        // 1. Ubah status tombol aktif
+        const buttons = document.querySelectorAll('.filter-game-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
 
-    document.querySelectorAll('.game-card').forEach(card => {
-        const cardPlatforms = card.getAttribute('data-platform') || '';
-        if (platform === 'all' || cardPlatforms.includes(platform)) {
-            card.style.display = 'block';
-            card.style.opacity = '0';
-            setTimeout(() => { card.style.opacity = '1'; }, 10);
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
+        // 2. Filter kartu game
+        const cards = document.querySelectorAll('.game-card');
+        cards.forEach(card => {
+            if (platform === 'all' || card.getAttribute('data-platform') === platform) {
+                card.style.display = 'block';
+                // Animasi muncul kembali
+                card.style.opacity = '0';
+                setTimeout(() => { card.style.opacity = '1'; }, 10);
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 </script>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
