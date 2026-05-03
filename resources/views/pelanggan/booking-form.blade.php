@@ -28,13 +28,79 @@
 
         <div x-data="bookingForm()">
 
-<<<<<<< HEAD
-    {{-- NAVBAR --}}
-    <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid px-4">
+
             <a class="navbar-brand p-0" href="{{ url('/') }}">
-                <img src="{{ asset('images/logo_dumb.png') }}" height="48">
+                <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
             </a>
+
+            <button class="navbar-toggler border-0 shadow-none" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#navMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navMain">
+                <ul class="navbar-nav align-items-center gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                    </li>
+                    <li class="nav-item ms-2">
+
+                        @guest
+                            {{-- Belum login: tampilkan tombol Login --}}
+                            <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
+                            style="background-color: var(--orange) !important;">
+                                Login
+                            </a>
+                        @endguest
+
+                        @auth
+                            {{-- Sudah login: tampilkan avatar + dropdown --}}
+                            <div class="dropdown">
+                                <div class="nav-avatar" id="userDropdown"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
+                                                7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
+                                                1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                                            fill="var(--purple-dark)"/>
+                                    </svg>
+                                </div>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                                    aria-labelledby="userDropdown">
+                                    <li>
+                                        <span class="dropdown-item-text fw-bold">
+                                            {{ auth()->user()->nama_pengguna }}
+                                        </span>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url('/profile') }}">
+                                            Profil Saya
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form action="{{ route('logout') }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                Keluar (Logout)
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        @endauth
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -94,44 +160,39 @@
                                 $times = ['10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
                                         '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
                                         '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
-                                        '22.00'];
+                                        '22.00','22.30','23.00','23.30'];
                             @endphp
 
                             <div class="time-grid">
-                            @foreach($times as $time)
-                            <button type="button"
-                                @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
-                                class="btn-time"
-                                :class="{
-                                    'active': tempTime === '{{ $time }}',
-                                    'blocked': isBlocked('{{ $time }}')
-                                }"
-                                :disabled="isBlocked('{{ $time }}')">
-                                {{ $time }}
-                            </button>
-                            @endforeach
+                                @foreach($times as $time)
+                                <button type="button"
+                                    @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
+                                    class="btn-time"
+                                    :class="{
+                                        'active': tempTime === '{{ $time }}',
+                                        'blocked': isBlocked('{{ $time }}')
+                                    }"
+                                    :disabled="isBlocked('{{ $time }}')">
+                                    {{ $time }}
+                                </button>
+                                @endforeach
                             </div>
                             <div class="d-flex gap-3 mt-2 small text-white-50">
                                 <span>⬜ Tersedia</span>
                                 <span style="text-decoration:line-through">⬜ Penuh</span>
                             </div>
 
-                            <div class="d-flex align-items-center mt-3" style="gap:10px;">
-                                <button type="button" @click="batalWaktu()" 
-                                    class="btn btn-light" style="flex-shrink:0;">
-                                    Batal
-                                </button>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <button type="button" @click="batalWaktu()" class="btn btn-light">Batal</button>
 
-                                <span class="text-white-50 small text-center" x-show="tempTime !== ''" 
-                                    style="flex:1;">
+                                <span class="text-white-50 small" x-show="tempTime !== ''">
                                     Dipilih: <strong x-text="tempTime"></strong>
                                 </span>
 
                                 <button type="button"
                                     @click="pilihWaktu()"
                                     :disabled="tempTime === '' || isBlocked(tempTime)"
-                                    class="btn-pilih"
-                                    style="flex-shrink:0;">
+                                    class="btn-submit-booking">
                                     Pilih
                                 </button>
                             </div>
@@ -149,7 +210,7 @@
                             <div class="duration-grid">
                                 @foreach($penetapanHarga as $ph)
                                 <button type="button"
-                                    @click='selectedPricing = {{ json_encode($ph) }}; tempTime = ""; confirmedTime = ""'
+                                    @click='selectedPricing = {{ json_encode($ph) }}'
                                     class="btn-duration"
                                     :class="{ 'active': selectedPricing && selectedPricing.id_penetapan_harga === {{ $ph->id_penetapan_harga }} }">
                                     {{ $ph->durasi_jam }} Jam
@@ -158,7 +219,6 @@
                                 @endforeach
                             </div>
                         </div>
-
 
                         {{-- PAYMENT --}}
                         <div class="booking-card">
@@ -220,13 +280,17 @@
                                 </div>
                             </div>
 
-                            <div class="btn-action-row">
-                                <a href="{{ url('/booking') }}" class="btn-back">Kembali</a>
-                                <button type="submit"
-                                    :disabled="!confirmedTime || !selectedPricing"
-                                    class="btn-submit-booking">
-                                    LANJUTKAN
-                                </button>
+                            <div class="row mt-4">
+                                <div class="col-6">
+                                    <a href="{{ url('/booking') }}" class="btn btn-outline-light w-100">Kembali</a>
+                                </div>
+                                <div class="col-6">
+                                    <button type="submit"
+                                        :disabled="!confirmedTime || !selectedPricing"
+                                        class="btn-submit-booking w-100">
+                                        LANJUTKAN
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -266,22 +330,6 @@
                     if (this.jamTerpakai.includes(slot)) return true;
                     if (!this.tanggal) return false;
 
-                    const now = new Date();
-                    const [y, m, d] = this.tanggal.split('-').map(Number);
-                    const tanggalDate = new Date(y, m - 1, d);  
-                    const hariIni = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-   
-
-                    // Blokir jam yang sudah lewat jika tanggal yang dipilih adalah hari ini
-                    if (tanggalDate.getTime() === hariIni.getTime()) {
-                        const normalized = slot.replace('.', ':');
-                        const [jamSlot, menitSlot] = normalized.split(':').map(Number);
-                        const slotMenit = jamSlot * 60 + menitSlot;
-                        const sekarangMenit = now.getHours() * 60 + now.getMinutes();
-
-                        if (slotMenit <= sekarangMenit) return true;
-                    }
-
                     const hari = new Date(this.tanggal).getDay();
                     const normalized = slot.replace('.', ':');
                     const [jam, menit] = normalized.split(':').map(Number);
@@ -299,8 +347,6 @@
                         bukaMenit  = 14 * 60; // Senin-Rabu, Jumat: 14:00 - 23:00
                         tutupMenit = 23 * 60;
                     }
-
-
 
                     if ((slotMenit < bukaMenit || slotMenit >= tutupMenit)) return true;
                      const durasi = this.selectedPricing ? this.selectedPricing.durasi_jam * 60 : 0;

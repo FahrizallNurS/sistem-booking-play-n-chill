@@ -20,9 +20,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #3a1fa8;
+      /* Ganti baris ini */
+      background: linear-gradient(rgba(71, 44, 161, 0.8), rgba(71, 44, 161, 0.8)), 
+      url('../images/bg-register.png'); 
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      
       font-family: 'Nunito', sans-serif;
-      overflow: hidden;
+      overflow-x: hidden;
       position: relative;
     }
 
@@ -32,7 +38,7 @@
       content: '';
       position: fixed;
       background-color: #c8e600;
-      z-index: 0;
+      z-index: 1;
     }
 
     body::before {
@@ -59,7 +65,7 @@
       top: 160px;
       left: -20px;
       clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
-      z-index: 0;
+      z-index: 1;
     }
 
     .shape-left-bottom {
@@ -70,7 +76,7 @@
       bottom: 80px;
       left: -10px;
       clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
-      z-index: 0;
+      z-index: 1;
     }
 
     /* CARD REGISTER */

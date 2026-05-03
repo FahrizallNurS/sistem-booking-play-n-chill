@@ -18,19 +18,6 @@
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
-<<<<<<< HEAD
-        <div class="ms-auto d-flex align-items-center gap-3">
-            <a href="{{ url('/') }}" class="nav-link fw-bold text-dark">Home</a>
-            <a href="{{ url('/booking') }}" class="nav-link nav-btn-active">Booking</a>
-            <a href="{{ url('/gallery') }}" class="nav-link fw-bold text-dark">Tentang Kami</a>
-            @auth
-            <div class="nav-avatar">
-                <svg viewBox="0 0 24 24" width="22">
-                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="#472CA1"/>
-                </svg>
-            </div>
-            @endauth
-=======
 
         <button class="navbar-toggler border-0 shadow-none" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navMain">
@@ -97,7 +84,6 @@
                     @endauth
                 </li>
             </ul>
->>>>>>> origin/presentasi
         </div>
     </div>
 </nav>
@@ -140,8 +126,7 @@
 
                         {{-- Meta --}}
                         <div class="paket-card-meta">
-                            <span>🕐 Durasi {{ $items->first()->durasi_jam }} jam</span>
-                            <span>👥 {{ $paket->maksimal_orang }} Orang</span>
+                            <span>👥 Max {{ $paket->maksimal_orang }} Orang</span>
                         </div>
 
                         {{-- Deskripsi sebagai list --}}

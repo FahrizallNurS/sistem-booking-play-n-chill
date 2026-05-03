@@ -39,22 +39,43 @@
             z-index: -1; /* Memastikan background berada di belakang konten */
         }
     </style>
-
+    
 </head>
 <body>
 
-{{-- NAVBAR --}}
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
+
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
+
+        <button class="navbar-toggler border-0 shadow-none" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
         <div class="collapse navbar-collapse justify-content-end" id="navMain">
             <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/booking') }}">Booking</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a></li>
+                <li class="nav-item">
+                    <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                </li>
                 <li class="nav-item ms-2">
+
+                    @guest
+                        {{-- Belum login: tampilkan tombol Login --}}
+                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
+                        style="background-color: var(--orange) !important;">
+                            Login
+                        </a>
+                    @endguest
+
                     @auth
                         {{-- Sudah login: tampilkan avatar + dropdown --}}
                         <div class="dropdown">
@@ -90,20 +111,7 @@
                                     </form>
                                 </li>
                             </ul>
-
                         </div>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/booking/status') }}">Status Booking</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item text-danger">Keluar</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
                     @endauth
                 </li>
             </ul>

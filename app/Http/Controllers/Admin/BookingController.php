@@ -78,14 +78,15 @@ class BookingController extends Controller
         $hari = $waktuMulai->dayOfWeek; 
 
         $jamBuka = match(true) {
-            in_array($hari, [0, 6]) => '10:00', // Sabtu–Minggu
-            default                  => '14:00', // Senin–Jumat
+            in_array($hari, [1, 2, 3, 4]) => '14:00', // Senin–Kamis
+            $hari === 5                    => '14:00', // Jumat
+            in_array($hari, [0, 6])        => '10:00', // Sabtu–Minggu
         };
 
         $jamTutup = match(true) {
-            $hari === 4              => '22:00', // Kamis saja
-            in_array($hari, [0, 6]) => '23:00', // Sabtu–Minggu
-            default                  => '23:00', // Senin–Rabu, Jumat
+            in_array($hari, [1, 2, 3, 4]) => '22:00', // Senin–Kamis
+            $hari === 5                    => '23:00', // Jumat
+            in_array($hari, [0, 6])        => '23:00', // Sabtu–Minggu
         };
 
         $bukaDt  = Carbon::parse($request->tanggal . ' ' . $jamBuka);
@@ -105,32 +106,13 @@ class BookingController extends Controller
             ]);
         }
 
-           // Validasi DP
-        if ($request->opsi_pembayaran === 'dp') {
-            $minDp = $ph->harga * 0.3;
-            if ($request->jumlah_dp < $minDp) {
-                return back()->withInput()->withErrors([
-                    'jumlah_dp' => 'Minimal DP adalah Rp ' . number_format($minDp, 0, ',', '.')
-                ]);
-            }
-            if ($request->jumlah_dp >= $ph->harga) {
-                return back()->withInput()->withErrors([
-                    'jumlah_dp' => 'Jumlah DP tidak boleh sama/melebihi total. Gunakan Full Payment.'
-                ]);
-            }
-        }
-
         // Cek konflik jadwal
-       $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
-            $q->where('id_ruangan', $ph->id_ruangan);
-        })
-        ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
-        ->where(function ($q) use ($waktuMulai, $waktuSelesai) {
-            // Overlap terjadi jika: mulai_existing < selesai_baru AND selesai_existing > mulai_baru
-            $q->where('waktu_mulai', '<', $waktuSelesai)
-            ->where('waktu_selesai', '>', $waktuMulai);
-        })
-        ->exists();
+        $konflik = TrTransaksi::where('id_penetapan_harga', $ph->id_penetapan_harga)
+            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+            ->where(function ($q) use ($waktuMulai, $waktuSelesai) {
+                $q->whereBetween('waktu_mulai', [$waktuMulai, $waktuSelesai])
+                  ->orWhereBetween('waktu_selesai', [$waktuMulai, $waktuSelesai]);
+            })->exists();
 
         if ($konflik) {
             return back()->withInput()

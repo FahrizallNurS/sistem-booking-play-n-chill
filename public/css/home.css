@@ -3,7 +3,9 @@
    Play N Chill Madiun
    ══════════════════════════════════════════ */
 
-*, *::before, *::after {
+   @import url('https://fonts.googleapis.com/css2?family=Modak&family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+
+   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -99,9 +101,9 @@ body {
    HERO / CAROUSEL
 ════════════════════════ */
 .hero {
-    background: var(--purple-dark);
-    padding: 0 !important;
-    text-align: center;
+    background-image: url('../images/bg-segitiga.png'); /* Pastikan file ada di public/images */
+    background-size: cover;
+    background-position: center;
     position: relative;
     overflow: hidden;
 }
@@ -194,7 +196,9 @@ body {
 }
 
 .white-card h2 {
-    font-family: 'Modak', cursive;
+    font-family: 'Modak', system-ui;
+    font-weight: 400;
+    letter-spacing: 1px;
     color: var(--purple-dark);
     font-size: clamp(1.4rem, 3.8vw, 2.2rem);
     text-align: center;
@@ -310,7 +314,7 @@ body {
 }
 
 .r-foot h5 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Modak', system-ui;
     margin-bottom: 4px;
     letter-spacing: .2px;
     font-size: 1.2rem;
@@ -342,7 +346,9 @@ body {
 }
 
 .tour-section h2 {
-    font-family: 'Modak', cursive;
+    font-family: "Modak", system-ui;
+    font-weight: 400;
+    letter-spacing: 1px;
     color: var(--purple-dark);
     font-size: clamp(2rem, 5.5vw, 3.2rem);
     margin-bottom: 6px;
@@ -423,7 +429,7 @@ body {
    CTA SECTION
 ════════════════════════ */
 .cta-section {
-    background-color: transparent;
+    background: transparent;
     padding: 80px 24px 90px;
     text-align: center;
     position: relative;

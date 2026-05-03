@@ -15,14 +15,12 @@
 
 <body class="pb-5">
 
-{{-- NAVBAR --}}
-<nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm mb-5">
+<nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
+
         <a class="navbar-brand p-0" href="{{ url('/') }}">
-            <img src="{{ asset('images/logo_dumb.png') }}" height="48">
+            <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
-<<<<<<< HEAD
-=======
 
         <button class="navbar-toggler border-0 shadow-none" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navMain">
@@ -90,7 +88,6 @@
                 </li>
             </ul>
         </div>
->>>>>>> origin/presentasi
     </div>
 </nav>
 

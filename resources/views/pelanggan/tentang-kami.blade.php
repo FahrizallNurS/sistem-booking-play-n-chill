@@ -23,7 +23,6 @@
             min-height: 100vh;
         }
 
-        /* Tambahkan blok ini untuk background transparan */
         body::before {
             content: "";
             position: fixed;
