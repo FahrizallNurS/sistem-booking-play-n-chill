@@ -89,33 +89,7 @@
                 </li>
             </ul>
         </div>
-    </div>
-</nav>
-
-    {{-- Countdown Timer --}}
-    @php
-        $expiredAt = \Carbon\Carbon::parse($transaksi->created_at)->addMinutes(30);
-        $sisaDetik = max(0, now()->diffInSeconds($expiredAt, false));
-    @endphp
-
-    @if($sisaDetik > 0)
-    <div class="container mt-3">
-        <div class="alert text-center fw-bold" 
-            style="background:rgba(255,165,0,0.2);border:1px solid orange;color:white;border-radius:12px;">
-            ⏳ Selesaikan pembayaran dalam: 
-            <span id="countdown" style="color:var(--yellow);font-size:1.2rem;">
-                {{ gmdate('i:s', $sisaDetik) }}
-            </span>
-        </div>
-    </div>
-    @else
-    <div class="container mt-3">
-        <div class="alert text-center fw-bold"
-            style="background:rgba(255,0,0,0.2);border:1px solid red;color:white;border-radius:12px;">
-            ❌ Waktu pembayaran telah habis. Booking ini sudah dibatalkan otomatis.
-        </div>
-    </div>
-    @endif
+    </nav>
 
     {{-- ═══ CONTENT ═══ --}}
     <div class="container pb-5">
@@ -124,74 +98,54 @@
         @php
             // Ambil data dari session booking
             $booking = session('booking_data', []);
-            $user    = auth()->user();  
+            $user    = auth()->user();
         @endphp
 
         <div class="row justify-content-center">
             <div class="col-lg-7">
 
                 {{-- ── 1. RINGKASAN BOOKING ── --}}
-                @php $ph = $transaksi->penetapanHarga; @endphp
+                <div class="payment-card">
+                    <span class="section-badge">Ringkasan Pesanan</span>
+                    
+                    <div class="info-row">
+                        <span class="info-label">Ruangan</span>
+                        <span class="info-value">{{ $booking['room_id'] ?? '-' }} — {{ ucfirst($booking['tipe'] ?? '-') }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Paket & Kategori</span>
+                        <span class="info-value">
+                            {{-- Sekarang datanya akan muncul karena sudah ada di session --}}
+                            {{ $booking['paket'] ?? '-' }} — {{ $booking['kategori'] ?? '-' }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Tanggal</span>
+                        <span class="info-value">
+                            {{ isset($booking['tanggal']) ? \Carbon\Carbon::parse($booking['tanggal'])->translatedFormat('d F Y') : '-' }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Jam Mulai</span>
+                        <span class="info-value">{{ $booking['waktu'] ?? '-' }} WIB</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Metode Bayar</span>
+                        <span class="info-value text-warning">{{ $booking['metode_pembayaran'] ?? '-' }}</span>
+                    </div>
 
-        {{-- Ringkasan Pesanan --}}
-        <div class="payment-card">
-            <span class="section-badge">Ringkasan Pesanan</span>
+                    <div class="border-top border-white-50 my-3"></div>
 
-            <div class="info-row">
-                <span class="info-label">Kode Sewa</span>
-                <span class="info-value"><code>{{ $transaksi->kode_sewa }}</code></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Ruangan</span>
-                <span class="info-value">{{ $ph->ruangan->nama_ruangan ?? '-' }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Paket</span>
-                <span class="info-value">{{ $ph->paket->nama_paket ?? '-' }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Tanggal</span>
-                <span class="info-value">
-                    {{ \Carbon\Carbon::parse($transaksi->waktu_mulai)->translatedFormat('d F Y') }}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Jam Main</span>
-                <span class="info-value">
-                    {{ \Carbon\Carbon::parse($transaksi->waktu_mulai)->format('H:i') }}
-                    — {{ \Carbon\Carbon::parse($transaksi->waktu_selesai)->format('H:i') }} WIB
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Metode Bayar</span>
-                <span class="info-value text-warning">
-                    {{ $transaksi->opsi_pembayaran === 'full' ? 'Full Payment' : 'DP' }}
-                </span>
-            </div>
+                    <div class="info-row">
+                        <span class="info-label">Nama Pemesan</span>
+                        <span class="info-value">{{ $user->name ?? '-' }}</span>
+                    </div>
 
-            <div class="border-top border-white-50 my-3"></div>
-
-            <div class="info-row">
-                <span class="info-label">Nama Pemesan</span>
-                <span class="info-value">{{ auth()->user()->name }}</span>
-            </div>
-
-            @if($transaksi->opsi_pembayaran === 'dp')
-            <div class="info-row">
-                <span class="info-label">Jumlah DP</span>
-                <span class="info-value">Rp {{ number_format($transaksi->jumlah_dp, 0, ',', '.') }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Sisa Bayar</span>
-                <span class="info-value text-warning">Rp {{ number_format($transaksi->sisa_bayar, 0, ',', '.') }}</span>
-            </div>
-            @endif
-
-            <div class="info-row border-0 pt-4">
-                <span class="h5 m-0 fw-bold">Total Pembayaran</span>
-                <span class="total-highlight">Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}</span>
-            </div>
-        </div>
+                    <div class="info-row border-0 pt-4">
+                        <span class="h5 m-0 fw-bold">Total Pembayaran</span>
+                        <span class="total-highlight">Rp {{ number_format($booking['harga'] ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                </div>
 
                 {{-- ── 2. INFORMASI TRANSFER ── --}}
                 <div class="payment-card">
@@ -234,32 +188,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        let sisaDetik = {{ $sisaDetik }};
-        
-        if (sisaDetik > 0) {
-            const interval = setInterval(() => {
-                sisaDetik--;
-                
-                if (sisaDetik <= 0) {
-                    clearInterval(interval);
-                    // Reload halaman biar status terupdate
-                    location.reload();
-                    return;
-                }
-
-                const menit = Math.floor(sisaDetik / 60).toString().padStart(2, '0');
-                const detik = Math.floor(sisaDetik % 60).toString().padStart(2, '0'); // ← tambah Math.floor()
-                const el     = document.getElementById('countdown');
-                if (el) el.textContent = menit + ':' + detik;
-
-                // Warna merah kalau tinggal 5 menit
-                if (sisaDetik <= 300 && el) {
-                    el.style.color = 'red';
-                }
-            }, 1000);
-    }
-</script>
 </body>
 </html>
