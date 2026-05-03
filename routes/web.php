@@ -72,6 +72,26 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 /*
 |--------------------------------------------------------------------------
+| EMAIL VERIFICATION
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+        $request->fulfill();
+        return redirect('/home');
+    })->middleware('signed')->name('verification.verify');
+
+    Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('message', 'Link verifikasi sudah dikirim!');
+    })->middleware('throttle:6,1')->name('verification.send');
+});
+/*
+|--------------------------------------------------------------------------
 | AUTHENTICATED USER
 |--------------------------------------------------------------------------
 */
@@ -82,9 +102,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Booking
-    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
-    Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form');
-    Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket')->middleware('verified');
+    Route::get('/booking/form', [BookingController::class, 'form'])->name('booking.form')->middleware('verified');
+    Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store')->middleware('verified');
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);

@@ -19,11 +19,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'no_hp',
-        'status',
         'google_id',
         'alamat',
         'role',
         'email_verified_at',
+        'remember_token',
     ];
 
     protected $hidden = [
@@ -44,7 +44,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(TrTransaksi::class, 'id_pengguna', 'id_pengguna');
     }
-
         
     public function getAuthIdentifierName()
     {
@@ -59,5 +58,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getAuthPassword()
     {
         return $this->password;
+    }
+    public function getKey()
+    {
+        return $this->id_pengguna;
     }
 }
