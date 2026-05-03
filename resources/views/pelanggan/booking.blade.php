@@ -9,6 +9,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
+
+    <style>
+        body {
+            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; /* Agar background tetap diam saat scroll */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            /* Pengaturan gambar background */
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            /* ATUR TRANSPARANSI DI SINI */
+            opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            
+            z-index: -1; /* Memastikan background berada di belakang konten */
+        }
+    </style>
+
 </head>
 <body>
 
@@ -34,7 +64,7 @@
                     <a class="nav-link nav-btn-active" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
                 </li>
                 <li class="nav-item ms-2">
                     @guest
@@ -127,23 +157,17 @@
             {{ $room->tersedia ? 'Tersedia' : 'Sedang Dipakai' }}
         </span>
 
-        @if($room->galeri)
-            <div class="room-foto">
-                <img src="{{ asset('storage/' . $room->galeri) }}"
-                    alt="{{ $room->nama_ruangan }}">
-            </div>
-        @else
-            <div class="room-icon">
-                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4"  y="28" width="12" height="16" rx="4"/>
-                    <rect x="48" y="28" width="12" height="16" rx="4"/>
-                    <rect x="10" y="20" width="44" height="14" rx="5"/>
-                    <rect x="16" y="34" width="32" height="12" rx="4"/>
-                    <rect x="12" y="44" width="6"  height="8"  rx="2"/>
-                    <rect x="46" y="44" width="6"  height="8"  rx="2"/>
-                </svg>
-            </div>
-        @endif
+        {{-- Icon sofa --}}
+        <div class="room-icon">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4"  y="28" width="12" height="16" rx="4"/>
+                <rect x="48" y="28" width="12" height="16" rx="4"/>
+                <rect x="10" y="20" width="44" height="14" rx="5"/>
+                <rect x="16" y="34" width="32" height="12" rx="4"/>
+                <rect x="12" y="44" width="6"  height="8"  rx="2"/>
+                <rect x="46" y="44" width="6"  height="8"  rx="2"/>
+            </svg>
+        </div>
 
         {{-- Info ruangan --}}
         <div class="room-name">{{ $room->nama_ruangan }}</div>

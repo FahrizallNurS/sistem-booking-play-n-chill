@@ -6,19 +6,37 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
     <title>Tentang Kami - Play N Chill</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/gallery.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
         body {
             background-color: #442c94; /* Warna ungu tua sesuai screenshot */
             color: white;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Nunito', sans-serif;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
+            position: relative; /* Wajib ditambahkan */
+            min-height: 100vh;
+        }
+
+        /* Tambahkan blok ini untuk background transparan */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.7; /* Atur tingkat transparansi (0.1 - 0.3 disarankan) */
+            z-index: -1; /* Supaya berada di belakang semua elemen */
         }
 
         .hero-section {
@@ -112,7 +130,7 @@
 
         /* Banner Bawah (CTA) */
         .cta-banner {
-            background: linear-gradient(90deg, #7E22CE 0%, #3B82F6 100%);
+            background: var(--purple);
             border-radius: 35px;
             padding: 70px 40px;
             text-align: center;
@@ -224,7 +242,7 @@
                 <ul class="navbar-nav align-items-center gap-1">
                     <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url('/booking') }}">Booking</a></li>
-                    <li class="nav-item"><a class="nav-link nav-btn-active" href="{{ url('/tentang-kami') }}">Tentang Kami</a></li>
+                    <li class="nav-item"><a class="nav-link nav-btn-active" href="{{ url('/gallery') }}">Gallery</a></li>
                     <li class="nav-item ms-2">
                         @guest
                             <a class="nav-link nav-btn-active" href="{{ url('/login') }}" style="background-color: var(--orange) !important;">Login</a>

@@ -10,43 +10,59 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
+
+    <style>
+        body {
+            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; /* Agar background tetap diam saat scroll */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            /* Pengaturan gambar background */
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            /* ATUR TRANSPARANSI DI SINI */
+            opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            
+            z-index: -1; /* Memastikan background berada di belakang konten */
+        }
+    </style>
+
 </head>
 <body>
 
+{{-- NAVBAR --}}
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
-
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
-
-        <button class="navbar-toggler border-0 shadow-none" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navMain">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
         <div class="collapse navbar-collapse justify-content-end" id="navMain">
             <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item">
-                    <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url('/booking') }}">Booking</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url('/gallery') }}">Gallery</a></li>
                 <li class="nav-item ms-2">
-
-                    @guest
-                        {{-- Belum login: tampilkan tombol Login --}}
-                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
-                        style="background-color: var(--orange) !important;">
-                            Login
-                        </a>
-                    @endguest
-
                     @auth
+<<<<<<< HEAD
+                    <div class="dropdown">
+                        <div class="nav-avatar" id="userDropdown" data-bs-toggle="dropdown">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="var(--purple-dark)"/>
+                            </svg>
+=======
                         {{-- Sudah login: tampilkan avatar + dropdown --}}
                         <div class="dropdown">
                             <div class="nav-avatar" id="userDropdown"
@@ -81,7 +97,20 @@
                                     </form>
                                 </li>
                             </ul>
+>>>>>>> origin/presentasi
                         </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/booking/status') }}">Status Booking</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger">Keluar</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                     @endauth
                 </li>
             </ul>

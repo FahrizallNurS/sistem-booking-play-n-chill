@@ -28,6 +28,14 @@
 
         <div x-data="bookingForm()">
 
+<<<<<<< HEAD
+    {{-- NAVBAR --}}
+    <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand p-0" href="{{ url('/') }}">
+                <img src="{{ asset('images/logo_dumb.png') }}" height="48">
+            </a>
+=======
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid px-4">
 
@@ -101,6 +109,7 @@
                     </li>
                 </ul>
             </div>
+>>>>>>> origin/presentasi
         </div>
     </nav>
 

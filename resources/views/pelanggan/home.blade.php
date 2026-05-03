@@ -4,17 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
-    <title>Play N Chill</title>
+    <title>Play N Chill</title> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Modak&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    <style>
+        body {
+            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 65px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; /* Agar background tetap diam saat scroll */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            /* Pengaturan gambar background */
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            /* ATUR TRANSPARANSI DI SINI */
+            opacity: 0.8; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            
+            z-index: -1; /* Memastikan background berada di belakang konten */
+        }
+
+        .navbar.fixed-top {
+        position: fixed !important;
+        top: 0 !important;
+        width: 100% !important;
+        z-index: 1030 !important; /* Nilai tinggi agar di atas semua elemen */
+        background: rgba(255, 255, 255, 0.836); /* Beri warna agar tidak transparan total */
+        backdrop-filter: blur(10px); /* Efek blur estetik */
+    }
+    </style>
+
 </head>
 <body>
 
 {{-- ═══ NAVBAR ═══ --}}
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid px-4">
 
         <a class="navbar-brand p-0" href="{{ url('/') }}">
@@ -35,7 +78,7 @@
                     <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
                 </li>
                 <li class="nav-item ms-2">
 
@@ -90,9 +133,9 @@
     </div>
 </nav>
 
-
 {{-- ═══ HERO / CAROUSEL ═══ --}}
-<section class="hero p-0" style="background: var(--purple-dark);">
+{{-- ═══ HERO / CAROUSEL ═══ --}}
+<section class="hero p-0" style="background: transparent;">
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
 
         {{-- Indicator --}}
@@ -215,7 +258,7 @@
             </div>
         </div>  
     </a>
-    
+
     {{-- Karaoke Room --}}
     <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="200">
         <div class="r-card">
@@ -248,7 +291,7 @@
 
 {{-- ═══ ROOM TOUR ═══ --}}
 <section class="tour-section">
-    <h2 data-aos="fade-down">Room Tour</h2>
+    <h2 data-aos="fade-down " class="font-modak">Room Tour</h2>
     <p class="tour-sub" data-aos="fade-down" data-aos-delay="100">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
 
     <div class="vid-wrap" id="vidWrap" onclick="startVideo()" data-aos="zoom-in" data-aos-duration="1000">
@@ -269,67 +312,47 @@
 {{-- ═══ DAFTAR GAME ═══ --}}
 <section class="game-section">
     <div class="container-fluid px-4">
-        <h2 data-aos="fade-right">Koleksi Game Kami</h2>
+        <h2 class="teks-outline font-modak" data-aos="fade-right">Koleksi Game Kami</h2>
 
-       {{-- Navigasi Filter --}}
-<div class="game-filter" data-aos="fade-left">
-    <button class="filter-game-btn active" onclick="filterGames('all', this)">Semua</button>
-    @foreach($perangkats as $perangkat)
-        <button class="filter-game-btn" onclick="filterGames('{{ strtolower($perangkat) }}', this)">
-            {{ $perangkat }}
-        </button>
-    @endforeach
-</div>
-
-{{-- Grid Game --}}
-<div class="game-grid" id="gameGrid">
-    @forelse($permainans as $index => $permainan)
-        @php
-            // Ambil semua perangkat dari ruangan yang di-assign ke game ini
-            $platforms = $permainan->ruangans
-                ->pluck('perangkat')
-                ->filter()
-                ->unique()
-                ->map(fn($p) => strtolower($p))
-                ->values()
-                ->toArray();
-            
-            $platformStr = implode(' ', $platforms);
-        @endphp
-
-        <div class="game-card"
-            data-platform="{{ $platformStr }}"
-            data-aos="fade-up"
-            data-aos-delay="{{ $index * 50 }}">
-
-            @if($permainan->gambar)
-                <img src="{{ asset('storage/' . $permainan->gambar) }}"
-                    alt="{{ $permainan->nama_permainan }}"
-                    onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
-            @else
-                <div style="width:100%;height:200px;background:#2d1b69;display:flex;align-items:center;justify-content:center;border-radius:12px;">
-                    <span style="font-size:3rem">🎮</span>
-                </div>
-            @endif
-
-            {{-- Badge semua platform --}}
-            <div class="d-flex gap-1 flex-wrap justify-content-center mt-1">
-                @foreach($platforms as $p)
-                    <span class="game-badge">{{ strtoupper($p) }}</span>
-                @endforeach
-            </div>
-
-            <h5>{{ $permainan->nama_permainan }}</h5>
+        {{-- Navigasi Filter --}}
+        <div class="game-filter" data-aos="fade-left">
+            <button class="filter-game-btn active" onclick="filterGames('all')">Semua</button>
+            <button class="filter-game-btn" onclick="filterGames('ps3')">PS 3</button>
+            <button class="filter-game-btn" onclick="filterGames('ps4')">PS 4</button>
+            <button class="filter-game-btn" onclick="filterGames('ps5')">PS 5</button>
+            <button class="filter-game-btn" onclick="filterGames('switch')">Switch</button>
         </div>
-    @empty
-        <p class="text-white text-center w-100">Belum ada game tersedia.</p>
-    @endforelse
-</div>
+
+        {{-- Grid Game --}}
+        <div class="game-grid" id="gameGrid">
+            @php
+                // Data Dummy Game (Nanti bisa dipindah ke Controller)
+                $games = [
+                    ['title' => 'GTA V', 'platform' => 'ps4', 'img' => 'gta5.jpg'],
+                    ['title' => 'God of War Ragnarok', 'platform' => 'ps5', 'img' => 'gow.jpg'],
+                    ['title' => 'Mario Kart 8', 'platform' => 'switch', 'img' => 'mario.jpg'],
+                    ['title' => 'FIFA 23', 'platform' => 'ps5', 'img' => 'fifa23.jpg'],
+                    ['title' => 'The Last of Us', 'platform' => 'ps3', 'img' => 'tlou.jpg'],
+                    ['title' => 'Naruto Storm 4', 'platform' => 'ps4', 'img' => 'naruto.jpg'],
+                ];
+            @endphp
+
+            @foreach ($games as $index => $game)
+                <div class="game-card" data-platform="{{ $game['platform'] }}" data-aos="fade-up" data-aos-delay="{{ $index * 50 }}">
+                    {{-- Pastikan kamu punya gambar di public/images/games/ --}}
+                    <img src="{{ asset('images/games/' . $game['img']) }}" 
+                         onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'" alt="Game">
+                    <span class="game-badge">{{ $game['platform'] }}</span>
+                    <h5>{{ $game['title'] }}</h5>
+                </div>
+            @endforeach
+        </div>
+    </div>
 </section>
 
 {{-- ═══ CTA ═══ --}}
 <section class="cta-section" id="booking" data-aos="zoom-in-up">
-    <h2>Siap untuk nongkrong Seru?</h2>
+    <h2 class="teks-outline font-modak" >Siap untuk nongkrong Seru?</h2>
     <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
     <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
 </section>
@@ -406,21 +429,25 @@
 </script>
 
 <script>
-function filterGames(platform, btn) {
-    document.querySelectorAll('.filter-game-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    function filterGames(platform) {
+        // 1. Ubah status tombol aktif
+        const buttons = document.querySelectorAll('.filter-game-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
 
-    document.querySelectorAll('.game-card').forEach(card => {
-        const cardPlatforms = card.getAttribute('data-platform') || '';
-        if (platform === 'all' || cardPlatforms.includes(platform)) {
-            card.style.display = 'block';
-            card.style.opacity = '0';
-            setTimeout(() => { card.style.opacity = '1'; }, 10);
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
+        // 2. Filter kartu game
+        const cards = document.querySelectorAll('.game-card');
+        cards.forEach(card => {
+            if (platform === 'all' || card.getAttribute('data-platform') === platform) {
+                card.style.display = 'block';
+                // Animasi muncul kembali
+                card.style.opacity = '0';
+                setTimeout(() => { card.style.opacity = '1'; }, 10);
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 </script>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
