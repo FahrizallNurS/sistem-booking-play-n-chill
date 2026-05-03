@@ -78,7 +78,7 @@
                     <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
                 </li>
                 <li class="nav-item ms-2">
 
@@ -188,7 +188,7 @@
                                             <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="background:#a020f0; border-radius: 10px;">
                                                 Book Now
                                             </a>
-                                            <a href="{{ url('/gallery') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
+                                            <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
                                                 Lihat Paket
                                             </a>
                                         </div>
