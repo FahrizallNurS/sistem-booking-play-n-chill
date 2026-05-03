@@ -138,23 +138,38 @@
         </div>
     </div>
 
-    {{-- ═══ BOOKING AKTIF ═══ --}}
     @if($bookingAktif)
     @php
         $ph      = $bookingAktif->penetapanHarga;
         $mulai   = \Carbon\Carbon::parse($bookingAktif->waktu_mulai);
         $selesai = \Carbon\Carbon::parse($bookingAktif->waktu_selesai);
         $now     = now();
-        $totalMenit   = $mulai->diffInMinutes($selesai);
-        $jalanMenit   = $now->between($mulai, $selesai) ? $mulai->diffInMinutes($now) : ($now->gt($selesai) ? $totalMenit : 0);
-        $persenJalan  = $totalMenit > 0 ? min(100, round($jalanMenit / $totalMenit * 100)) : 0;
-        $sisaMenit    = max(0, $totalMenit - $jalanMenit);
-        $sisaJam      = floor($sisaMenit / 60);
+        $totalMenit    = $mulai->diffInMinutes($selesai);
+        $jalanMenit    = $now->between($mulai, $selesai) ? $mulai->diffInMinutes($now) : ($now->gt($selesai) ? $totalMenit : 0);
+        $persenJalan   = $totalMenit > 0 ? min(100, round($jalanMenit / $totalMenit * 100)) : 0;
+        $sisaMenit     = max(0, $totalMenit - $jalanMenit);
+        $sisaJam       = floor($sisaMenit / 60);
         $sisaMenitSisa = $sisaMenit % 60;
-
-        $statusWaktu = $now->lt($mulai) ? 'Belum Dimulai' : ($now->gt($selesai) ? 'Sudah Selesai' : 'Sedang Berjalan');
+        $statusWaktu      = $now->lt($mulai) ? 'Belum Dimulai' : ($now->gt($selesai) ? 'Sudah Selesai' : 'Sedang Berjalan');
         $statusWaktuColor = $now->lt($mulai) ? '#6b7280' : ($now->gt($selesai) ? '#3b82f6' : '#22c55e');
     @endphp
+
+    {{-- Timer --}}
+    @if($bookingAktif->status_sewa === 'ditahan' && $sisaDetik > 0)
+    <div class="alert text-center fw-bold mb-3"
+        style="background:rgba(255,165,0,0.2);border:1px solid orange;color:white;border-radius:12px;">
+        ⏳ Selesaikan pembayaran dalam:
+        <span id="countdown" style="color:var(--yellow);font-size:1.2rem;">
+            {{ gmdate('i:s', $sisaDetik) }}
+        </span>
+    </div>
+    @elseif($bookingAktif->status_sewa === 'ditahan' && $sisaDetik <= 0)
+    <div class="alert text-center fw-bold mb-3"
+        style="background:rgba(255,0,0,0.2);border:1px solid red;color:white;border-radius:12px;">
+        ❌ Waktu pembayaran habis. Booking dibatalkan otomatis.
+    </div>
+    @endif
+
     <div class="section-title mb-3">
         <i class="fas fa-clock me-2"></i> Booking Aktif
     </div>
@@ -241,18 +256,25 @@
                     </div>
                 </div>
 
+                {{-- Catatan --}}
                 @if($bookingAktif->catatan_pembayaran)
                 <div class="catatan-box mt-2">
                     <i class="fas fa-info-circle me-1"></i> {{ $bookingAktif->catatan_pembayaran }}
                 </div>
                 @endif
 
-                {{-- Tombol WA konfirmasi kalau belum lunas --}}
+                {{-- Tombol aksi --}}
                 @if($bookingAktif->status_pembayaran !== 'lunas')
-                <a href="https://wa.me/628123456789?text=Halo admin, saya ingin konfirmasi pembayaran booking {{ $bookingAktif->kode_sewa }}"
-                    class="btn-bayar mt-3">
-                    <i class="fab fa-whatsapp me-2"></i> Konfirmasi Pembayaran
-                </a>
+                <div class="d-flex gap-3 mt-3 flex-wrap">
+                    <a href="https://wa.me/628123456789?text=Halo admin, saya ingin konfirmasi pembayaran booking {{ $bookingAktif->kode_sewa }}"
+                        class="btn-bayar">
+                        <i class="fab fa-whatsapp me-2"></i> Konfirmasi Pembayaran
+                    </a>
+                    <a href="{{ route('booking.payment.show', $bookingAktif->id_transaksi) }}"
+                        class="btn-bayar btn-bayar-payment">
+                        <i class="fas fa-credit-card me-2"></i> Lihat Pembayaran
+                    </a>
+                </div>
                 @endif
             </div>
 
@@ -421,6 +443,28 @@
             toggleEditModal();
         });
     @endif
+</script>
+<script>
+    let sisaDetik = {{ $sisaDetik }};
+
+    if (sisaDetik > 0) {
+        const interval = setInterval(() => {
+            sisaDetik--;
+
+            if (sisaDetik <= 0) {
+                clearInterval(interval);
+                location.reload();
+                return;
+            }
+
+            const menit = Math.floor(sisaDetik / 60).toString().padStart(2, '0');
+            const detik = Math.floor(sisaDetik % 60).toString().padStart(2, '0');
+            const el = document.getElementById('countdown');
+            if (el) el.textContent = menit + ':' + detik;
+
+            if (sisaDetik <= 300 && el) el.style.color = 'red';
+        }, 1000);
+    }
 </script>
 </body>
 </html>

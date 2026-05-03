@@ -41,7 +41,7 @@
                             <table class="table table-borderless">
                                 <tr>
                                     <th width="130">Nama</th>
-                                    <td>{{ $booking->pengguna->name ?? '-' }}</td>
+                                    <td>{{ $booking->pengguna->nama_pengguna ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Email</th>

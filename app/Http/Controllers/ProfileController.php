@@ -37,7 +37,13 @@ class ProfileController extends Controller
             ->whereIn('tr_transaksi.status_sewa', ['dikonfirmasi', 'selesai'])
             ->sum('penetapan_harga.durasi_jam');
 
-        return view('pelanggan.profile', compact('user', 'bookingAktif', 'riwayat', 'totalJam'));
+        $sisaDetik = 0;
+        if ($bookingAktif && $bookingAktif->status_sewa === 'ditahan') {
+            $expiredAt = \Carbon\Carbon::parse($bookingAktif->created_at)->addMinutes(30);
+            $sisaDetik = max(0, now()->diffInSeconds($expiredAt, false));
+        }
+
+        return view('pelanggan.profile', compact('user', 'bookingAktif', 'riwayat', 'totalJam', 'sisaDetik'));
     }
 
     public function update(Request $request)
