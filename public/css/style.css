@@ -27,13 +27,31 @@ body {
     overflow-x: hidden;
 }
 
+.teks-outline {
+    /* Warna bagian dalam teks */
+    color: white; 
+    
+    /* 2px adalah ketebalan outline, black adalah warna outlinennya */
+    text-shadow: 
+         2px  2px 0 #281664;
+}
+
+.font-modak {
+    font-family: 'Modak', cursive;
+    /* Font Modak biasanya terlihat lebih kecil, 
+       jadi kamu bisa sesuaikan ukurannya di sini */
+    font-size: 1.2em; 
+    line-height: normal;
+    display: inline-block; /* Agar teks tidak terpotong jika menggunakan stroke */
+}
+
 /* ────────────────────────
    NAVBAR (Shared)
 ──────────────────────── */
 .navbar {
     background: #fff;
     padding: 10px 0;
-    box-shadow: 0 1px 10px rgba(0, 0, 0, .08);
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.08);
     position: sticky;
     top: 0;
     z-index: 1050;
@@ -132,12 +150,12 @@ body {
 /* Container Daftar Game */
 .game-section {
     padding: 0px 0px 5px;
-    background: var(--purple-dark);
+    background-color: transparent;
     text-align: center;
 }
 
 .game-section h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Modak', cursive;
     color: var(--yellow);
     font-size: 2.8rem;
     margin-bottom: 30px;

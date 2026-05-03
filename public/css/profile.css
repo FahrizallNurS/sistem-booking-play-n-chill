@@ -8,7 +8,7 @@
 ──────────────────────── */
 .profile-page {
     min-height: 100vh;
-    background: var(--purple-dark);
+    background-color: transparent;
     position: relative;
     overflow: hidden;
     padding-bottom: 60px;
@@ -297,10 +297,10 @@ body {
 .section-title {
     font-family: 'Fredoka One';
     font-size: 1.3rem;
-    color: #333;
+    color: #ffffff;
 }
 
-/* ═══ HEADER PROFIL ═══ */
+/* ═══ HEADER PROFIL 1═══ */
 .profile-header-card {
     background: linear-gradient(135deg, #5b21b6, #7c3aed);
     border-radius: 20px;
@@ -330,7 +330,8 @@ body {
 }
 
 .profile-header-info h2 {
-    font-family: 'Fredoka One';
+    font-family: 'Nunito', sans-serif;
+    font-weight: bolder;
     font-size: 1.6rem;
     margin-bottom: 4px;
 }

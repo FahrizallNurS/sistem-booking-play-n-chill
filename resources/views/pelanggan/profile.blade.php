@@ -10,6 +10,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
+
+    <style>
+        body {
+            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; /* Agar background tetap diam saat scroll */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            /* Pengaturan gambar background */
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            /* ATUR TRANSPARANSI DI SINI */
+            opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            
+            z-index: -1; /* Memastikan background berada di belakang konten */
+        }
+    </style>
+
 </head>
 <body>
 
