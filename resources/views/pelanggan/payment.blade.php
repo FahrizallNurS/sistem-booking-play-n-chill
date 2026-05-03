@@ -16,27 +16,6 @@
 </head>
 <body>
 
-<<<<<<< HEAD
-    {{-- ═══ NAVBAR (Sinkron dengan Home/Gallery) ═══ --}}
-    <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm mb-5">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand p-0" href="{{ url('/') }}">
-                <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
-            </a>
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <a href="{{ url('/') }}" class="nav-link fw-bold text-dark d-none d-md-block">Home</a>
-                <a href="{{ url('/booking') }}" class="nav-link nav-btn-active">Booking</a>
-                <a href="{{ url('/gallery') }}" class="nav-link fw-bold text-dark d-none d-md-block">Gallery</a>
-                
-                @auth
-                <div class="nav-avatar">
-                    <svg viewBox="0 0 24 24" width="22">
-                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="var(--purple-dark)"/>
-                    </svg>
-                </div>
-                @endauth
-            </div>
-=======
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
 
@@ -109,7 +88,6 @@
                     @endauth
                 </li>
             </ul>
->>>>>>> origin/presentasi
         </div>
     </nav>
 
@@ -195,21 +173,15 @@
                 </div>
 
                 {{-- ── 3. TOMBOL AKSI ── --}}
-                <form action="{{ route('booking.store') }}" method="POST">
-                    @csrf
-                    @foreach($booking as $key => $value)
-                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                    @endforeach
-                    <input type="hidden" name="confirm" value="1">
-
-                    <button type="submit" class="btn-confirm w-100 mb-3">
-                        Konfirmasi Pembayaran <span class="ms-2">✓</span>
-                    </button>
-                </form>
-
-                <a href="{{ url('/status-booking') }}" class="btn-status-link">
-                    Lihat Status Booking ➜
-                </a>
+                <div class="mt-4">
+                    <a href="{{ route('booking.status') }}" 
+                        class="btn-confirm d-block text-center text-decoration-none mb-3">
+                        Lihat Status Booking <span class="ms-2"></span>
+                    </a>
+                    <a href="{{ url('/') }}" class="btn-status-link">
+                        Kembali ke Beranda 
+                    </a>
+                </div>
 
             </div>
         </div>

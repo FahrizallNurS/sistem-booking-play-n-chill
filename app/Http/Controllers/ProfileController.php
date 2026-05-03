@@ -15,6 +15,14 @@ class ProfileController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        \App\Models\TrTransaksi::where('status_sewa', 'ditahan')
+        ->where('created_at', '<', now()->subMinutes(30))
+        ->update([
+            'status_sewa'        => 'dibatalkan',
+            'catatan_pembayaran' => 'Waktu pembayaran habis!',
+        ]);
+
+
         // FIX: id_pengguna bukan id
         $bookingAktif = \App\Models\TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->where('id_pengguna', $user->id_pengguna)
@@ -37,7 +45,13 @@ class ProfileController extends Controller
             ->whereIn('tr_transaksi.status_sewa', ['dikonfirmasi', 'selesai'])
             ->sum('penetapan_harga.durasi_jam');
 
-        return view('pelanggan.profile', compact('user', 'bookingAktif', 'riwayat', 'totalJam'));
+        $sisaDetik = 0;
+        if ($bookingAktif && $bookingAktif->status_sewa === 'ditahan') {
+            $expiredAt = \Carbon\Carbon::parse($bookingAktif->created_at)->addMinutes(30);
+            $sisaDetik = max(0, now()->diffInSeconds($expiredAt, false));
+        }
+
+        return view('pelanggan.profile', compact('user', 'bookingAktif', 'riwayat', 'totalJam', 'sisaDetik'));
     }
 
     public function update(Request $request)
