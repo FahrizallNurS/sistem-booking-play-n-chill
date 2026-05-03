@@ -31,10 +31,6 @@ use App\Http\Controllers\Superadmin\SAProfilController;
 use App\Http\Controllers\Superadmin\KelolaUserController;
 use App\Http\Controllers\Superadmin\SATinjauLaporanController;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/presentasi
 /*
 |--------------------------------------------------------------------------
 | PUBLIC
@@ -99,15 +95,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jadwal', [JadwalController::class, 'index'])->name('pelanggan.jadwal');
     Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
 
-<<<<<<< HEAD
-    Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
-    Route::get('/booking/payment', [BookingController::class, 'showPayment'])->name('booking.payment.show');
-
-    Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
-
-});
-=======
->>>>>>> origin/presentasi
     /*
     |--------------------------------------------------------------------------
     | SUPERADMIN
@@ -166,14 +153,8 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/booking/{id}/pembayaran', [AdminBookingController::class, 'pembayaran'])->name('booking.pembayaran');
             Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
 
-<<<<<<< HEAD
-            // Konten
-            Route::get('/gallery', [AdminGalleryController::class, 'index'])->name('gallery.index');
-            Route::get('/game', [GameController::class, 'index'])->name('game.index');
-=======
             // Game
             Route::resource('game', GameController::class);
->>>>>>> origin/presentasi
 
             // Laporan
             Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
@@ -190,14 +171,8 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
-<<<<<<< HEAD
-    Route::view('/info-payment', 'pelanggan.payment')->name('payment.info');
-    Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
-    Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
-=======
         Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
         Route::view('/status-booking', 'pelanggan.status-booking')->name('pelanggan.status');
     });
->>>>>>> origin/presentasi
 
 });
