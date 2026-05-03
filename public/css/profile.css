@@ -280,7 +280,6 @@ body {
 
 .nav-link {
     font-weight: 700;
-    color: #333 !important;
 }
 
 .nav-avatar {
@@ -567,4 +566,21 @@ body {
     .booking-aktif-gambar { width: 100%; height: 200px; }
     .profile-header-card { flex-direction: column; }
     .riwayat-main { flex-direction: column; align-items: flex-start; }
+}
+
+.btn-bayar-payment {
+    background: var(--purple-dark);
+    border: 2px solid var(--purple-light);
+}
+
+.btn-bayar-payment:hover {
+    background: #3b0764;
+    color: white;
+}
+
+/* Card profil — beda dari background ungu */
+.profile-header-card {
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }

@@ -222,10 +222,10 @@
                 <div class="mt-4">
                     <a href="{{ route('booking.status') }}" 
                         class="btn-confirm d-block text-center text-decoration-none mb-3">
-                        Lihat Status Booking <span class="ms-2">✓</span>
+                        Lihat Status Booking <span class="ms-2"></span>
                     </a>
                     <a href="{{ url('/') }}" class="btn-status-link">
-                        Kembali ke Beranda ➜
+                        Kembali ke Beranda 
                     </a>
                 </div>
 

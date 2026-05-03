@@ -15,6 +15,14 @@ class ProfileController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        \App\Models\TrTransaksi::where('status_sewa', 'ditahan')
+        ->where('created_at', '<', now()->subMinutes(30))
+        ->update([
+            'status_sewa'        => 'dibatalkan',
+            'catatan_pembayaran' => 'Waktu pembayaran habis!',
+        ]);
+
+
         // FIX: id_pengguna bukan id
         $bookingAktif = \App\Models\TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->where('id_pengguna', $user->id_pengguna)
