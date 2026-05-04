@@ -395,8 +395,8 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nama</label>
-                        <input type="text" name="name" class="form-control"
-                            value="{{ old('name', $user->name) }}" required>
+                        <input type="text" name="nama_pengguna" class="form-control"
+                            value="{{ old('nama_pengguna', $user->nama_pengguna) }}" required>
                     </div>
 
                     <div class="mb-3">

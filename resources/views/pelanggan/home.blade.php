@@ -296,7 +296,7 @@
 
     <div class="vid-wrap" id="vidWrap" onclick="startVideo()" data-aos="zoom-in" data-aos-duration="1000">
         <div class="vid-thumb" 
-            style="background-image: url('https://img.youtube.com/vi/P3yd4BX9aaU/maxresdefault.jpg'); 
+            style="background-image: url('https://img.youtube.com/vi/4iSpL_-hO8Y/maxresdefault.jpg'); 
                     background-size: cover; 
                     background-position: center; 
                     background-repeat: no-repeat;">
@@ -440,7 +440,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function startVideo() {
-        const videoId = 'P3yd4BX9aaU';
+        const videoId = '4iSpL_-hO8Y';
         const wrap    = document.getElementById('vidWrap');
         wrap.onclick  = null;
         wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1"

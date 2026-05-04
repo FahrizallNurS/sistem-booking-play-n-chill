@@ -26,7 +26,7 @@
             </div>
 
             <div class="form-group">
-                <label>Deskripsi <small class="text-muted">(pisahkan dengan enter, tampil sebagai list ✅)</small></label>
+                <label>Deskripsi <small class="text-muted"></small></label>
                 <textarea name="deskripsi_paket" class="form-control" rows="4">{{ $paket->deskripsi_paket }}</textarea>
             </div>
 
@@ -101,7 +101,7 @@
     </div>
 </div>
 
-{{-- TABEL PENETAPAN HARGA (di luar form utama) --}}
+<!-- {{-- TABEL PENETAPAN HARGA (di luar form utama) --}}
 <div class="card mt-3">
     <div class="card-header">
         <h5 class="mb-0">Penetapan Harga yang Sudah Ada</h5>
@@ -146,7 +146,7 @@
             <p class="text-muted">Belum ada penetapan harga.</p>
         @endif
     </div>
-</div>
+</div> -->
 
 @stop
 

@@ -298,8 +298,9 @@ return [
     |
     */
 
+
 'menu' => [
-    // Navbar
+    // Navbar items
     [
         'type' => 'navbar-search',
         'text' => 'search',
@@ -316,6 +317,7 @@ return [
         'text' => 'search',
     ],
 
+    // ========== MENU UNTUK SEMUA ROLE ==========
     ['header' => 'MENU UTAMA'],
     [
         'text' => 'Dashboard',
@@ -324,54 +326,93 @@ return [
         'active' => ['admin/dashboard'],
     ],
 
-    ['header' => 'MANAJEMEN'],
+    // ========== MENU KHUSUS SUPERADMIN ==========
+    [
+        'header' => 'MANAJEMEN SISTEM',
+        'can' => 'superadmin', // Hanya superadmin yang lihat
+    ],
+    [
+        'text' => 'Manajemen Admin',
+        'url'  => 'admin/users',
+        'icon' => 'fas fa-fw fa-user-shield',
+        'can' => 'superadmin',
+    ],
+    [
+        'text' => 'Pengaturan Sistem',
+        'url'  => 'admin/settings',
+        'icon' => 'fas fa-fw fa-cog',
+        'can' => 'superadmin',
+    ],
+    [
+        'text' => 'Laporan Lengkap',
+        'url'  => 'admin/reports',
+        'icon' => 'fas fa-fw fa-chart-line',
+        'can' => 'superadmin',
+    ],
+
+    // ========== MENU KHUSUS ADMIN BIASA ==========
+    [
+        'header' => 'MANAJEMEN',
+        'can' => 'admin', // Hanya admin biasa yang lihat
+    ],
     [
         'text' => 'Data Pelanggan',
         'url'  => 'admin/pelanggan',
         'icon' => 'fas fa-fw fa-users',
+        'can' => 'admin',
     ],
     [
         'text' => 'Booking',
         'url'  => 'admin/booking',
         'icon' => 'fas fa-fw fa-calendar-check',
+        'can' => 'admin',
     ],
     [
         'text' => 'Layanan',
         'url'  => 'admin/layanan',
         'icon' => 'fas fa-fw fa-concierge-bell',
+        'can' => 'admin',
     ],
     [
         'text' => 'Paket',
         'url'  => 'admin/paket',
         'icon' => 'fas fa-fw fa-box',
+        'can' => 'admin',
     ],
 
-    ['header' => 'KONTEN'],
+    [
+        'header' => 'KONTEN',
+        'can' => 'admin',
+    ],
     [
         'text' => 'Upload Game',
         'url'  => 'admin/game',
         'icon' => 'fas fa-fw fa-gamepad',
+        'can' => 'admin',
     ],
 
-    ['header' => 'LAPORAN'],
+    [
+        'header' => 'LAPORAN',
+        'can' => 'admin',
+    ],
     [
         'text' => 'Laporan',
         'url'  => 'admin/laporan',
         'icon' => 'fas fa-fw fa-file-alt',
+        'can' => 'admin',
     ],
 
+    // ========== MENU UNTUK SEMUA ==========
     ['header' => 'AKUN'],
-    [
-        'text' => 'Logout',
-        'url'  => '#',
-        'icon' => 'fas fa-fw fa-sign-out-alt',
-
-    ],
-
     [
         'text' => 'Profil',
         'url'  => 'admin/profil',
         'icon' => 'fas fa-fw fa-user-cog',
+    ],
+    [
+        'text' => 'Logout',
+        'url'  => 'logout',
+        'icon' => 'fas fa-fw fa-sign-out-alt',
     ],
 ],
 
