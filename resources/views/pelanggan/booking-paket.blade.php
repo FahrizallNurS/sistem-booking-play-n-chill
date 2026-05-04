@@ -105,8 +105,10 @@
                 @foreach($penetapanHarga as $paketId => $items)
                     @php
                         $paket = $items->first()->paket;
+                        $kategoriClass = strtolower($room->kategori); // regular, vip, vvip
                     @endphp
-                    <div class="paket-card">
+                        <div class="paket-card paket-card-{{ $kategoriClass }}">
+                 
                         {{-- Nama Paket --}}
                         <div class="paket-card-name">{{ $paket->nama_paket }}</div>
 
