@@ -332,7 +332,7 @@ body {
    ROOM TOUR
 ════════════════════════ */
 .tour-section {
-    background: #d5e319c7 !important;
+    background: #d5e319 !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px); /* Dukungan untuk Safari */
     border: 1px solid rgba(255, 255, 255, 0.2);

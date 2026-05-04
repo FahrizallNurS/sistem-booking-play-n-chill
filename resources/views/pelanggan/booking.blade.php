@@ -33,7 +33,7 @@
             background-position: center;
 
             /* ATUR TRANSPARANSI DI SINI */
-            opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            opacity: 0.9; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
             
             z-index: -1; /* Memastikan background berada di belakang konten */
         }
