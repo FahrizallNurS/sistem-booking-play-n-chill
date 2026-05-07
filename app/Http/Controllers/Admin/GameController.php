@@ -25,10 +25,9 @@ class GameController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan',
-            'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'ruangan_ids'    => 'nullable|array',
-            'ruangan_ids.*'  => 'exists:ms_ruangan,id_ruangan',
+        'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan',
+        'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'device'         => 'required|string',
         ]);
 
         $gambarPath = null;
@@ -41,19 +40,22 @@ class GameController extends Controller
             'gambar'         => $gambarPath,
         ]);
 
-        if ($request->ruangan_ids) {
-            $permainan->ruangans()->sync($request->ruangan_ids);
-        }
+            $ruanganIds = MsRuangan::where('perangkat', $request->device)
+            ->pluck('id_ruangan');
+        $permainan->ruangans()->sync($ruanganIds);
 
         return redirect()->route('admin.game.index')
             ->with('success', 'Game berhasil ditambahkan!');
     }
+    
 
     public function edit($id)
     {
-        $permainan = MsPermainan::with('ruangans')->findOrFail($id);
+       $permainan = MsPermainan::with('ruangans')->findOrFail($id);
         $ruangans  = MsRuangan::where('is_active', 1)->get();
-        return view('admin.game.edit', compact('permainan', 'ruangans'));
+        $currentDevice = $permainan->ruangans->first()?->perangkat ?? '';
+
+        return view('admin.game.edit', compact('permainan', 'ruangans', 'currentDevice'));
     }
 
     public function update(Request $request, $id)
@@ -63,8 +65,7 @@ class GameController extends Controller
         $request->validate([
             'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan,' . $id . ',id_permainan',
             'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'ruangan_ids'    => 'nullable|array',
-            'ruangan_ids.*'  => 'exists:ms_ruangan,id_ruangan',
+            'device'         => 'required|string',
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -78,7 +79,9 @@ class GameController extends Controller
         $permainan->nama_permainan = $request->nama_permainan;
         $permainan->save();
 
-        $permainan->ruangans()->sync($request->ruangan_ids ?? []);
+      $ruanganIds = MsRuangan::where('perangkat', $request->device)
+        ->pluck('id_ruangan');
+        $permainan->ruangans()->sync($ruanganIds);
 
         return redirect()->route('admin.game.index')
             ->with('success', 'Game berhasil diupdate!');

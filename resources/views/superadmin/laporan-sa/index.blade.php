@@ -1,5 +1,5 @@
 @extends('superadmin.layouts.app')
-
+@include('partials.sidebar-superadmin')
 @section('title', 'Tinjau Laporan')
 
 {{-- Masukkan CSS Custom agar tampilan Kotak Ungu muncul --}}

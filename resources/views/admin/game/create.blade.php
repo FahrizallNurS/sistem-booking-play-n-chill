@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Tambah Game')
 
 @section('content_header')
@@ -56,25 +56,15 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Assign ke Ruangan</label>
-                    <div class="row">
-                        @foreach($ruangans as $ruangan)
-                        <div class="col-md-4">
-                            <div class="custom-control custom-checkbox mb-2">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="ruangan_{{ $ruangan->id_ruangan }}"
-                                    name="ruangan_ids[]"
-                                    value="{{ $ruangan->id_ruangan }}"
-                                    {{ in_array($ruangan->id_ruangan, old('ruangan_ids', [])) ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="ruangan_{{ $ruangan->id_ruangan }}">
-                                    {{ $ruangan->nama_ruangan }}
-                                    <span class="badge badge-secondary">{{ $ruangan->kategori }}</span>
-                                </label>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
+               <div class="form-group">
+                    <label>Device <span class="text-danger">*</span></label>
+                    <select name="device" class="form-control" required>
+                        <option value="">-- Pilih Device --</option>
+                        <option value="PS3" {{ old('device') === 'PS3' ? 'selected' : '' }}>PS3</option>
+                        <option value="PS4" {{ old('device') === 'PS4' ? 'selected' : '' }}>PS4</option>
+                        <option value="PS5" {{ old('device') === 'PS5' ? 'selected' : '' }}>PS5</option>
+                    </select>
+                    <small class="text-muted">Game akan otomatis diassign ke semua ruangan dengan device ini.</small>
                 </div>
 
                 <button type="submit" class="btn btn-primary">

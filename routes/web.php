@@ -145,6 +145,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
+        Route::get('/logout', function() {
+        auth()->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login');
+        })->name('logout.get')->middleware('auth');
     });
 
     // Pelanggan Khusus
