@@ -50,15 +50,22 @@
                         <td>{{ $permainan->nama_permainan }}</td>
                         <td>
                             @php
-                                $device = $permainan->ruangans->first()?->perangkat ?? '-';
+                                $devices = $permainan->ruangans
+                                    ->pluck('perangkat')
+                                    ->unique();
                             @endphp
-                            <span class="badge badge-info">{{ $device }}</span>
+
+                            @forelse($devices as $device)
+                                <span class="badge badge-info">{{ $device }}</span>
+                            @empty
+                                <span class="badge badge-secondary">-</span>
+                            @endforelse
                         </td>
                         <td>
                             <button type="button" class="btn btn-warning btn-sm btn-edit"
                                 data-id="{{ $permainan->id_permainan }}"
                                 data-nama="{{ $permainan->nama_permainan }}"
-                                data-device="{{ $device }}"
+                                data-devices="{{ $permainan->ruangans->pluck('perangkat')->unique()->implode(',') }}"
                                 data-gambar="{{ $permainan->gambar ? asset('storage/' . $permainan->gambar) : '' }}"
                                 data-toggle="modal" data-target="#modalEdit">
                                 <i class="fas fa-edit"></i> Edit
@@ -110,18 +117,24 @@
                             <small class="text-muted">Maksimal 30 karakter</small>
                         </div>
 
-                        <div class="form-group">
-                            <label>Perangkat <span class="text-danger">*</span></label>
-                            <select name="device" class="form-control @error('device') is-invalid @enderror" required>
-                                <option value="">-- Pilih Perangkat --</option>
-                                <option value="PS3" {{ old('device') == 'PS3' ? 'selected' : '' }}>PS3</option>
-                                <option value="PS4" {{ old('device') == 'PS4' ? 'selected' : '' }}>PS4</option>
-                                <option value="PS5" {{ old('device') == 'PS5' ? 'selected' : '' }}>PS5</option>
-                            </select>
-                            @error('device')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <div class="form-group">
+                        <label>Perangkat</label>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="PS3">
+                            <label>PS3</label>
                         </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="PS4">
+                            <label>PS4</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="PS5">
+                            <label>PS5</label>
+                        </div>
+                    </div>
 
                         <div class="form-group">
                             <label>Gambar Cover Game</label>
@@ -180,12 +193,24 @@
 
                         <div class="form-group">
                             <label>Perangkat <span class="text-danger">*</span></label>
-                            <select name="device" id="edit_device" class="form-control" required>
-                                <option value="">-- Pilih Perangkat --</option>
-                                <option value="PS3">PS3</option>
-                                <option value="PS4">PS4</option>
-                                <option value="PS5">PS5</option>
-                            </select>
+
+                            <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="PS3"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">PS3</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="PS4"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">PS4</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="PS5"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">PS5</label>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -199,7 +224,6 @@
                                 <span class="text-info">Kosongkan jika tidak ingin mengubah gambar</span>
                             </small>
                             
-                            {{-- Current & Preview Image --}}
                             <div class="mt-2">
                                 <img id="preview-edit" src="" alt="Preview" 
                                     class="img-thumbnail" 
@@ -246,7 +270,9 @@
         btn.addEventListener('click', function() {
             const id = this.dataset.id;
             const nama = this.dataset.nama;
-            const device = this.dataset.device;
+            const devices = this.dataset.devices
+            ? this.dataset.devices.split(',')
+            : [];
             const gambar = this.dataset.gambar;
 
             // Set action form ke route update
@@ -254,7 +280,9 @@
 
             // Isi field
             document.getElementById('edit_nama_permainan').value = nama;
-            document.getElementById('edit_device').value = device !== '-' ? device : '';
+            document.querySelectorAll('.edit-device').forEach(function(checkbox) {
+                checkbox.checked = devices.includes(checkbox.value);
+            });
 
             // Tampilkan gambar existing jika ada
             const previewEdit = document.getElementById('preview-edit');
