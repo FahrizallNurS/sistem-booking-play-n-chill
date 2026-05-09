@@ -207,7 +207,7 @@
   </div>
 
   <h2>Cek Email Kamu!</h2>
-  <p>Kami sudah kirim link verifikasi ke email kamu. Klik link tersebut untuk mengaktifkan akun dan mulai booking.</p>
+  <p>Kami sudah kirim link verifikasi ke email kamu. Klik link tersebut untuk mengaktifkan akun dan login.</p>
 
   @if(session('success') || session('message'))
     <div class="alert-success">
@@ -220,10 +220,10 @@
     Tidak menemukan email? Cek folder <strong>Spam</strong> atau klik tombol di bawah untuk kirim ulang.
   </div>
 
-  <form method="POST" action="{{ route('verification.send') }}">
+  <form method="POST" action="{{ route('aktivasi.kirim-ulang') }}">
     @csrf
     <button type="submit" class="btn-primary">
-      <i class="fas fa-paper-plane" style="margin-right:8px;"></i> Kirim Ulang Email
+        <i class="fas fa-paper-plane" style="margin-right:8px;"></i> Kirim Ulang Email
     </button>
   </form>
 

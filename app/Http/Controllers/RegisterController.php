@@ -49,7 +49,7 @@ class RegisterController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Redirect ke halaman cek email (tanpa butuh auth)
+        session(['pending_verification_email' => $user->email]);
         return redirect()->route('aktivasi.notice')
             ->with('success', 'Pendaftaran berhasil! Cek email kamu untuk aktivasi akun.');
 

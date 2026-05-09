@@ -11,6 +11,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\TentangKamiController;
 use App\Models\MsRuangan;
 use App\Models\MsPermainan;
+use App\Models\User;
 
 // Admin Controllers...
 use App\Http\Controllers\Admin\DashboardController;
@@ -57,6 +58,28 @@ Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 Route::get('/aktivasi-akun', function () {
     return view('auth.verify-email');
 })->name('aktivasi.notice');
+
+Route::post('/aktivasi-akun/kirim-ulang', function (\Illuminate\Http\Request $request) {
+    $email = session('pending_verification_email');
+
+    if (!$email) {
+        return back()->withErrors(['error' => 'Session expired. Silakan daftar ulang.']);
+    }
+
+    $user = \App\Models\User::where('email', $email)
+                ->whereNull('email_verified_at')
+                ->first();
+
+    if (!$user) {
+        return back()->withErrors(['error' => 'Email tidak ditemukan atau sudah diverifikasi.']);
+    }
+
+    \Illuminate\Support\Facades\Auth::login($user);
+    $user->sendEmailVerificationNotification();
+    \Illuminate\Support\Facades\Auth::logout();
+
+    return back()->with('success', 'Email verifikasi sudah dikirim ulang!');
+})->middleware('throttle:3,1')->name('aktivasi.kirim-ulang');
 
 /*
 |--------------------------------------------------------------------------
