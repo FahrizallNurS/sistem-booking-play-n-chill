@@ -289,14 +289,29 @@ body {
 
 .r-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 1.05rem;
-    background: rgba(255, 255, 255, .18);
-    backdrop-filter: blur(6px);
-    border-radius: 7px;
-    padding: 4px 7px;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, .2);
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    padding: 6px; /* Ruang di sekitar ikon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.r-badge img {
+    width: 22px;      /* Atur lebar ikon */
+    height: 22px;     /* Atur tinggi ikon */
+    object-fit: contain;
+    display: block;
+}
+
+.r-card:hover .r-badge img {
+    transform: scale(1.15) rotate(5deg);
+    transition: transform 0.3s ease;
 }
 
 .r-sofa {
@@ -315,17 +330,21 @@ body {
 
 .r-foot h5 {
     font-family: 'Modak', system-ui;
-    margin-bottom: 4px;
-    letter-spacing: .2px;
-    font-size: 1.2rem;
-    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: 1.5px; /* Ditambah agar antar huruf ada jarak */
+    font-size: 1.5rem;     /* Ukuran sedikit diperbesar */
+    font-weight: normal;   /* Modak sudah tebal bawaan, tidak perlu 800 */
+    color: #f1f33f;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
 }
 
 .r-foot p {
-    font-size: .79rem;
-    opacity: .9;
+    font-size: .85rem; /* Sedikit diperbesar agar seimbang */
+    opacity: 0.85;
     line-height: 1.5;
     margin: 0;
+    color: #fff;
+    line-height: 1.4;
 }
 
 /* ════════════════════════
@@ -488,6 +507,42 @@ body {
     color: #fff !important;
 }
 
+/* Posisi awal item */
+.item-interaktif {
+    width: 120px; /* Sesuaikan ukuran */
+    cursor: pointer;
+    position: absolute;
+    top: 50px;
+    right: 100px;
+    z-index: 999;
+    transition: filter 0.3s;
+}
+
+.item-interaktif:hover {
+    filter: brightness(1.2);
+}
+
+/* Class yang dipicu oleh JavaScript */
+.fall-animation {
+    animation: gravityFall 1.2s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+}
+
+@keyframes gravityFall {
+    0% {
+        /* Tetap gunakan scaleX(-1) agar efek mirror tidak hilang saat jatuh */
+        transform: translateY(0) scaleX(-1) rotate(-10deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateY(-20px) scaleX(-1) rotate(-20deg);
+    }
+    100% {
+        transform: translateY(800px) scaleX(-1) rotate(180deg);
+        opacity: 0;
+    }
+}
+
 /* ════════════════════════
    FOOTER
 ════════════════════════ */
@@ -504,6 +559,14 @@ footer {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.f-logo.font-modak {
+    font-family: 'Modak', system-ui; /* Memastikan font Modak terpanggil */
+    font-size: 2.5rem;               /* Sesuaikan ukurannya di sini */
+    letter-spacing: 1px;             /* Memberi sedikit ruang antar huruf jika terlalu rapat */
+    color: #fff;
+    line-height: 1.2;
 }
 
 .f-logo-circle {
@@ -544,10 +607,25 @@ footer {
 .f-list li {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
     font-size: .8rem;
     color: rgba(255, 255, 255, .62);
     line-height: 1.55;
+    /* Tambahan agar teks panjang mau patah ke bawah */
+    word-break: break-word; 
+    overflow-wrap: break-word;
+    width: 100%;
+}
+
+.f-list li span:last-child {
+    flex: 1; /* Mengambil sisa ruang agar teks tidak meluap keluar kolom */
+}
+
+.f-list li .fi img {
+    width: 20px;          /* Ukuran icon hubungi kami */
+    height: 20px;
+    object-fit: contain;
+    display: block;
 }
 
 .f-list li .fi {
@@ -563,16 +641,22 @@ footer {
 .soc-btn {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;             /* Jarak antara icon dan teks Youtube/TikTok */
     height: 36px;
-    padding: 0 14px;
+    padding: 0 12px;
     border-radius: 7px;
     background: rgba(255, 255, 255, .12);
-    font-size: .85rem;
+    font-size: .8rem;     /* Sedikit lebih kecil agar muat di mobile */
     color: #fff;
     text-decoration: none;
     transition: background .2s;
     white-space: nowrap;
+}
+
+.soc-btn img {
+    width: 18px;          /* Ukuran icon sosmed */
+    height: 18px;
+    object-fit: contain;
 }
 
 .soc-btn:hover {
@@ -589,6 +673,16 @@ footer {
     font-size: .72rem;
     color: rgba(255, 255, 255, .32);
     text-align: center;
+}
+
+@media (max-width: 576px) {
+    .f-list {
+        gap: 12px; /* Beri jarak lebih antar baris di HP */
+    }
+    
+    .f-list li {
+        font-size: 0.75rem; /* Teks sedikit mengecil di HP */
+    }
 }
 
 /* ════════════════════════

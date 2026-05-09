@@ -46,10 +46,10 @@
                             <label>Status Booking</label>
                             <select name="status_booking" class="form-control">
                                 <option value="">Semua Status</option>
-                                <option value="ditahan" {{ request('status_booking') == 'ditahan' ? 'selected' : '' }}>Pending (Ditahan)</option>
-                                <option value="dikonfirmasi" {{ request('status_booking') == 'dikonfirmasi' ? 'selected' : '' }}>Dikonfirmasi</option>
-                                <option value="dibatalkan" {{ request('status_booking') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
-                                <option value="selesai" {{ request('status_booking') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="completed">Completed</option>
                             </select>
                         </div>
                     </div>
@@ -65,45 +65,38 @@
 
     {{-- Summary Cards --}}
     <div class="row">
-        {{-- Total Booking --}}
         <div class="col-md-3">
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>{{ $summary['total_booking'] }}</h3>
+                    <h3>12</h3>
                     <p>Total Booking</p>
                 </div>
                 <div class="icon"><i class="fas fa-calendar-check"></i></div>
             </div>
         </div>
-
-        {{-- Booking Confirmed --}}
         <div class="col-md-3">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>{{ $summary['confirmed'] }}</h3>
+                    <h3>8</h3>
                     <p>Booking Confirmed</p>
                 </div>
                 <div class="icon"><i class="fas fa-check-circle"></i></div>
             </div>
         </div>
-
-        {{-- Booking Cancelled --}}
         <div class="col-md-3">
             <div class="small-box bg-danger">
                 <div class="inner">
-                    <h3>{{ $summary['cancelled'] }}</h3>
+                    <h3>2</h3>
                     <p>Booking Cancelled</p>
                 </div>
                 <div class="icon"><i class="fas fa-times-circle"></i></div>
             </div>
         </div>
-
-        {{-- Total Pendapatan --}}
         <div class="col-md-3">
             <div class="small-box bg-warning">
                 <div class="inner">
-                    <h3>Rp {{ number_format($summary['pendapatan'], 0, ',', '.') }}</h3>
-                    <p>Total Pendapatan (Selesai)</p>
+                    <h3>Rp 1.200.000</h3>
+                    <p>Total Pendapatan</p>
                 </div>
                 <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
             </div>
@@ -136,43 +129,45 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($laporan as $key => $item)
+                    {{-- Dummy data --}}
                     <tr>
-                        <td>{{ $key + 1 }}</td>
-                        <td>{{ $item->id_transaksi }}</td>
-                        <td>{{ $item->user->nama_pengguna }}</td>
-                        <td>{{ $item->penetapanHarga->ruangan->nama_ruangan }}</td>
-                        <td>{{ $item->penetapanHarga->paket->nama_paket }}</td>
-                        <td>{{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d/m/Y') }}</td>
-                        <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
-                        <td>
-                            {{-- Warna Badge sesuai ENUM status_sewa --}}
-                            @if($item->status_sewa == 'dikonfirmasi')
-                                <span class="badge badge-success">Dikonfirmasi</span>
-                            @elseif($item->status_sewa == 'ditahan')
-                                <span class="badge badge-warning">Ditahan</span>
-                            @elseif($item->status_sewa == 'dibatalkan')
-                                <span class="badge badge-danger">Dibatalkan</span>
-                            @elseif($item->status_sewa == 'selesai')
-                                <span class="badge badge-info">Selesai</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge {{ $item->status_pembayaran == 'lunas' ? 'badge-success' : 'badge-secondary' }}">
-                                {{ ucfirst($item->status_pembayaran) }}
-                            </span>
-                        </td>
+                        <td>1</td>
+                        <td>BK-001</td>
+                        <td>John Doe</td>
+                        <td>Reguler - 01</td>
+                        <td>Paket PS4 1 Jam</td>
+                        <td>05/04/2026</td>
+                        <td>Rp 50.000</td>
+                        <td><span class="badge badge-success">Confirmed</span></td>
+                        <td><span class="badge badge-success">Paid</span></td>
                     </tr>
-                    @empty
                     <tr>
-                        <td colspan="9" class="text-center">Data laporan tidak ditemukan.</td>
+                        <td>2</td>
+                        <td>BK-002</td>
+                        <td>Jane Doe</td>
+                        <td>VIP - 01</td>
+                        <td>Paket Gaming 2 Jam</td>
+                        <td>05/04/2026</td>
+                        <td>Rp 150.000</td>
+                        <td><span class="badge badge-secondary">Pending</span></td>
+                        <td><span class="badge badge-warning">Unpaid</span></td>
                     </tr>
-                    @endforelse
+                    <tr>
+                        <td>3</td>
+                        <td>BK-003</td>
+                        <td>Bob Smith</td>
+                        <td>VVIP - 01</td>
+                        <td>Paket Karaoke 1 Jam</td>
+                        <td>05/04/2026</td>
+                        <td>Rp 200.000</td>
+                        <td><span class="badge badge-danger">Cancelled</span></td>
+                        <td><span class="badge badge-danger">Unpaid</span></td>
+                    </tr>
                 </tbody>
                 <tfoot>
                     <tr>
                         <th colspan="6" class="text-right">Total Pendapatan:</th>
-                        <th>Rp {{ number_format($summary['pendapatan'], 0, ',', '.') }}</th>
+                        <th>Rp 1.200.000</th>
                         <th colspan="2"></th>
                     </tr>
                 </tfoot>
