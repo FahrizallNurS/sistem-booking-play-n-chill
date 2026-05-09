@@ -20,7 +20,7 @@ class RegisterController extends Controller
 
         $request->validate([
             'nama_pengguna' => [
-                'required', 'string', 'max:45',
+                'required', 'string', 'max:50',
                 'unique:users,nama_pengguna',
                 'not_regex:' . $suspiciousPattern
             ],
@@ -35,21 +35,24 @@ class RegisterController extends Controller
         ]);
 
         $user = User::create([
-            'nama_pengguna'     => $request->nama_pengguna,
-            'email'             => $request->email,
-            'no_hp'             => $request->no_hp,
-            'password'          => Hash::make($request->password),
-            'role'              => 'pelanggan',
-            'alamat'            => null,
+            'nama_pengguna' => $request->nama_pengguna,
+            'email'         => $request->email,
+            'no_hp'         => $request->no_hp,
+            'password'      => Hash::make($request->password),
+            'role'          => 'pelanggan',
+            'alamat'        => null,
         ]);
 
-        // Login otomatis setelah daftar
+        // Login sementara hanya untuk kirim notifikasi
         Auth::login($user);
-
-        // Kirim email verifikasi
         $user->sendEmailVerificationNotification();
 
-        return redirect()->route('verification.notice')
-            ->with('success', 'Pendaftaran berhasil! Cek email untuk verifikasi.');
+        // Langsung logout — user harus aktivasi dulu
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+            ->with('success', 'Pendaftaran berhasil! Cek email kamu untuk aktivasi akun sebelum login.');
     }
 }

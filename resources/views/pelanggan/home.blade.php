@@ -309,7 +309,7 @@
     </div>
 </section>
 
-{{-- ═══ DAFTAR GAME ═══ --}}
+
 <section class="game-section">
     <div class="container-fluid px-4">
         <h2 class="teks-outline font-modak" data-aos="fade-right">Koleksi Game Kami</h2>
@@ -324,7 +324,7 @@
     @endforeach
 </div>
 
-{{-- Grid Game --}}
+
 <div class="game-grid" id="gameGrid">
     @forelse($permainans as $index => $permainan)
         @php
@@ -355,13 +355,6 @@
                 </div>
             @endif
 
-            {{-- Badge semua platform --}}
-            <div class="d-flex gap-1 flex-wrap justify-content-center mt-1">
-                @foreach($platforms as $p)
-                    <span class="game-badge">{{ strtoupper($p) }}</span>
-                @endforeach
-            </div>
-
             <h5>{{ $permainan->nama_permainan }}</h5>
         </div>
     @empty
@@ -370,14 +363,12 @@
 </div>
 </section>
 
-{{-- ═══ CTA ═══ --}}
 <section class="cta-section" id="booking" data-aos="zoom-in-up">
     <h2 class="teks-outline font-modak" >Siap untuk nongkrong Seru?</h2>
     <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
     <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
 </section>
 
-{{-- ═══ FOOTER ═══ --}}
 <footer>
     <div class="container">
         <div class="row g-4 pb-2">

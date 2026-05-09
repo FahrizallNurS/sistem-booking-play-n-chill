@@ -79,14 +79,27 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 | EMAIL VERIFICATION
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+    Route::middleware('auth')->group(function () {
     Route::get('/email/verify', function () {
         return view('auth.verify-email');
     })->name('verification.notice');
 
-    Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
-        $request->fulfill();
-        return redirect('/home');
+    Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = \App\Models\User::findOrFail($id);
+
+    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Link verifikasi tidak valid.');
+    }
+
+    if (!$user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+        \Illuminate\Support\Facades\Auth::logout(); 
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
+
+    return redirect()->route('login')
+        ->with('success', 'Email berhasil diverifikasi! Silakan login.');
     })->middleware('signed')->name('verification.verify');
 
     Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
@@ -104,6 +117,9 @@ Route::middleware(['auth'])->group(function () {
     // Profile & Booking Pelanggan
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::middleware([RoleMiddleware::class . ':pelanggan', 'verified'])->group(function () {
+        Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
+    });
 
     // Booking
     Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');

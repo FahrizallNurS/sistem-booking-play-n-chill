@@ -304,5 +304,12 @@
     $('#modalEdit').on('hidden.bs.modal', function () {
         $(this).find('input[type="file"]').val('');
     });
+
+    $('#modalEdit').on('hidden.bs.modal', function () {
+    $(this).find('input[type="file"]').val('');
+    document.querySelectorAll('.edit-device').forEach(function(checkbox) {
+        checkbox.checked = false;
+    });
+});
 </script>
 @stop
