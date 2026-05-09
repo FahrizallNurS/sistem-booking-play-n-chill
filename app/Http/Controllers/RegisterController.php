@@ -43,16 +43,15 @@ class RegisterController extends Controller
             'alamat'        => null,
         ]);
 
-        // Login sementara hanya untuk kirim notifikasi
         Auth::login($user);
         $user->sendEmailVerificationNotification();
-
-        // Langsung logout — user harus aktivasi dulu
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')
-            ->with('success', 'Pendaftaran berhasil! Cek email kamu untuk aktivasi akun sebelum login.');
+        // Redirect ke halaman cek email (tanpa butuh auth)
+        return redirect()->route('aktivasi.notice')
+            ->with('success', 'Pendaftaran berhasil! Cek email kamu untuk aktivasi akun.');
+
     }
 }

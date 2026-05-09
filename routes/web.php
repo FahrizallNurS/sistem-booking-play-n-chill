@@ -54,6 +54,10 @@ Route::get('/home', function () {
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
+Route::get('/aktivasi-akun', function () {
+    return view('auth.verify-email');
+})->name('aktivasi.notice');
+
 /*
 |--------------------------------------------------------------------------
 | AUTH (GUEST)
