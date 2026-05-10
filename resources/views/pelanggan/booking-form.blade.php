@@ -160,7 +160,7 @@
                                 $times = ['10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
                                         '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
                                         '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
-                                        '22.00','22.30','23.00','23.30'];
+                                        '22.00'];
                             @endphp
 
                             <div class="time-grid">
@@ -326,35 +326,48 @@
                 },
 
                 isBlocked(slot) {
-                    // Cek jam terpakai (booking sudah ada)
-                    if (this.jamTerpakai.includes(slot)) return true;
-                    if (!this.tanggal) return false;
+                if (this.jamTerpakai.includes(slot)) return true;
+                if (!this.tanggal) return false;
 
-                    const hari = new Date(this.tanggal).getDay();
+                const now = new Date();
+                const [y, m, d] = this.tanggal.split('-').map(Number);
+                const tanggalDate = new Date(y, m - 1, d);
+                const hariIni = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                // Blokir jam lewat hanya jika hari ini
+                if (tanggalDate.getTime() === hariIni.getTime()) {
                     const normalized = slot.replace('.', ':');
-                    const [jam, menit] = normalized.split(':').map(Number);
-                    const slotMenit = jam * 60 + menit;
+                    const [jamSlot, menitSlot] = normalized.split(':').map(Number);
+                    const slotMenit = jamSlot * 60 + menitSlot;
+                    const sekarangMenit = now.getHours() * 60 + now.getMinutes();
+                    if (slotMenit <= sekarangMenit) return true;
+                }
 
-                    // Tentukan jam buka & tutup berdasarkan hari
-                    let bukaMenit, tutupMenit;
-                    if (hari === 0 || hari === 6) {
-                        bukaMenit  = 10 * 60; // Sabtu-Minggu: 10:00
-                        tutupMenit = 23 * 60;
-                    } else if (hari === 4) {
-                        bukaMenit  = 14 * 60; // Kamis: 14:00 - 22:00
-                        tutupMenit = 22 * 60;
-                    } else {
-                        bukaMenit  = 14 * 60; // Senin-Rabu, Jumat: 14:00 - 23:00
-                        tutupMenit = 23 * 60;
-                    }
+                // Gunakan tanggalDate yang sudah di-parse manual (bukan new Date(string))
+                const hari = tanggalDate.getDay();
+                const normalized = slot.replace('.', ':');
+                const [jam, menit] = normalized.split(':').map(Number);
+                const slotMenit = jam * 60 + menit;
 
-                    if ((slotMenit < bukaMenit || slotMenit >= tutupMenit)) return true;
-                     const durasi = this.selectedPricing ? this.selectedPricing.durasi_jam * 60 : 0;
-                    if (durasi > 0 && (slotMenit + durasi) > tutupMenit) return true;
+                let bukaMenit, tutupMenit;
+                if (hari === 0 || hari === 6) {
+                    bukaMenit  = 10 * 60;
+                    tutupMenit = 23 * 60;
+                } else if (hari === 4) {
+                    bukaMenit  = 14 * 60;
+                    tutupMenit = 22 * 60;
+                } else {
+                    bukaMenit  = 14 * 60;
+                    tutupMenit = 23 * 60;
+                }
 
+                if (slotMenit < bukaMenit || slotMenit >= tutupMenit) return true;
 
-                    return false;
-                },
+                const durasi = this.selectedPricing ? this.selectedPricing.durasi_jam * 60 : 0;
+                if (durasi > 0 && (slotMenit + durasi) > tutupMenit) return true;
+
+                return false;
+            },
 
                 pilihWaktu() {
                     if (this.tempTime !== '' && !this.isBlocked(this.tempTime)) {

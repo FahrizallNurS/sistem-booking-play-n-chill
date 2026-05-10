@@ -183,6 +183,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/booking/{id}/tolak', [AdminBookingController::class, 'tolak'])->name('booking.tolak');
         Route::patch('/booking/{id}/pembayaran', [AdminBookingController::class, 'pembayaran'])->name('booking.pembayaran');
         Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
+        Route::patch('/booking/{id}/batalkan', [AdminBookingController::class, 'batalkan'])->name('booking.batalkan');
         Route::resource('game', GameController::class);
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
