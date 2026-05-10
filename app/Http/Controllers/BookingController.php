@@ -18,6 +18,7 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $this->cancelExpiredBookings();
+        $this->completeExpiredBookings();
         $tipe = $request->input('tipe', 'reguler');
 
         $kategoriMap = [
@@ -95,7 +96,7 @@ class BookingController extends Controller
             '10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
             '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
             '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
-            '22.00','22.30','23.00','23.30'
+            '22.00'
         ];
 
         $occupiedSlots = [];
@@ -112,7 +113,9 @@ class BookingController extends Controller
             $end   = Carbon::parse($booking->waktu_selesai);
 
             foreach ($allSlots as $slot) {
-                $currentSlot = Carbon::parse($tanggal . ' ' . str_replace('.', ':', $slot));
+                $currentSlot = Carbon::parse($tanggal . ' ' . str_replace('.', ':', $slot), 'Asia/Jakarta');
+                $start = Carbon::parse($booking->waktu_mulai)->setTimezone('Asia/Jakarta');
+                $end   = Carbon::parse($booking->waktu_selesai)->setTimezone('Asia/Jakarta');
                 if ($currentSlot >= $start && $currentSlot < $end) {
                     $occupiedSlots[] = $slot;
                 }
@@ -171,7 +174,9 @@ class BookingController extends Controller
                 ]);
             }
 
-            $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
+            do {
+                    $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
+            } while (TrTransaksi::where('kode_sewa', $kode)->exists());
 
             $jumlahDp  = null;
             $sisaBayar = 0;
@@ -202,6 +207,7 @@ class BookingController extends Controller
     public function status()
     {
         $this->cancelExpiredBookings();
+        $this->completeExpiredBookings();
         $bookings = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->where('id_pengguna', Auth::user()->id_pengguna) // FIX
             ->latest()
@@ -219,6 +225,7 @@ class BookingController extends Controller
     public function showPayment($id)
     {
         $this->cancelExpiredBookings();
+        $this->completeExpiredBookings();
         $transaksi = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->where('id_transaksi', $id)
             ->where('id_pengguna', Auth::user()->id_pengguna) // FIX
@@ -234,6 +241,15 @@ class BookingController extends Controller
             ->update([
                 'status_sewa'        => 'dibatalkan',
                 'catatan_pembayaran' => 'Waktu pembayaran habis!',
+            ]);
+    }
+
+    private function completeExpiredBookings()
+    {
+        TrTransaksi::where('status_sewa', 'dikonfirmasi')
+            ->where('waktu_selesai', '<', now())
+            ->update([
+                'status_sewa' => 'selesai',
             ]);
     }
 }

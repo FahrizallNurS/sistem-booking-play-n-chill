@@ -1,12 +1,12 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Dashboard Admin')
 
 @section('content_header')
     <h1 class="m-0 text-dark">Dashboard Admin</h1>
 @stop
 
-@section('content')
+@section('content') 
 
     {{-- Statistik --}}
     <div class="row">

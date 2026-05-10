@@ -244,14 +244,13 @@
     <h1>Play <span class="n-icon">N</span> Chill</h1>
   </div>
 
-  {{-- Tampilkan error login --}}
+
   @if ($errors->any())
     <div style="background:#fff0f0;border:1px solid #e63946;border-radius:10px;padding:12px 16px;margin-bottom:20px;color:#e63946;font-size:0.9rem;">
       {{ $errors->first() }}
     </div>
   @endif
-
-  {{-- Form pakai route('login.post') --}}
+ 
   <form action="{{ route('login.post') }}" method="post">
     @csrf
 

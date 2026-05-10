@@ -13,6 +13,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $table      = 'users';
     protected $primaryKey = 'id_pengguna';
+    public $incrementing = true;
 
     protected $fillable = [
         'nama_pengguna',
@@ -63,4 +64,40 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->id_pengguna;
     }
+
+    public function getNameAttribute()
+    {
+        return $this->attributes['nama_pengguna'] ?? 'Admin';
+    }
+
+      public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+     public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
+     public function isPelanggan()
+    {
+        return $this->role === 'pelanggan';
+    }
+
+    public function adminlte_desc()
+    {
+        return ucfirst($this->role);
+    }
+
+      public function adminlte_profile_url()
+    {
+        return url('admin/profil');
+    }
+
+    public function adminlte_image()
+    {
+        return null; 
+    }
+
 }

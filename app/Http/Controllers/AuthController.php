@@ -12,6 +12,9 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
+            if (!Auth::user()->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
             return $this->redirectByRole(Auth::user());
         }
         return view('auth.login');
@@ -32,23 +35,20 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
+            if (!Auth::user()->hasVerifiedEmail()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Email belum diverifikasi. Cek inbox kamu.',
+                ])->onlyInput('email');
+            }
+
             return $this->redirectByRole(Auth::user());
         }
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
         ])->onlyInput('email');
-
-                if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return $this->redirectByRole(Auth::user());
-        }
-
-        // Tambah log ini
-        \Log::info('Login gagal', [
-            'email' => $request->email,
-            'user'  => User::where('email', $request->email)->first()?->toArray()
-        ]);
     }
 
     public function logout(Request $request)
@@ -74,7 +74,6 @@ class AuthController extends Controller
             ]);
         }
 
-        // FIX: nama_pengguna bukan name
         $user = User::firstOrCreate(
             ['email' => $googleUser->getEmail()],
             [

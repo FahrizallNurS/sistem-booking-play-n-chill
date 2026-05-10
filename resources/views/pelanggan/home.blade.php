@@ -367,7 +367,7 @@
 
     <div class="vid-wrap" id="vidWrap" onclick="startVideo()" data-aos="zoom-in" data-aos-duration="1000">
         <div class="vid-thumb" 
-            style="background-image: url('https://img.youtube.com/vi/BKvT1G3jt6Y/maxresdefault.jpg'); 
+            style="background-image: url('https://img.youtube.com/vi/4iSpL_-hO8Y/maxresdefault.jpg'); 
                     background-size: cover; 
                     background-position: center; 
                     background-repeat: no-repeat;">
@@ -380,7 +380,7 @@
     </div>
 </section>
 
-{{-- ═══ DAFTAR GAME ═══ --}}
+
 <section class="game-section">
     <div class="container-fluid px-4">
         <h2 class="teks-outline font-modak" data-aos="fade-right">Koleksi Game Kami</h2>
@@ -395,7 +395,7 @@
     @endforeach
 </div>
 
-{{-- Grid Game --}}
+
 <div class="game-grid" id="gameGrid">
     @forelse($permainans as $index => $permainan)
         @php
@@ -425,13 +425,6 @@
                     <span style="font-size:3rem">🎮</span>
                 </div>
             @endif
-
-            {{-- Badge semua platform --}}
-            <div class="d-flex gap-1 flex-wrap justify-content-center mt-1">
-                @foreach($platforms as $p)
-                    <span class="game-badge">{{ strtoupper($p) }}</span>
-                @endforeach
-            </div>
 
             <h5>{{ $permainan->nama_permainan }}</h5>
         </div>
@@ -463,7 +456,6 @@
     </div>
 </section>
 
-{{-- ═══ FOOTER ═══ --}}
 <footer>
     <div class="container">
         <div class="row g-4 pb-2">
@@ -534,7 +526,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function startVideo() {
-        const videoId = 'BKvT1G3jt6Y';
+        const videoId = '4iSpL_-hO8Y';
         const wrap    = document.getElementById('vidWrap');
         wrap.onclick  = null;
         wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1"

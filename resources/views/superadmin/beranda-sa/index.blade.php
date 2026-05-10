@@ -1,5 +1,5 @@
 @extends('superadmin.layouts.app')
-
+@include('partials.sidebar-superadmin')
 @section('title', 'Dashboard Superadmin')
 
 @section('content_header')

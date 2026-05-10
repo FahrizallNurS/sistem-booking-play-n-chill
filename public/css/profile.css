@@ -585,3 +585,100 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
+
+/* ═══ MODAL EDIT PROFIL ═══ */
+#modalEditProfil .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+#modalEditProfil .modal-header {
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 28px;
+    border-bottom: none;
+}
+
+#modalEditProfil .modal-title {
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+}
+
+#modalEditProfil .btn-close {
+    filter: invert(1);
+}
+
+#modalEditProfil .modal-body {
+    padding: 28px;
+    background: #fafafa;
+}
+
+#modalEditProfil .form-label {
+    color: #1e1b4b;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+#modalEditProfil .form-control {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+#modalEditProfil .form-control:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#modalEditProfil hr {
+    border-color: #e5e7eb;
+    margin: 20px 0;
+}
+
+#modalEditProfil .modal-footer {
+    background: #fafafa;
+    border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 20px 20px;
+    padding: 16px 28px;
+}
+
+#modalEditProfil .btn-secondary {
+    background: transparent;
+    color: #6b7280;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-weight: 800;
+    padding: 8px 20px;
+    font-family: 'Nunito', sans-serif;
+    transition: all 0.2s;
+}
+
+#modalEditProfil .btn-secondary:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+#modalEditProfil .btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #4c1d95);
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    padding: 8px 24px;
+    font-family: 'Nunito', sans-serif;
+    transition: all 0.2s;
+}
+
+#modalEditProfil .btn-primary:hover {
+    background: linear-gradient(135deg, #6d28d9, #3b0764);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}   
