@@ -102,6 +102,25 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Http\Request $request, $id, $hash) {
+    $user = \App\Models\User::findOrFail($id);
+
+    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Link verifikasi tidak valid.');
+    }
+
+    if ($request->hasValidSignature() === false) {
+        abort(403, 'Link verifikasi sudah expired.');
+    }
+
+    if (!$user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+    }
+
+    return redirect()->route('login')
+        ->with('success', 'Akun berhasil diaktifkan! Silakan login.');
+})->middleware('signed')->name('verification.verify');
+
 /*
 |--------------------------------------------------------------------------
 | EMAIL VERIFICATION
@@ -112,28 +131,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
         return view('auth.verify-email');
     })->name('verification.notice');
 
-    Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
-    $user = \App\Models\User::findOrFail($id);
-
-    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-        abort(403, 'Link verifikasi tidak valid.');
-    }
-
-    if (!$user->hasVerifiedEmail()) {
-        $user->markEmailAsVerified();
-        \Illuminate\Support\Facades\Auth::logout(); 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-    }
-
-    return redirect()->route('login')
-        ->with('success', 'Email berhasil diverifikasi! Silakan login.');
-    })->middleware('signed')->name('verification.verify');
-
-    Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
-        $request->user()->sendEmailVerificationNotification();
-        return back()->with('message', 'Link verifikasi sudah dikirim!');
-    })->middleware('throttle:6,1')->name('verification.send');
 });
 /*
 |--------------------------------------------------------------------------
