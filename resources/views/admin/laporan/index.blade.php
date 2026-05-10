@@ -157,9 +157,13 @@
                 </small>
             </h3>
             <div class="card-tools">
-                <a href="#" class="btn btn-danger btn-sm">
-                    <i class="fas fa-file-pdf"></i> Export PDF
-                </a>
+            
+            <a href="{{ route('admin.laporan.export-pdf', request()->all()) }}" 
+                        class="btn btn-danger btn-sm" 
+                        target="_blank">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+            
             </div>
         </div>
         <div class="card-body p-0">
