@@ -113,58 +113,89 @@
                 </thead>
                 <tbody>
                 @forelse($users as $index => $user)
-                    <tr>
-                        <td>
+            <tr>
+
+                {{-- Nomor --}}
+                <td>{{ $index + 1 }}</td>
+
+                {{-- Nama --}}
+                <td>{{ $user->nama_pengguna }}</td>
+
+                {{-- Email --}}
+                <td>{{ $user->email }}</td>
+
+                {{-- No HP --}}
+                <td>{{ $user->no_hp ?? '-' }}</td>
+
+                {{-- Role --}}
+                <td>
+                    @if($user->role === 'superadmin')
+                        <span class="badge badge-danger">Superadmin</span>
+                    @elseif($user->role === 'admin')
+                        <span class="badge badge-warning">Admin</span>
+                    @else
+                        <span class="badge badge-info">Pelanggan</span>
+                    @endif
+                </td>
+
+                {{-- Status --}}
+                <td>
+                    @if($user->status == 1)
+                        <span class="badge badge-success">Aktif</span>
+                    @else
+                        <span class="badge badge-secondary">Nonaktif</span>
+                    @endif
+                </td>
+
+                {{-- Terdaftar --}}
+                <td>{{ $user->created_at->format('d/m/Y') }}</td>
+
+                {{-- Aksi --}}
+                <td>
+                    <a href="{{ route('superadmin.users.edit', $user->id_pengguna) }}"
+                        class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+
+                    @if($user->id_pengguna !== auth()->user()->id_pengguna)
+
+                        <form action="{{ route('superadmin.users.destroy', $user->id_pengguna) }}"
+                            method="POST"
+                            style="display:inline">
+
+                            @csrf
+                            @method('DELETE')
+
                             @if($user->status == 1)
-                                <span class="badge badge-success">Aktif</span>
+
+                                <button type="submit"
+                                    class="btn btn-warning btn-sm"
+                                    onclick="return confirm('Nonaktifkan user ini?')">
+
+                                    <i class="fas fa-user-slash"></i>
+                                    Nonaktifkan
+
+                                </button>
+
                             @else
-                                <span class="badge badge-secondary">Nonaktif</span>
-                            @endif
-                        </td>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $user->nama_pengguna }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->no_hp ?? '-' }}</td>
-                        <td>
-                            @if($user->role === 'superadmin')
-                                <span class="badge badge-danger">Superadmin</span>
-                            @elseif($user->role === 'admin')
-                                <span class="badge badge-warning">Admin</span>
-                            @else
-                                <span class="badge badge-info">Pelanggan</span>
-                            @endif
-                        </td>
-                        <td>{{ $user->created_at->format('d/m/Y') }}</td>
-                        <td>
-                            <a href="{{ route('superadmin.users.edit', $user->id_pengguna) }}"
-                                class="btn btn-warning btn-sm">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            @if($user->id_pengguna !== auth()->user()->id_pengguna)
-                                <form action="{{ route('superadmin.users.destroy', $user->id_pengguna) }}"
-                                    method="POST" style="display:inline">
-                                    @csrf
-                                    @method('DELETE')
 
-                                    @if($user->status == 1)
-                                        <button type="submit"
-                                            class="btn btn-warning btn-sm"
-                                            onclick="return confirm('Nonaktifkan user ini?')">
+                                <button type="submit"
+                                    class="btn btn-success btn-sm"
+                                    onclick="return confirm('Aktifkan user ini kembali?')">
 
-                                            <i class="fas fa-user-slash"></i> Nonaktifkan
-                                        </button>
-                                    @else
-                                        <button type="submit"
-                                            class="btn btn-success btn-sm"
-                                            onclick="return confirm('Aktifkan user ini kembali?')">
+                                    <i class="fas fa-user-check"></i>
+                                    Aktifkan
 
-                                            <i class="fas fa-user-check"></i> Aktifkan
-                                        </button>
-                                    @endif
-                                </form>
+                                </button>
+
                             @endif
-                        </td>
-                    </tr>
+
+                        </form>
+
+                    @endif
+                </td>
+
+            </tr>
                 @empty
                     <tr>
                         <td colspan="7" class="text-center">Belum ada data user</td>
