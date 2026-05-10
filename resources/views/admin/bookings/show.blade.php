@@ -156,7 +156,7 @@
         <div class="col-md-4">
 
             {{-- Input Pembayaran --}}
-            @if(in_array($booking->status_sewa, ['ditahan', 'dikonfirmasi']) && $booking->status_pembayaran !== 'lunas')
+            @if(in_array($booking->status_sewa, ['ditahan', 'dikonfirmasi', 'selesai']) && $booking->status_pembayaran !== 'lunas')
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h3 class="card-title">Update Pembayaran</h3>
