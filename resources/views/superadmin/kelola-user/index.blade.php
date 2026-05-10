@@ -25,6 +25,79 @@
             </div>
         </div>
         <div class="card-body">
+            <form method="GET"
+      action="{{ route('superadmin.users.index') }}"
+      class="mb-3">
+
+    <div class="row">
+
+        {{-- Search --}}
+        <div class="col-md-4">
+
+            <input type="text"
+                   name="search"
+                   class="form-control"
+                   placeholder="Cari nama atau email..."
+                   value="{{ request('search') }}">
+
+        </div>
+
+        {{-- Filter Role --}}
+        <div class="col-md-3">
+
+            <select name="role" class="form-control">
+
+                <option value="">
+                    Semua Role
+                </option>
+
+                <option value="superadmin"
+                    {{ request('role') == 'superadmin' ? 'selected' : '' }}>
+                    Superadmin
+                </option>
+
+                <option value="admin"
+                    {{ request('role') == 'admin' ? 'selected' : '' }}>
+                    Admin
+                </option>
+
+                <option value="pelanggan"
+                    {{ request('role') == 'pelanggan' ? 'selected' : '' }}>
+                    Pelanggan
+                </option>
+
+            </select>
+
+        </div>
+
+        {{-- Tombol Search --}}
+        <div class="col-md-2">
+
+            <button type="submit"
+                    class="btn btn-primary btn-block">
+
+                <i class="fas fa-search"></i>
+                Cari
+
+            </button>
+
+        </div>
+
+        {{-- Reset --}}
+        <div class="col-md-2">
+
+            <a href="{{ route('superadmin.users.index') }}"
+               class="btn btn-secondary btn-block">
+
+                Reset
+
+            </a>
+
+        </div>
+
+    </div>
+
+    </form>
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
@@ -33,6 +106,7 @@
                         <th>Email</th>
                         <th>No. HP</th>
                         <th>Role</th>
+                        <th>Status</th>
                         <th>Terdaftar</th>
                         <th>Aksi</th>
                     </tr>
@@ -40,6 +114,13 @@
                 <tbody>
                 @forelse($users as $index => $user)
                     <tr>
+                        <td>
+                            @if($user->status == 1)
+                                <span class="badge badge-success">Aktif</span>
+                            @else
+                                <span class="badge badge-secondary">Nonaktif</span>
+                            @endif
+                        </td>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $user->nama_pengguna }}</td>
                         <td>{{ $user->email }}</td>
@@ -64,10 +145,22 @@
                                     method="POST" style="display:inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Yakin hapus user ini?')">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
+
+                                    @if($user->status == 1)
+                                        <button type="submit"
+                                            class="btn btn-warning btn-sm"
+                                            onclick="return confirm('Nonaktifkan user ini?')">
+
+                                            <i class="fas fa-user-slash"></i> Nonaktifkan
+                                        </button>
+                                    @else
+                                        <button type="submit"
+                                            class="btn btn-success btn-sm"
+                                            onclick="return confirm('Aktifkan user ini kembali?')">
+
+                                            <i class="fas fa-user-check"></i> Aktifkan
+                                        </button>
+                                    @endif
                                 </form>
                             @endif
                         </td>

@@ -41,14 +41,13 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner">
-                        <h3>44</h3>
-                        <p>Laporan Baru</p>
+                        <h3>{{ $totalBooking ?? '0' }}</h3>  ← Sekalian update datanya
+                        <p>Total Booking</p>  ← Update label
                     </div>
                     <div class="icon">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    {{-- Pastikan rute 'superadmin.laporan' sudah terdaftar di web.php --}}
-                    <a href="#" class="small-box-footer">
+                    <a href="{{ route('superadmin.laporan.index') }}" class="small-box-footer">  ← FIX INI
                         Tinjau Laporan <i class="fas fa-arrow-circle-right"></i>
                     </a>
                 </div>

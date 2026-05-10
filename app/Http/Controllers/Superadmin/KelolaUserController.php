@@ -9,10 +9,30 @@ use Illuminate\Support\Facades\Hash;
 
 class KelolaUserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest('created_at')->get();
-        return view('superadmin.kelola-user.index', compact('users'));
+         $query = User::query();
+
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('nama_pengguna', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+
+            });
+        }
+
+         if ($request->filled('role')) {
+
+                $query->where('role', $request->role);
+        }
+
+            $users = $query->latest('created_at')->get();
+            return view('superadmin.kelola-user.index', compact('users'));
+
     }
 
     public function create()
@@ -79,15 +99,16 @@ class KelolaUserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-
-        // Cegah superadmin hapus diri sendiri
         if ($user->id_pengguna === auth()->id()) {
-            return back()->with('error', 'Tidak bisa menghapus akun sendiri!');
+            return back()->with('error', 'Tidak bisa menonaktifkan akun sendiri!');
         }
 
-        $user->delete();
+       $user->status = $user->status == 1 ? 0 : 1;
+        $user->save();
+
         return redirect()->route('superadmin.users.index')
-            ->with('success', 'User berhasil dihapus!');
+            ->with('success', 'Status user berhasil diubah!');
+
     }
 
     public function gantiPassword(Request $request, $id)

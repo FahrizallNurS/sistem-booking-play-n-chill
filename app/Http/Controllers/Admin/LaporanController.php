@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TrTransaksi;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -39,6 +40,7 @@ class LaporanController extends Controller
                 break;
         }
 
+        // Query transaksi (SEMUA TRANSAKSI untuk superadmin)
         $query = TrTransaksi::with(['pengguna', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->whereBetween('waktu_mulai', [$start, $end]);
 
@@ -56,19 +58,24 @@ class LaporanController extends Controller
 
         $transaksis = $query->latest('waktu_mulai')->get();
 
-        // Summary
+        // Summary - DITAMBAH Total Admin & Pelanggan
         $totalBooking    = $transaksis->count();
         $totalSelesai    = $transaksis->where('status_sewa', 'selesai')->count();
         $totalDibatalkan = $transaksis->where('status_sewa', 'dibatalkan')->count();
-        $totalPendapatan = $transaksis->whereIn('status_sewa', ['selesai'])
-                            ->sum('total_harga');
+        $totalPendapatan = $transaksis->whereIn('status_sewa', ['selesai'])->sum('total_harga');
+        
+        // TAMBAHAN UNTUK SUPERADMIN
+        $totalPelanggan  = User::where('role', 'pelanggan')->count();
+        $totalAdmin      = User::whereIn('role', ['admin', 'superadmin'])->count();
 
-        return view('admin.laporan.index', compact(
+        return view('superadmin.laporan.index', compact(
             'transaksis',
             'totalBooking',
             'totalSelesai',
             'totalDibatalkan',
             'totalPendapatan',
+            'totalPelanggan',
+            'totalAdmin',
             'periode',
             'start',
             'end'
@@ -82,7 +89,7 @@ class LaporanController extends Controller
         $statusBayar   = $request->input('status_bayar', '');
         $jenisBayar    = $request->input('jenis_bayar', '');
 
-        // Tentukan range tanggal berdasarkan periode (SAMA seperti method index)
+        // Tentukan range tanggal berdasarkan periode
         switch ($periode) {
             case 'mingguan':
                 $minggu = $request->input('minggu', now()->format('Y-W'));
@@ -104,6 +111,7 @@ class LaporanController extends Controller
                 break;
         }
 
+        // Query transaksi (SEMUA TRANSAKSI)
         $query = TrTransaksi::with(['pengguna', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->whereBetween('waktu_mulai', [$start, $end]);
 
@@ -125,8 +133,11 @@ class LaporanController extends Controller
         $totalBooking    = $transaksis->count();
         $totalSelesai    = $transaksis->where('status_sewa', 'selesai')->count();
         $totalDibatalkan = $transaksis->where('status_sewa', 'dibatalkan')->count();
-        $totalPendapatan = $transaksis->whereIn('status_sewa', ['selesai'])
-                            ->sum('total_harga');
+        $totalPendapatan = $transaksis->whereIn('status_sewa', ['selesai'])->sum('total_harga');
+        
+        // TAMBAHAN UNTUK SUPERADMIN
+        $totalPelanggan  = User::where('role', 'pelanggan')->count();
+        $totalAdmin      = User::whereIn('role', ['admin', 'superadmin'])->count();
 
         // Data untuk PDF
         $data = [
@@ -135,6 +146,8 @@ class LaporanController extends Controller
             'totalSelesai'     => $totalSelesai,
             'totalDibatalkan'  => $totalDibatalkan,
             'totalPendapatan'  => $totalPendapatan,
+            'totalPelanggan'   => $totalPelanggan,
+            'totalAdmin'       => $totalAdmin,
             'periode'          => $periode,
             'start'            => $start,
             'end'              => $end,
@@ -143,11 +156,11 @@ class LaporanController extends Controller
         ];
 
         // Generate PDF
-        $pdf = Pdf::loadView('admin.laporan.pdf', $data)
+        $pdf = Pdf::loadView('superadmin.laporan.pdf', $data)
                   ->setPaper('a4', 'portrait');
 
         // Nama file
-        $filename = 'Laporan_Booking_' . $start->format('Y-m-d') . '.pdf';
+        $filename = 'Laporan_Superadmin_' . $start->format('Y-m-d') . '.pdf';
 
         // Download PDF
         return $pdf->download($filename);
