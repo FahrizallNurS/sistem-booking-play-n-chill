@@ -130,8 +130,16 @@ class PaketController extends Controller
     public function destroy($id)
     {
         $paket = MsPaket::findOrFail($id);
+
+        // Hapus transaksi yang terkait dengan penetapan harga paket ini
+        $penetapanIds = $paket->penetapanHarga()->pluck('id_penetapan_harga');
+        
+        \App\Models\TrTransaksi::whereIn('id_penetapan_harga', $penetapanIds)->delete();
+
+        // Baru hapus penetapan harga dan paket
         $paket->penetapanHarga()->delete();
         $paket->delete();
+
         return redirect()->route('admin.paket.index')
             ->with('success', 'Paket berhasil dihapus!');
     }

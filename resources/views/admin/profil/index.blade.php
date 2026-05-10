@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Profil Admin')
 
 @section('content_header')

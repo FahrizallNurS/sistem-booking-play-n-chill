@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Detail Booking')
 
 @section('content_header')
@@ -241,7 +241,15 @@
                             <button type="submit" class="btn btn-info btn-block">
                                 <i class="fas fa-flag-checkered"></i> Tandai Selesai
                             </button>
+
+                            <button type="button" class="btn btn-danger btn-block"
+                                data-toggle="modal" data-target="#modalBatalkan"
+                                data-id="{{ $booking->id_transaksi }}"
+                                data-kode="{{ $booking->kode_sewa }}">
+                                <i class="fas fa-ban"></i> Batalkan Booking
+                            </button>
                         </form>
+                        
 
                     @else
                         <p class="text-muted text-center mb-0">
@@ -282,6 +290,38 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalBatalkan" tabindex="-1">
+        <div class="modal-dialog">
+            <form id="formBatalkan" method="POST">
+                @csrf @method('PATCH')
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Batalkan Booking</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Booking: <strong id="modalKodeBatal"></strong></p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Booking yang sudah dikonfirmasi akan dibatalkan. Tindakan ini tidak bisa dibatalkan.
+                        </div>
+                        <div class="form-group">
+                            <label>Alasan Pembatalan <span class="text-danger">*</span></label>
+                            <textarea name="catatan_pembatalan" class="form-control" rows="3"
+                                placeholder="Tulis alasan pembatalan..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-ban"></i> Batalkan Booking
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @stop
 
 @section('js')
@@ -293,5 +333,14 @@
         $(this).find('#formTolak').attr('action', '/admin/booking/' + id + '/tolak');
         $(this).find('#modalKode').text(kode);
     });
+
+    $('#modalBatalkan').on('show.bs.modal', function (e) {
+        var btn  = $(e.relatedTarget);
+        var id   = btn.data('id');
+        var kode = btn.data('kode');
+        $(this).find('#formBatalkan').attr('action', '/admin/booking/' + id + '/batalkan');
+        $(this).find('#modalKodeBatal').text(kode);
+    });
+
 </script>
 @stop

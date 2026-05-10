@@ -239,4 +239,26 @@ class BookingController extends Controller
         return redirect()->route('admin.booking.show', $id)
             ->with('success', 'Booking ditandai selesai.');
     }
+
+    public function batalkan(Request $request, $id)
+    {
+        $request->validate([
+            'catatan_pembatalan' => 'required|string|max:255',
+        ], [
+            'catatan_pembatalan.required' => 'Alasan pembatalan wajib diisi.',
+        ]);
+
+        $booking = TrTransaksi::findOrFail($id);
+
+        if ($booking->status_sewa !== 'dikonfirmasi') {
+            return back()->withErrors(['error' => 'Booking ini tidak bisa dibatalkan.']);
+        }
+
+        $booking->update([
+            'status_sewa'        => 'dibatalkan',
+            'catatan_pembayaran' => $request->catatan_pembatalan,
+        ]);
+
+        return back()->with('success', 'Booking berhasil dibatalkan.');
+    }
 }

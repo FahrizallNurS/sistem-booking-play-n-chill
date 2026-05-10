@@ -22,6 +22,12 @@ class ProfileController extends Controller
             'catatan_pembayaran' => 'Waktu pembayaran habis!',
         ]);
 
+        \App\Models\TrTransaksi::where('status_sewa', 'dikonfirmasi')
+            ->where('waktu_selesai', '<', now())
+            ->update([
+                'status_sewa' => 'selesai',
+            ]);
+
 
         // FIX: id_pengguna bukan id
         $bookingAktif = \App\Models\TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])

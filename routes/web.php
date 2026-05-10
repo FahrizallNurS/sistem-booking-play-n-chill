@@ -11,6 +11,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\TentangKamiController;
 use App\Models\MsRuangan;
 use App\Models\MsPermainan;
+use App\Models\User;
 
 // Admin Controllers...
 use App\Http\Controllers\Admin\DashboardController;
@@ -54,6 +55,32 @@ Route::get('/home', function () {
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
+Route::get('/aktivasi-akun', function () {
+    return view('auth.verify-email');
+})->name('aktivasi.notice');
+
+Route::post('/aktivasi-akun/kirim-ulang', function (\Illuminate\Http\Request $request) {
+    $email = session('pending_verification_email');
+
+    if (!$email) {
+        return back()->withErrors(['error' => 'Session expired. Silakan daftar ulang.']);
+    }
+
+    $user = \App\Models\User::where('email', $email)
+                ->whereNull('email_verified_at')
+                ->first();
+
+    if (!$user) {
+        return back()->withErrors(['error' => 'Email tidak ditemukan atau sudah diverifikasi.']);
+    }
+
+    \Illuminate\Support\Facades\Auth::login($user);
+    $user->sendEmailVerificationNotification();
+    \Illuminate\Support\Facades\Auth::logout();
+
+    return back()->with('success', 'Email verifikasi sudah dikirim ulang!');
+})->middleware('throttle:3,1')->name('aktivasi.kirim-ulang');
+
 /*
 |--------------------------------------------------------------------------
 | AUTH (GUEST)
@@ -79,14 +106,27 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 | EMAIL VERIFICATION
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+    Route::middleware('auth')->group(function () {
     Route::get('/email/verify', function () {
         return view('auth.verify-email');
     })->name('verification.notice');
 
-    Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
-        $request->fulfill();
-        return redirect('/home');
+    Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = \App\Models\User::findOrFail($id);
+
+    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Link verifikasi tidak valid.');
+    }
+
+    if (!$user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+        \Illuminate\Support\Facades\Auth::logout(); 
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
+
+    return redirect()->route('login')
+        ->with('success', 'Email berhasil diverifikasi! Silakan login.');
     })->middleware('signed')->name('verification.verify');
 
     Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
@@ -104,6 +144,9 @@ Route::middleware(['auth'])->group(function () {
     // Profile & Booking Pelanggan
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::middleware([RoleMiddleware::class . ':pelanggan', 'verified'])->group(function () {
+        Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
+    });
 
     // Booking
     Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
@@ -140,11 +183,18 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/booking/{id}/tolak', [AdminBookingController::class, 'tolak'])->name('booking.tolak');
         Route::patch('/booking/{id}/pembayaran', [AdminBookingController::class, 'pembayaran'])->name('booking.pembayaran');
         Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
+        Route::patch('/booking/{id}/batalkan', [AdminBookingController::class, 'batalkan'])->name('booking.batalkan');
         Route::resource('game', GameController::class);
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
+        Route::get('/logout', function() {
+        auth()->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect('/login');
+        })->name('logout.get')->middleware('auth');
     });
 
     // Pelanggan Khusus

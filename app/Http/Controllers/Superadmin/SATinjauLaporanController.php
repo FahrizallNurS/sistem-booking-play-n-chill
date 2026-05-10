@@ -9,6 +9,6 @@ class SATinjauLaporanController extends Controller
 {
     public function index()
     {
-        return view('superadmin.tinjau-laporan.index');
+        return view('superadmin.laporan-sa.index');
     }
 }

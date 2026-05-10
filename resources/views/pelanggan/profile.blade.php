@@ -308,7 +308,6 @@
                 @endif
             </div>
 
-            {{-- Gambar ruangan --}}
             <div class="booking-aktif-gambar">
                 @if($ph->ruangan->galeri)
                     <img src="{{ asset('storage/' . $ph->ruangan->galeri) }}" alt="{{ $ph->ruangan->nama_ruangan }}">
@@ -323,7 +322,7 @@
     </div>
     @endif
 
-    {{-- ═══ RIWAYAT BOOKING ═══ --}}
+
     <div class="section-title mb-3">
         <i class="fas fa-history me-2"></i> Riwayat Booking
     </div>
@@ -359,6 +358,13 @@
                         @endif
                     </div>
                 </div>
+                @if($booking->status_sewa === 'dibatalkan' && $booking->catatan_pembayaran)
+                <div style="margin-top:8px;background:#fff3cd;border:1px solid #ffc107;
+                            border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#856404;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Alasan:</strong> {{ $booking->catatan_pembayaran }}
+                </div>
+                @endif
             </div>
 
             <div class="riwayat-actions">
@@ -380,7 +386,6 @@
 </div>
 </div>
 
-{{-- ═══ MODAL EDIT PROFIL ═══ --}}
 <div class="modal fade" id="modalEditProfil" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -395,8 +400,8 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nama</label>
-                        <input type="text" name="name" class="form-control"
-                            value="{{ old('name', $user->name) }}" required>
+                        <input type="text" name="nama_pengguna" class="form-control"
+                            value="{{ old('nama_pengguna', $user->nama_pengguna) }}" required>
                     </div>
 
                     <div class="mb-3">
