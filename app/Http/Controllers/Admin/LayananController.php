@@ -4,157 +4,167 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MsRuangan;
-use App\Models\MsKategori;
 use App\Models\MsPaket;
-use App\Models\MsPricing;
+use App\Models\PenetapanHarga;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class LayananController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ruangans = MsRuangan::with('kategori')->latest()->get();
-        return view('admin.layanan.index', compact('ruangans'));
-    }
+            $query = MsRuangan::query();
 
-    public function create()
-    {
-        $kategoris = MsKategori::all();
-        return view('admin.layanan.create', compact('kategoris'));
+            // SORTING
+            if ($request->sort == 'kategori_asc') {
+                $query->orderBy('kategori', 'asc');
+            } elseif ($request->sort == 'kategori_desc') {
+                $query->orderBy('kategori', 'desc');
+            } else {
+                // default (kayak sekarang)
+                $query->latest();
+            }
 
-        $exists = MsPricing::where('ms_ruangan_id_ruangan', $id)
-        ->where('ms_paket_id_paket', $request->ms_paket_id_paket)
-        ->where('hari_type', $request->hari_type)
-        ->where('durasi_menit', $request->durasi_menit)
-        ->exists();
+            $ruangans = $query->get();
 
-        if ($exists) {
-        return back()->withErrors([
-            'durasi_menit' => 'Pricing dengan kombinasi ini sudah ada'
-        ]);
-}
+            return view('admin.layanan.index', compact('ruangans'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama_ruangan'            => 'required|string|max:30',
-            'ms_kategori_id_kategori' => 'required|exists:ms_kategori,id_kategori',
-            'description'             => 'nullable|string',
-            'is_active'               => 'required|in:0,1',
+            'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan',
+            'kategori'     => 'required|in:REGULAR,VIP,VVIP',
+            'perangkat' => 'nullable|in:PS3,PS4,PS5',
+            'is_active'    => 'required|in:0,1',
+            'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        MsRuangan::create([
-            'nama_ruangan'            => $request->nama_ruangan,
-            'ms_kategori_id_kategori' => $request->ms_kategori_id_kategori,
-            'description'             => $request->description,
-            'is_active'               => $request->is_active,
-        ]);
+        $data = [
+            'nama_ruangan' => $request->nama_ruangan,
+            'kategori'     => $request->kategori,
+            'perangkat'    => $request->perangkat,
+            'is_active'    => $request->is_active,
+        ];
 
-        return redirect()->route('admin.layanan.index')->with('success', 'Ruangan berhasil ditambahkan!');
+        if ($request->hasFile('galeri')) {
+            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
+        }
 
-        $exists = MsPricing::where('ms_ruangan_id_ruangan', $id)
-        ->where('ms_paket_id_paket', $request->ms_paket_id_paket)
-        ->where('hari_type', $request->hari_type)
-        ->where('durasi_menit', $request->durasi_menit)
-        ->exists();
+        MsRuangan::create($data);
 
-    if ($exists) {
-        return back()->withErrors([
-            'durasi_menit' => 'Pricing dengan kombinasi ini sudah ada'
-        ]);
-    }
+        return redirect()->route('admin.layanan.index')
+            ->with('success', 'Ruangan berhasil ditambahkan!');
     }
 
     public function show($id)
     {
-        $ruangan = MsRuangan::with(['kategori', 'pricings.paket'])->findOrFail($id);
+        $ruangan = MsRuangan::with(['penetapanHarga.paket'])->findOrFail($id);
         $pakets  = MsPaket::where('is_active', 1)->get();
         return view('admin.layanan.show', compact('ruangan', 'pakets'));
     }
 
     public function edit($id)
     {
-        $ruangan = MsRuangan::with('pricings')->findOrFail($id);
-        if ($ruangan->pricings()->exists()) {
-        return back()->with('error', 'Ruangan tidak bisa dihapus karena masih memiliki pricing');
-        }
-
-        $ruangan->delete();
-
-        $kategoris = MsKategori::all();
-        return view('admin.layanan.edit', compact('ruangan', 'kategoris'));
-
-        $exists = MsPricing::where('ms_ruangan_id_ruangan', $id)
-            ->where('ms_paket_id_paket', $request->ms_paket_id_paket)
-            ->where('hari_type', $request->hari_type)
-            ->where('durasi_menit', $request->durasi_menit)
-            ->exists();
-
-        if ($exists) {
-            return back()->withErrors([
-                'durasi_menit' => 'Pricing dengan kombinasi ini sudah ada'
-            ]);
-        }
+        $ruangan = MsRuangan::findOrFail($id);
+        return response()->json($ruangan);
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_ruangan'            => 'required|string|max:30',
-            'ms_kategori_id_kategori' => 'required|exists:ms_kategori,id_kategori',
-            'description'             => 'nullable|string',
-            'is_active'               => 'required|in:0,1',
+            'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan,' . $id . ',id_ruangan',
+            'kategori'     => 'required|in:REGULAR,VIP,VVIP',
+            'perangkat'    => 'nullable|in:PS3,PS4,PS5',
+            'is_active'    => 'required|in:0,1',
+            'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        MsRuangan::findOrFail($id)->update([
-            'nama_ruangan'            => $request->nama_ruangan,
-            'ms_kategori_id_kategori' => $request->ms_kategori_id_kategori,
-            'description'             => $request->description,
-            'is_active'               => $request->is_active,
-        ]);
+        $ruangan = MsRuangan::findOrFail($id);
 
-        return redirect()->route('admin.layanan.index')->with('success', 'Ruangan berhasil diupdate!');
+        $data = [
+            'nama_ruangan' => $request->nama_ruangan,
+            'kategori'     => $request->kategori,
+            'perangkat'    => $request->perangkat,
+            'is_active'    => $request->is_active,
+        ];
+
+        if ($request->hasFile('galeri')) {
+            if ($ruangan->galeri) {
+                Storage::disk('public')->delete($ruangan->galeri);
+            }
+            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
+        }
+
+        $ruangan->update($data);
+
+        return redirect()->route('admin.layanan.index')
+            ->with('success', 'Ruangan berhasil diupdate!');
     }
 
     public function destroy($id)
     {
-        MsRuangan::findOrFail($id)->delete();
-        return redirect()->route('admin.layanan.index')->with('success', 'Ruangan berhasil dihapus!');
+        $ruangan = MsRuangan::findOrFail($id);
+
+        if ($ruangan->penetapanHarga()->exists()) {
+            return back()->with('error', 'Ruangan tidak bisa dihapus karena masih memiliki penetapan harga.');
+        }
+
+        if ($ruangan->galeri) {
+            Storage::disk('public')->delete($ruangan->galeri);
+        }
+
+        $ruangan->delete();
+        return redirect()->route('admin.layanan.index')
+            ->with('success', 'Ruangan berhasil dihapus!');
     }
 
-    public function storePricing(Request $request, $id)
+    // Penetapan Harga
+    public function storePenetapanHarga(Request $request, $id)
     {
         $request->validate([
-            'ms_paket_id_paket' => 'required|exists:ms_paket,id_paket',
-            'tipe_pricing'      => 'required|in:weekday,weekend,holiday',
-            'hari_type'         => 'required|in:weekday,weekend,holiday',
-            'durasi_menit'      => 'required|integer|min:30',
-            'harga'             => 'required|numeric|min:0',
+            'id_paket'   => 'required|exists:ms_paket,id_paket',
+            'tipe_hari'  => 'required|in:harian,akhir_pekan,liburan',
+            'durasi_jam' => 'required|integer|min:1',
+            'harga'      => 'required|integer|min:0',
         ]);
 
-        MsPricing::create([
-            'ms_ruangan_id_ruangan' => $id,
-            'ms_paket_id_paket'     => $request->ms_paket_id_paket,
-            'tipe_pricing'          => $request->tipe_pricing,
-            'hari_type'             => $request->hari_type,
-            'durasi_menit'          => $request->durasi_menit,
-            'harga'                 => $request->harga,
+        $exists = PenetapanHarga::where('id_ruangan', $id)
+            ->where('id_paket', $request->id_paket)
+            ->where('tipe_hari', $request->tipe_hari)
+            ->where('durasi_jam', $request->durasi_jam)
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors([
+                'durasi_jam' => 'Penetapan harga dengan kombinasi ini sudah ada.',
+            ]);
+        }
+
+        PenetapanHarga::create([
+            'id_ruangan' => $id,
+            'id_paket'   => $request->id_paket,
+            'tipe_hari'  => $request->tipe_hari,
+            'durasi_jam' => $request->durasi_jam,
+            'harga'      => $request->harga,
         ]);
 
-        return redirect()->route('admin.layanan.show', $id)->with('success', 'Pricing berhasil ditambahkan!');
+        return redirect()->route('admin.layanan.show', $id)
+            ->with('success', 'Penetapan harga berhasil ditambahkan!');
     }
 
-    public function destroyPricing($id)
+    public function destroyPenetapanHarga($id)
     {
-        MsPricing::findOrFail($id)->delete();
-        return back()->with('success', 'Pricing berhasil dihapus!');
+        PenetapanHarga::findOrFail($id)->delete();
+        return back()->with('success', 'Penetapan harga berhasil dihapus!');
     }
 
-    public function getRuanganByKategori($id)
+    // AJAX: ambil ruangan by kategori
+    public function getRuanganByKategori($kategori)
     {
-        return MsRuangan::where('ms_kategori_id_kategori', $id)
+        $ruangans = MsRuangan::where('kategori', $kategori)
             ->where('is_active', 1)
             ->get(['id_ruangan', 'nama_ruangan']);
+        return response()->json($ruangans);
     }
 }

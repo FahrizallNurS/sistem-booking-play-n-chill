@@ -4,13 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MsPaket;
-use App\Models\MsKategori;
 use App\Models\MsRuangan;
-use App\Models\MsFasilitas;
-use App\Models\MsPricing;
+use App\Models\PenetapanHarga;
 use Illuminate\Http\Request;
-
-        
 
 class PaketController extends Controller
 {
@@ -22,157 +18,136 @@ class PaketController extends Controller
 
     public function create()
     {
-        $kategoris = MsKategori::all();
-        $fasilitas = MsFasilitas::all();
-        return view('admin.paket.create', compact('kategoris', 'fasilitas'));
+        $ruangans = MsRuangan::where('is_active', 1)->get();
+        return view('admin.paket.create', compact('ruangans'));
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'nama_paket'       => 'required|string|max:50|unique:ms_paket,nama_paket',
-        'deskripsi_paket'  => 'nullable|string',
-        'maksimal_orang'   => 'nullable|integer|min:1',
-        'is_active'        => 'required|in:0,1',
-        'ms_ruangan_ids'   => 'required|array|min:1',
-        'ms_ruangan_ids.*' => 'exists:ms_ruangan,id_ruangan',
-        'tipe_hari'        => 'required|in:weekday,weekend,holiday',
-        'durasi_menit'     => 'required|array',
-        'durasi_menit.*'   => 'integer|min:30',
-        'harga'            => 'required|array',
-        'harga.*'          => 'numeric|min:0',
-        'fasilitas'        => 'nullable|array',
-        'fasilitas.*'      => 'nullable|string|max:100',
-    ]);
-
-    // 1. Simpan paket
-    $paket = MsPaket::create([
-        'nama_paket'      => $request->nama_paket,
-        'deskripsi_paket' => $request->deskripsi_paket,
-        'maksimal_orang'  => $request->maksimal_orang,
-        'is_active'       => $request->is_active,
-    ]);
-
-    // 2. Simpan fasilitas
-    $fasilitasIds = [];
-    if ($request->fasilitas) {
-        foreach ($request->fasilitas as $nama) {
-            if ($nama) {
-                $f = MsFasilitas::firstOrCreate([
-                    'nama_fasilitas' => ucfirst(strtolower($nama))
-                ]);
-                $fasilitasIds[] = $f->id_fasilitas;
-            }
-        }
-    }
-    if (!empty($fasilitasIds)) {
-        $paket->fasilitas()->sync($fasilitasIds);
-    }
-
-    // 3. Simpan pricing per ruangan
-    foreach ($request->ms_ruangan_ids as $ruanganId) {
-        foreach ($request->durasi_menit as $index => $durasi) {
-            MsPricing::create([
-                'ms_ruangan_id_ruangan' => $ruanganId,
-                'ms_paket_id_paket'     => $paket->id_paket,
-                'tipe_pricing'          => $request->tipe_hari,
-                'hari_type'             => $request->tipe_hari,
-                'durasi_menit'          => $durasi,
-                'harga'                 => $request->harga[$index],
-            ]);
-        }
-    }
-
-    return redirect()->route('admin.paket.index')
-        ->with('success', 'Paket berhasil dibuat!');
-    }   
-
-    public function edit($id)
     {
-        $paket     = MsPaket::with('pricings.ruangan')->findOrFail($id);
-        $kategoris = MsKategori::all();
-        $fasilitas = MsFasilitas::all();
-        
-        return view('admin.paket.edit', compact('paket', 'kategoris', 'fasilitas'));
+        $request->validate([
+            'nama_paket'       => 'required|string|max:40|unique:ms_paket,nama_paket',
+            'deskripsi_paket'  => 'nullable|string',
+            'maksimal_orang'   => 'required|integer|min:1',
+            'is_active'        => 'required|in:0,1',
+            'ruangan_ids'      => 'nullable|array',
+            'ruangan_ids.*'    => 'exists:ms_ruangan,id_ruangan',
+            'tipe_hari'        => 'nullable|in:harian,akhir_pekan,liburan',
+            'durasi_jam'       => 'nullable|array',
+            'durasi_jam.*'     => 'nullable|integer|min:1',
+            'harga'            => 'nullable|array',
+            'harga.*'          => 'nullable|string', // ← ubah ke string biar titik tidak dipotong
+        ]);
 
-        dd($request->all()); // ← tambah ini sementara
-    }
+        $paket = MsPaket::create([
+            'nama_paket'      => $request->nama_paket,
+            'deskripsi_paket' => $request->deskripsi_paket,
+            'maksimal_orang'  => $request->maksimal_orang,
+            'is_active'       => $request->is_active,
+        ]);
 
-    public function update(Request $request, $id)
-{
-    $request->validate([
-        'nama_paket'      => 'required|string|max:50',
-        'deskripsi_paket' => 'nullable|string',
-        'maksimal_orang'  => 'nullable|integer|min:1',
-        'is_active'       => 'required|in:0,1',
-        'fasilitas'       => 'nullable|array',
-        'fasilitas.*'     => 'nullable|string|max:100',
-    ]);
+        if ($request->ruangan_ids && $request->durasi_jam && $request->tipe_hari) {
+            foreach ($request->ruangan_ids as $ruanganId) {
+                foreach ($request->durasi_jam as $index => $durasi) {
+                    if ($durasi && !empty($request->harga[$index])) {
+                        // ← strip titik ribuan sebelum simpan
+                        $harga = (int) str_replace('.', '', $request->harga[$index]);
 
-    $paket = MsPaket::findOrFail($id);
-
-    $paket->update([
-        'nama_paket'      => $request->nama_paket,
-        'deskripsi_paket' => $request->deskripsi_paket,
-        'maksimal_orang'  => $request->maksimal_orang,
-        'is_active'       => $request->is_active,
-    ]);
-
-    // Update fasilitas
-    $fasilitasIds = [];
-    if ($request->fasilitas) {
-        foreach ($request->fasilitas as $nama) {
-            if ($nama) {
-                $f = MsFasilitas::firstOrCreate([
-                    'nama_fasilitas' => ucfirst(strtolower($nama))
-                ]);
-                $fasilitasIds[] = $f->id_fasilitas;
-            }
-        }
-    }
-    $paket->fasilitas()->sync($fasilitasIds);
-
-    // Tambah pricing baru kalau ada ruangan dipilih
-    if ($request->ms_ruangan_ids && $request->durasi_menit && $request->tipe_hari) {
-        foreach ($request->ms_ruangan_ids as $ruanganId) {
-            foreach ($request->durasi_menit as $index => $durasi) {
-                if ($durasi && isset($request->harga[$index])) {
-                    MsPricing::create([
-                        'ms_ruangan_id_ruangan' => $ruanganId,
-                        'ms_paket_id_paket'     => $paket->id_paket,
-                        'tipe_pricing'          => $request->tipe_hari,
-                        'hari_type'             => $request->tipe_hari,
-                        'durasi_menit'          => $durasi,
-                        'harga'                 => $request->harga[$index],
-                    ]);
+                        PenetapanHarga::create([
+                            'id_ruangan' => $ruanganId,
+                            'id_paket'   => $paket->id_paket,
+                            'tipe_hari'  => $request->tipe_hari,
+                            'durasi_jam' => $durasi,
+                            'harga'      => $harga,
+                        ]);
+                    }
                 }
             }
         }
+
+        return redirect()->route('admin.paket.index')
+            ->with('success', 'Paket berhasil dibuat!');
     }
 
-    return redirect()->route('admin.paket.index')->with('success', 'Paket berhasil diupdate!');
-}
+    public function show($id)
+    {
+        $paket = MsPaket::with('penetapanHarga.ruangan')->findOrFail($id);
+        return view('admin.paket.show', compact('paket'));
+    }
 
-        public function destroy($id)
+    public function edit($id)
+    {
+        $paket    = MsPaket::with('penetapanHarga.ruangan')->findOrFail($id);
+        $ruangans = MsRuangan::where('is_active', 1)->get();
+        return view('admin.paket.edit', compact('paket', 'ruangans'));
+    }
+
+        public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nama_paket'      => 'required|string|max:40',
+            'deskripsi_paket' => 'nullable|string',
+            'maksimal_orang'  => 'required|integer|min:1',
+            'is_active'       => 'required|in:0,1',
+            'ruangan_ids'     => 'nullable|array',
+            'ruangan_ids.*'   => 'exists:ms_ruangan,id_ruangan',
+            'tipe_hari'       => 'nullable|in:harian,akhir_pekan,liburan',
+            'durasi_jam'      => 'nullable|array',
+            'durasi_jam.*'    => 'integer|min:1',
+            'harga'           => 'nullable|array',
+            'harga.*'         => 'nullable|string', // ← string biar titik tidak terpotong
+        ]);
+
+        $paket = MsPaket::findOrFail($id);
+        $paket->update([
+            'nama_paket'      => $request->nama_paket,
+            'deskripsi_paket' => $request->deskripsi_paket,
+            'maksimal_orang'  => $request->maksimal_orang,
+            'is_active'       => $request->is_active,
+        ]);
+
+        if ($request->ruangan_ids && $request->durasi_jam && $request->tipe_hari) {
+            foreach ($request->ruangan_ids as $ruanganId) {
+                foreach ($request->durasi_jam as $index => $durasi) {
+                    if ($durasi && isset($request->harga[$index])) {
+                        // ← strip titik ribuan di dalam loop
+                        $harga = (int) str_replace('.', '', $request->harga[$index]);
+
+                        PenetapanHarga::create([
+                            'id_ruangan' => $ruanganId,
+                            'id_paket'   => $paket->id_paket,
+                            'tipe_hari'  => $request->tipe_hari,
+                            'durasi_jam' => $durasi,
+                            'harga'      => $harga,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->route('admin.paket.index')
+            ->with('success', 'Paket berhasil diupdate!');
+    }
+    public function destroy($id)
     {
         $paket = MsPaket::findOrFail($id);
+
+        // Hapus transaksi yang terkait dengan penetapan harga paket ini
+        $penetapanIds = $paket->penetapanHarga()->pluck('id_penetapan_harga');
         
-        // Hapus pricing dulu sebelum hapus paket
-        $paket->pricings()->delete();
-        
-        // Hapus fasilitas
-        $paket->fasilitas()->detach();
-        
-        // Baru hapus paket
+        \App\Models\TrTransaksi::whereIn('id_penetapan_harga', $penetapanIds)->delete();
+
+        // Baru hapus penetapan harga dan paket
+        $paket->penetapanHarga()->delete();
         $paket->delete();
-        
-        return redirect()->route('admin.paket.index')->with('success', 'Paket berhasil dihapus!');
+
+        return redirect()->route('admin.paket.index')
+            ->with('success', 'Paket berhasil dihapus!');
     }
 
-    // AJAX: ambil ruangan berdasarkan kategori
-    public function getRuanganByKategori($id_kategori)
+    // AJAX: ambil ruangan by kategori
+    public function getRuanganByKategori($kategori)
     {
-        $ruangans = MsRuangan::where('ms_kategori_id_kategori', $id_kategori)
+        $ruangans = MsRuangan::where('kategori', $kategori)
             ->where('is_active', 1)
             ->get(['id_ruangan', 'nama_ruangan']);
         return response()->json($ruangans);

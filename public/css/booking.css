@@ -8,7 +8,7 @@
 ──────────────────────── */
 .booking-page {
     min-height: 100vh;
-    background: var(--purple-dark);
+    background-color: transparent;
     padding: 48px 20px 64px;
 }
 
@@ -187,4 +187,23 @@
 @media (max-width: 480px) {
     .room-grid-booking { grid-template-columns: 1fr; max-width: 280px; margin: 0 auto; }
     .booking-title     { font-size: 2rem; }
+}
+
+.room-foto {
+    width: 100%;
+    height: 160px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.room-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.room-card-booking:hover .room-foto img {
+    transform: scale(1.05);
 }

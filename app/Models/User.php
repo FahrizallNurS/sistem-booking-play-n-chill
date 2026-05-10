@@ -2,52 +2,102 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $table      = 'users';
+    protected $primaryKey = 'id_pengguna';
+    public $incrementing = true;
 
     protected $fillable = [
-    'name',
-    'email',
-    'role',
-    'password',
-    'google_id',
-    'no_hp',
-    'alamat',
-  ];
+        'nama_pengguna',
+        'email',
+        'password',
+        'no_hp',
+        'google_id',
+        'alamat',
+        'role',
+        'email_verified_at',
+        'remember_token',
+    ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
+
+    // Relasi ke transaksi
+    public function transaksis()
+    {
+        return $this->hasMany(TrTransaksi::class, 'id_pengguna', 'id_pengguna');
+    }
+        
+    public function getAuthIdentifierName()
+    {
+        return 'id_pengguna';
+    }
+
+    public function getAuthIdentifier()
+    {
+        return $this->id_pengguna;      
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->password;
+    }
+    public function getKey()
+    {
+        return $this->id_pengguna;
+    }
+
+    public function getNameAttribute()
+    {
+        return $this->attributes['nama_pengguna'] ?? 'Admin';
+    }
+
+      public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+     public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
+     public function isPelanggan()
+    {
+        return $this->role === 'pelanggan';
+    }
+
+    public function adminlte_desc()
+    {
+        return ucfirst($this->role);
+    }
+
+      public function adminlte_profile_url()
+    {
+        return url('admin/profil');
+    }
+
+    public function adminlte_image()
+    {
+        return null; 
+    }
+
 }

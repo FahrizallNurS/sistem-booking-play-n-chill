@@ -9,63 +9,49 @@ use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
-    // Tampilkan halaman register
     public function showRegistrationForm()
     {
-        // Kalau sudah login, redirect sesuai role
-        if (Auth::check()) {
-            return $this->redirectByRole(Auth::user());
-        }
-
         return view('pelanggan.register');
     }
 
-    // Proses simpan data
     public function register(Request $request)
     {
-        // Kalau sudah login, redirect sesuai role
-        if (Auth::check()) {
-            return $this->redirectByRole(Auth::user());
-        }
+        $suspiciousPattern = '/[<>{}\[\];]/';
 
-        // Validasi input
         $request->validate([
-            'nama'     => 'required|string|max:45',
-            'email'    => 'required|email|max:100|unique:users,email',
+            'nama_pengguna' => [
+                'required', 'string', 'max:50',
+                'unique:users,nama_pengguna',
+                'not_regex:' . $suspiciousPattern
+            ],
+            'email'    => 'required|string|email:rfc,dns|max:30|unique:users,email',
             'no_hp'    => 'required|string|max:15',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8'
         ], [
-            'nama.required'     => 'Nama wajib diisi.',
-            'nama.max'          => 'Nama maksimal 45 karakter.',
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
-            'email.unique'      => 'Email sudah terdaftar.',
-            'no_hp.required'    => 'No HP wajib diisi.',
-            'no_hp.max'         => 'No HP maksimal 15 karakter.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min'      => 'Password minimal 8 karakter.',
+            'nama_pengguna.not_regex' => 'Input tidak valid.',
+            'nama_pengguna.unique'    => 'Username sudah digunakan.',
+            'email.unique'            => 'Email sudah terdaftar.',
+            'password.min'            => 'Password minimal 8 karakter.',
         ]);
 
-        // Simpan ke database — role selalu 'pelanggan', tidak bisa dimanipulasi dari form
-        User::create([
-            'name'      => $request->nama,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'no_hp'     => $request->no_hp,
-            'role'      => 'pelanggan',
-            'google_id' => null,
+        $user = User::create([
+            'nama_pengguna' => $request->nama_pengguna,
+            'email'         => $request->email,
+            'no_hp'         => $request->no_hp,
+            'password'      => Hash::make($request->password),
+            'role'          => 'pelanggan',
+            'alamat'        => null,
         ]);
 
-        return redirect()->route('login')->with('success', 'Berhasil daftar! Silakan login.');
-    }
+        Auth::login($user);
+        $user->sendEmailVerificationNotification();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-    // Helper redirect berdasarkan role
-    private function redirectByRole(User $user)
-    {
-        return match ($user->role) {
-            'superadmin' => redirect()->route('superadmin.dashboard'),
-            'admin'      => redirect()->route('admin.dashboard'),
-            default      => redirect()->route('pelanggan.home'),
-        };
+        session(['pending_verification_email' => $user->email]);
+        return redirect()->route('aktivasi.notice')
+            ->with('success', 'Pendaftaran berhasil! Cek email kamu untuk aktivasi akun.');
+
     }
 }

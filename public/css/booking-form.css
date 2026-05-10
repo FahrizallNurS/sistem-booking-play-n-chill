@@ -199,4 +199,20 @@ body {
     .booking-card {
         padding: 20px;
     }
+}   
+
+.btn-time.blocked {
+    opacity: 0.5;
+    background-color: #333 !important; /* Warna gelap */
+    pointer-events: none; /* User beneran gak bisa klik */
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.25) !important;
+    cursor: not-allowed !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    text-decoration: line-through;
+}
+
+.btn-time.blocked:hover {
+    transform: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }

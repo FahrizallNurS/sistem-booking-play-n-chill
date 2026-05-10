@@ -8,7 +8,7 @@
 ──────────────────────── */
 .profile-page {
     min-height: 100vh;
-    background: var(--purple-dark);
+    background-color: transparent;
     position: relative;
     overflow: hidden;
     padding-bottom: 60px;
@@ -266,3 +266,419 @@
     .diamond-3       { width: 170px; height: 170px; right: -70px; }
     .diamond-4       { width: 160px; height: 160px; left: -60px; }
 }
+
+body {
+    background-color: #f4f6fb;
+    font-family: 'Nunito', sans-serif;
+}
+
+/* ═══ NAVBAR ═══ */
+.navbar {
+    background: white !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.nav-link {
+    font-weight: 700;
+}
+
+.nav-avatar {
+    width: 40px; height: 40px;
+    background: #f0eeff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+}
+
+.nav-avatar svg { width: 22px; height: 22px; }
+
+/* ═══ SECTION TITLE ═══ */
+.section-title {
+    font-family: 'Fredoka One';
+    font-size: 1.3rem;
+    color: #ffffff;
+}
+
+/* ═══ HEADER PROFIL ═══ */
+.profile-header-card {
+    background: linear-gradient(135deg, #5b21b6, #7c3aed);
+    border-radius: 20px;
+    padding: 28px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.profile-header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-avatar-circle {
+    width: 72px; height: 72px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.profile-header-info h2 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: bolder;
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+}
+
+.profile-header-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.profile-header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.profile-stat {
+    text-align: center;
+}
+
+.profile-stat-value {
+    font-family: 'Fredoka One';
+    font-size: 2rem;
+    color: #fde047;
+    line-height: 1;
+}
+
+.profile-stat-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.btn-edit-profile {
+    background: white;
+    color: #5b21b6;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 800;
+    font-family: 'Nunito';
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-edit-profile:hover {
+    background: #fde047;
+}
+
+/* ═══ BOOKING AKTIF ═══ */
+.booking-aktif-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.booking-aktif-main {
+    display: flex;
+    gap: 0;
+}
+
+.booking-aktif-info {
+    flex: 1;
+    padding: 28px;
+    color: #1e1b4b;
+
+}
+
+.booking-aktif-gambar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.booking-aktif-gambar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gambar-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    gap: 12px;
+}
+
+.gambar-placeholder i { font-size: 3rem; opacity: 0.6; }
+.gambar-placeholder span { font-weight: 700; opacity: 0.8; }
+
+.badge-aktif {
+    background: #22c55e;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.waktu-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.waktu-label { font-size: 0.75rem; color: #888; font-weight: 600; }
+.waktu-value { font-size: 0.9rem; font-weight: 700; color: #333; }
+
+.progress-section {
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.progress-label { font-size: 0.85rem; color: #555; font-weight: 600; }
+.progress-status { font-size: 0.85rem; font-weight: 800; }
+.progress-sublabel { font-size: 0.75rem; color: #888; }
+.progress-time { font-size: 1rem; font-weight: 800; }
+
+.payment-info-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.payment-info-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333; /* tambah ini */
+}
+
+.payment-info-item span { color: #555; }
+.payment-info-item strong { color: #1e1b4b; }
+.payment-info-item strong.text-success { color: #16a34a !important; }
+.payment-info-item strong.text-danger  { color: #dc2626 !important; }
+
+.payment-info-item:last-child { border-bottom: none; }
+
+.catatan-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #92400e;
+}
+
+.btn-bayar {
+    display: inline-block;
+    background: #22c55e;
+    color: white;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-bayar:hover { background: #16a34a; color: white; }
+
+/* ═══ RIWAYAT ═══ */
+.riwayat-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.riwayat-card:hover { transform: translateY(-2px); }
+
+.riwayat-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    gap: 16px;
+}
+
+.riwayat-info h5{
+    color: #1e1b4b;
+    flex: 1; }
+
+.riwayat-detail-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.riwayat-actions { flex-shrink: 0; }
+
+.btn-booking-lagi {
+    display: inline-block;
+    background: #5b21b6;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-booking-lagi:hover { background: #4c1d95; color: white; }
+
+/* ═══ EMPTY STATE ═══ */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+    .booking-aktif-main { flex-direction: column; }
+    .booking-aktif-gambar { width: 100%; height: 200px; }
+    .profile-header-card { flex-direction: column; }
+    .riwayat-main { flex-direction: column; align-items: flex-start; }
+}
+
+.btn-bayar-payment {
+    background: var(--purple-dark);
+    border: 2px solid var(--purple-light);
+}
+
+.btn-bayar-payment:hover {
+    background: #3b0764;
+    color: white;
+}
+
+/* Card profil — beda dari background ungu */
+.profile-header-card {
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ═══ MODAL EDIT PROFIL ═══ */
+#modalEditProfil .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+#modalEditProfil .modal-header {
+    background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 28px;
+    border-bottom: none;
+}
+
+#modalEditProfil .modal-title {
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+}
+
+#modalEditProfil .btn-close {
+    filter: invert(1);
+}
+
+#modalEditProfil .modal-body {
+    padding: 28px;
+    background: #fafafa;
+}
+
+#modalEditProfil .form-label {
+    color: #1e1b4b;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+#modalEditProfil .form-control {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+#modalEditProfil .form-control:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#modalEditProfil hr {
+    border-color: #e5e7eb;
+    margin: 20px 0;
+}
+
+#modalEditProfil .modal-footer {
+    background: #fafafa;
+    border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 20px 20px;
+    padding: 16px 28px;
+}
+
+#modalEditProfil .btn-secondary {
+    background: transparent;
+    color: #6b7280;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-weight: 800;
+    padding: 8px 20px;
+    font-family: 'Nunito', sans-serif;
+    transition: all 0.2s;
+}
+
+#modalEditProfil .btn-secondary:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+#modalEditProfil .btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #4c1d95);
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    padding: 8px 24px;
+    font-family: 'Nunito', sans-serif;
+    transition: all 0.2s;
+}
+
+#modalEditProfil .btn-primary:hover {
+    background: linear-gradient(135deg, #6d28d9, #3b0764);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}   

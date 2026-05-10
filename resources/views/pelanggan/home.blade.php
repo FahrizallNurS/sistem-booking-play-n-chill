@@ -4,16 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
-    <title>Play N Chill</title>
+    <title>Play N Chill</title> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Modak&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    <style>
+        body {
+            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 65px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; /* Agar background tetap diam saat scroll */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            /* Pengaturan gambar background */
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            /* ATUR TRANSPARANSI DI SINI */
+            opacity: 0.8; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            
+            z-index: -1; /* Memastikan background berada di belakang konten */
+        }
+
+        .navbar.fixed-top {
+        position: fixed !important;
+        top: 0 !important;
+        width: 100% !important;
+        z-index: 1030 !important; /* Nilai tinggi agar di atas semua elemen */
+        background: rgba(255, 255, 255, 0.836); /* Beri warna agar tidak transparan total */
+        backdrop-filter: blur(10px); /* Efek blur estetik */
+    }
+    </style>
+
 </head>
 <body>
 
 {{-- ═══ NAVBAR ═══ --}}
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid px-4">
 
         <a class="navbar-brand p-0" href="{{ url('/') }}">
@@ -34,7 +78,7 @@
                     <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/gallery') }}">Gallery</a>
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
                 </li>
                 <li class="nav-item ms-2">
 
@@ -89,60 +133,111 @@
     </div>
 </nav>
 
-{{-- ═══ HERO / CAROUSEL ═══ --}}
-<section class="hero p-0">
-    <div id="heroCarousel" class="carousel slide carousel-fade"
-        data-bs-ride="carousel" data-bs-touch="true">
 
+{{-- ═══ HERO / CAROUSEL ═══ --}}
+<section class="hero p-0" style="background: transparent;">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+
+        {{-- Indicator --}}
         <div class="carousel-indicators">
-            @for ($i = 0; $i < 10; $i++)
-                <button type="button" data-bs-target="#heroCarousel"
+            @for ($i = 0; $i < 4; $i++) {{-- Sesuaikan angka 5 dengan jumlah fotomu --}}
+                <button type="button"
+                        data-bs-target="#heroCarousel"
                         data-bs-slide-to="{{ $i }}"
-                        class="{{ $i == 0 ? 'active' : '' }}"
-                        aria-current="{{ $i == 0 ? 'true' : 'false' }}">
+                        class="{{ $i == 0 ? 'active' : '' }}">
                 </button>
             @endfor
         </div>
 
+        {{-- Slides --}}
         <div class="carousel-inner">
-            @for ($i = 1; $i <= 5; $i++)
-                <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="3000">
-                    @if ($i == 1)
-                        {{-- Slide 1: Teks Play N Chill --}}
-                        <div class="hero-slide-img" style="background-color: var(--purple);">
-                            <div class="hero-overlay">
-                                <div class="hero-title">
-                                    <span>Play</span>
-                                    <span style="color: var(--orange); margin: 0 15px;">N</span>
-                                    <span>Chill</span>
+
+            @for ($i = 1; $i <= 4; $i++) {{-- Sesuaikan angka 5 dengan jumlah fotomu --}}
+                <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="4000">
+
+                    <div class="container-fluid py-4">
+                       
+                        
+                            @if ($i == 4)
+                                {{-- 🌟 SLIDE 1: Desain Lengkap (Ada Teks, Tombol, dan Gradasi) 🌟 --}}
+                                {{-- KOTAK LUAR (Dark Blue) - Dipertahankan di semua slide agar ukuran tinggi tetap stabil --}}
+                                <div class="rounded-4 p-3" style="background: rgb(14, 23, 0); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+                                <div class="rounded-4 px-5 py-5 d-flex flex-column flex-lg-row align-items-center justify-content-between"
+                                     style="
+                                     min-height:420px;
+                                     background:
+                                     linear-gradient(rgba(60,0,110,.65),rgba(20,0,60,.65)),
+                                     url('{{ asset("images/banner/slide{$i}.jpg") }}');
+                                     background-size:cover;
+                                     background-position:center;
+                                     ">
+
+                                    {{-- Bagian Kiri --}}
+                                    <div class="text-white">
+                                        <p class="text-uppercase mb-3" style="letter-spacing:3px;color:#d8b8ff;">
+                                            Premium Gaming
+                                        </p>
+                                        <h1 class="fw-bold display-2 mb-3">
+                                            PlaynChill
+                                        </h1>
+                                        <p class="fs-4 mb-4" style="max-width: 600px;">
+                                            Rental PlayStation dengan suasana nyaman dan harga terjangkau
+                                        </p>
+                                        <div class="d-flex gap-3 flex-wrap">
+                                            <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="background:#a020f0; border-radius: 10px;">
+                                                Book Now
+                                            </a>
+                                            <a href="{{ url('/gallery') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
+                                                Lihat Paket
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {{-- Bagian Kanan --}}
+                                    <div class="text-white mt-5 mt-lg-0 d-none d-md-block">
+                                        <div style="font-size:170px; opacity:.15; transform: rotate(15deg);">🎮</div>
+                                    </div>
+
                                 </div>
-                            </div>
-                        </div>
-                    @else
-                        {{-- Slide 2-10: Foto --}}
-                        <div class="hero-slide-img"
-                            style="background-image: url('{{ asset("images/banner/slide{$i}.jpg") }}')">
-                        </div>
-                    @endif
+                            </div> 
+                            @else
+                            <div class="rounded-4 p-3" style="box-shadow: 0 10px 30px rgba(0, 0, 0, 0.085);">
+                                {{-- 🖼️ SLIDE 2 DAN SETERUSNYA: Gambar Polos (Tanpa Teks & Tombol) 🖼️ --}}
+                                <div class="rounded-4"
+                                     style="
+                                     min-height:420px;
+                                     background: url('{{ asset("images/banner/slide{$i}.jpg") }}');
+                                     background-size:cover;
+                                     background-position:center;
+                                     ">
+                                </div>
+                            </div>    
+                            @endif
+                        
+                    </div>
+
                 </div>
             @endfor
+
         </div>
 
+        {{-- Arrow Navigation --}}
         <button class="carousel-control-prev" type="button"
-                data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+                data-bs-target="#heroCarousel" data-bs-slide="prev" style="width: 5%;">
+            <span class="carousel-control-prev-icon"></span>
         </button>
+
         <button class="carousel-control-next" type="button"
-                data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
+                data-bs-target="#heroCarousel" data-bs-slide="next" style="width: 5%;">
+            <span class="carousel-control-next-icon"></span>
         </button>
+
     </div>
 </section>
 
 {{-- ═══ SEMUA DALAM SATU TEMPAT ═══ --}}
-<div class="white-card">
+<div class="white-card" data-aos="fade-up"> {{-- Animasi fade-up untuk judul --}}
     <h2>Semua ada dalam Satu Tempat</h2>
     <p class="sub-desc">
         Nikmati tiga jenis hiburan berbeda tanpa perlu pindah tempat. Hemat waktu, maksimalkan keseruan!
@@ -151,7 +246,7 @@
    <div class="room-grid">
 
     {{-- Gaming Room --}}
-    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none">
+    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="100">
         <div class="r-card">
             <div class="r-img gaming" style="background-image: url('{{ asset('images/gaming.jpg') }}'); background-size: cover; background-position: center;">
                 <span class="r-badge">🎮</span>
@@ -163,9 +258,9 @@
             </div>
         </div>  
     </a>
-
+    
     {{-- Karaoke Room --}}
-    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none">
+    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="200">
         <div class="r-card">
             <div class="r-img karaoke" style="background-image: url('{{ asset('images/karaoke.jpg') }}'); background-size: cover; background-position: center;">
                 <span class="r-badge">🎤</span>
@@ -179,7 +274,7 @@
     </a>
 
     {{-- Private Bioskop --}}
-    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none">
+    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="300">
         <div class="r-card">
             <div class="r-img bioskop" style="background-image: url('{{ asset('images/cinema.jpg') }}'); background-size: cover; background-position: center;">
                 <span class="r-badge">🎞️</span>
@@ -196,11 +291,16 @@
 
 {{-- ═══ ROOM TOUR ═══ --}}
 <section class="tour-section">
-    <h2>Room Tour</h2>
-    <p class="tour-sub">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
+    <h2 data-aos="fade-down " class="font-modak">Room Tour</h2>
+    <p class="tour-sub" data-aos="fade-down" data-aos-delay="100">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
 
-    <div class="vid-wrap" id="vidWrap" onclick="startVideo()">
-        <div class="vid-thumb"></div>
+    <div class="vid-wrap" id="vidWrap" onclick="startVideo()" data-aos="zoom-in" data-aos-duration="1000">
+        <div class="vid-thumb" 
+            style="background-image: url('https://img.youtube.com/vi/4iSpL_-hO8Y/maxresdefault.jpg'); 
+                    background-size: cover; 
+                    background-position: center; 
+                    background-repeat: no-repeat;">
+        </div>
         <div class="vid-overlay">
             <div class="vid-play">
                 <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -209,55 +309,66 @@
     </div>
 </section>
 
-{{-- ═══ DAFTAR GAME ═══ --}}
+
 <section class="game-section">
     <div class="container-fluid px-4">
-        <h2>Koleksi Game Kami</h2>
+        <h2 class="teks-outline font-modak" data-aos="fade-right">Koleksi Game Kami</h2>
 
-        {{-- Navigasi Filter --}}
-        <div class="game-filter">
-            <button class="filter-game-btn active" onclick="filterGames('all')">Semua</button>
-            <button class="filter-game-btn" onclick="filterGames('ps3')">PS 3</button>
-            <button class="filter-game-btn" onclick="filterGames('ps4')">PS 4</button>
-            <button class="filter-game-btn" onclick="filterGames('ps5')">PS 5</button>
-            <button class="filter-game-btn" onclick="filterGames('switch')">Switch</button>
-        </div>
+       {{-- Navigasi Filter --}}
+<div class="game-filter" data-aos="fade-left">
+    <button class="filter-game-btn active" onclick="filterGames('all', this)">Semua</button>
+    @foreach($perangkats as $perangkat)
+        <button class="filter-game-btn" onclick="filterGames('{{ strtolower($perangkat) }}', this)">
+            {{ $perangkat }}
+        </button>
+    @endforeach
+</div>
 
-        {{-- Grid Game --}}
-        <div class="game-grid" id="gameGrid">
-            @php
-                // Data Dummy Game (Nanti bisa dipindah ke Controller)
-                $games = [
-                    ['title' => 'GTA V', 'platform' => 'ps4', 'img' => 'gta5.jpg'],
-                    ['title' => 'God of War Ragnarok', 'platform' => 'ps5', 'img' => 'gow.jpg'],
-                    ['title' => 'Mario Kart 8', 'platform' => 'switch', 'img' => 'mario.jpg'],
-                    ['title' => 'FIFA 23', 'platform' => 'ps5', 'img' => 'fifa23.jpg'],
-                    ['title' => 'The Last of Us', 'platform' => 'ps3', 'img' => 'tlou.jpg'],
-                    ['title' => 'Naruto Storm 4', 'platform' => 'ps4', 'img' => 'naruto.jpg'],
-                ];
-            @endphp
 
-            @foreach ($games as $game)
-                <div class="game-card" data-platform="{{ $game['platform'] }}">
-                    {{-- Pastikan kamu punya gambar di public/images/games/ --}}
-                    <img src="{{ asset('images/games/' . $game['img']) }}" 
-                         onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'" alt="Game">
-                    <span class="game-badge">{{ $game['platform'] }}</span>
-                    <h5>{{ $game['title'] }}</h5>
+<div class="game-grid" id="gameGrid">
+    @forelse($permainans as $index => $permainan)
+        @php
+            // Ambil semua perangkat dari ruangan yang di-assign ke game ini
+            $platforms = $permainan->ruangans
+                ->pluck('perangkat')
+                ->filter()
+                ->unique()
+                ->map(fn($p) => strtolower($p))
+                ->values()
+                ->toArray();
+            
+            $platformStr = implode(' ', $platforms);
+        @endphp
+
+        <div class="game-card"
+            data-platform="{{ $platformStr }}"
+            data-aos="fade-up"
+            data-aos-delay="{{ $index * 50 }}">
+
+            @if($permainan->gambar)
+                <img src="{{ asset('storage/' . $permainan->gambar) }}"
+                    alt="{{ $permainan->nama_permainan }}"
+                    onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
+            @else
+                <div style="width:100%;height:200px;background:#2d1b69;display:flex;align-items:center;justify-content:center;border-radius:12px;">
+                    <span style="font-size:3rem">🎮</span>
                 </div>
-            @endforeach
+            @endif
+
+            <h5>{{ $permainan->nama_permainan }}</h5>
         </div>
-    </div>
+    @empty
+        <p class="text-white text-center w-100">Belum ada game tersedia.</p>
+    @endforelse
+</div>
 </section>
 
-{{-- ═══ CTA ═══ --}}
-<section class="cta-section" id="booking">
-    <h2>Siap untuk nongkrong Seru?</h2>
+<section class="cta-section" id="booking" data-aos="zoom-in-up">
+    <h2 class="teks-outline font-modak" >Siap untuk nongkrong Seru?</h2>
     <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
     <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
 </section>
 
-{{-- ═══ FOOTER ═══ --}}
 <footer>
     <div class="container">
         <div class="row g-4 pb-2">
@@ -272,8 +383,8 @@
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Hubungi Kami</div>
                 <ul class="f-list">
-                    <li><span class="fi">📞</span><span>+62 812-XXXX-XXXX</span></li>
-                    <li><span class="fi">📧</span><span>hello@playchill.id</span></li>
+                    <li><span class="fi">📞</span><span>+62 857-3532-9227</span></li>
+                    <li><span class="fi">📧</span><span>playnchillmadiun@gmail.com</span></li>
                     <li>
                         <span class="fi">📍</span>
                         <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
@@ -320,7 +431,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function startVideo() {
-        const videoId = 'P3yd4BX9aaU';
+        const videoId = '4iSpL_-hO8Y';
         const wrap    = document.getElementById('vidWrap');
         wrap.onclick  = null;
         wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1"
@@ -329,25 +440,31 @@
 </script>
 
 <script>
-    function filterGames(platform) {
-        // 1. Ubah status tombol aktif
-        const buttons = document.querySelectorAll('.filter-game-btn');
-        buttons.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+function filterGames(platform, btn) {
+    document.querySelectorAll('.filter-game-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-        // 2. Filter kartu game
-        const cards = document.querySelectorAll('.game-card');
-        cards.forEach(card => {
-            if (platform === 'all' || card.getAttribute('data-platform') === platform) {
-                card.style.display = 'block';
-                // Animasi muncul kembali
-                card.style.opacity = '0';
-                setTimeout(() => { card.style.opacity = '1'; }, 10);
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
+    document.querySelectorAll('.game-card').forEach(card => {
+        const cardPlatforms = card.getAttribute('data-platform') || '';
+        if (platform === 'all' || cardPlatforms.includes(platform)) {
+            card.style.display = 'block';
+            card.style.opacity = '0';
+            setTimeout(() => { card.style.opacity = '1'; }, 10);
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    // Memulai (Inisialisasi) animasi AOS
+    AOS.init({
+        duration: 800, // Durasi animasi (800ms)
+        once: false,   // false = animasi diputar lagi setiap kali discroll
+        offset: 100,   // Berapa pixel jarak sebelum elemen terlihat
+    });
 </script>
 
 </body>

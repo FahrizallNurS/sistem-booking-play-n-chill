@@ -3,7 +3,9 @@
    Play N Chill Madiun
    ══════════════════════════════════════════ */
 
-*, *::before, *::after {
+   @import url('https://fonts.googleapis.com/css2?family=Modak&family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+
+   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -99,9 +101,9 @@ body {
    HERO / CAROUSEL
 ════════════════════════ */
 .hero {
-    background: var(--purple);
-    padding: 0 !important;
-    text-align: center;
+    background-image: url('../images/bg-segitiga.png'); /* Pastikan file ada di public/images */
+    background-size: cover;
+    background-position: center;
     position: relative;
     overflow: hidden;
 }
@@ -185,16 +187,18 @@ body {
 ════════════════════════ */
 .white-card {
     background: #fff;
-    margin-top: -60px;
-    padding: 44px 36px 52px;
+    padding: 20px 36px 52px;
+    margin: 0px 14px 0px;
     box-shadow: 0 8px 36px rgba(0, 0, 0, .09);
     position: relative;
     z-index: 5;
-    border-radius: 20px 20px 0 0;
+    border-radius: 50px;
 }
 
 .white-card h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Modak', system-ui;
+    font-weight: 400;
+    letter-spacing: 1px;
     color: var(--purple-dark);
     font-size: clamp(1.4rem, 3.8vw, 2.2rem);
     text-align: center;
@@ -310,7 +314,7 @@ body {
 }
 
 .r-foot h5 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Modak', system-ui;
     margin-bottom: 4px;
     letter-spacing: .2px;
     font-size: 1.2rem;
@@ -328,29 +332,39 @@ body {
    ROOM TOUR
 ════════════════════════ */
 .tour-section {
-    background: var(--yellow);
+    background: #d5e319c7 !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* Dukungan untuk Safari */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     text-align: center;
     position: relative;
-    padding: 32px 0;
+    padding: 60px 20px;
+    margin: 40px 20px;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
 .tour-section h2 {
-    font-family: 'Fredoka One', cursive;
-    color: var(--purple);
+    font-family: "Modak", system-ui;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: var(--purple-dark);
     font-size: clamp(2rem, 5.5vw, 3.2rem);
     margin-bottom: 6px;
 }
 
 .tour-section .tour-sub {
     font-weight: 700;
-    color: #222;
+    color: #ffffff;
     font-size: .95rem;
     margin-bottom: 28px;
 }
 
 .vid-wrap {
     max-width: 750px;
-    margin: 0 auto; 
+    align-items: center;
+    margin: 32px auto;
     overflow: hidden;
     box-shadow: 0 10px 44px rgba(0, 0, 0, .28);
     aspect-ratio: 16 / 9;
@@ -415,7 +429,7 @@ body {
    CTA SECTION
 ════════════════════════ */
 .cta-section {
-    background: var(--purple-dark);
+    background: transparent;
     padding: 80px 24px 90px;
     text-align: center;
     position: relative;
@@ -430,8 +444,10 @@ body {
 }
 
 .cta-section h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: "Modak", system-ui;
     color: var(--yellow);
+    font-weight: 400;
+    font-style: normal;
     font-size: clamp(2rem, 5.5vw, 3.6rem);
     margin-bottom: 16px;
     position: relative;
@@ -451,7 +467,7 @@ body {
 .btn-pesan {
     display: inline-block;
     background: var(--yellow);
-    color: #fff !important;
+    color: var(--purple-dark) !important;
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
     font-size: 1.4rem;
@@ -469,7 +485,7 @@ body {
 .btn-pesan:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 30px rgba(212, 230, 0, .45);
-    color: #3a3a00 !important;
+    color: #fff !important;
 }
 
 /* ════════════════════════
