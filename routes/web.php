@@ -162,6 +162,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('data-user', KelolaUserController::class)->names('users');
         Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
         Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/tinjau-laporan/export-pdf', [SATinjauLaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [SAProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');

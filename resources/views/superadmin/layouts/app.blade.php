@@ -86,9 +86,9 @@
     <div class="content-wrapper">
         <div class="content-header">
             <div class="container-fluid">
-                <h1 class="m-0">@yield('content_header')</h1>
-            </div>
+            @yield('content_header')
         </div>
+    </div>
         <div class="content">
             <div class="container-fluid">
                 @yield('content')
