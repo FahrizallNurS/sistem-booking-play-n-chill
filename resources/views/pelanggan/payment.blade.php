@@ -196,25 +196,13 @@
                 {{-- ── 2. INFORMASI TRANSFER ── --}}
                 <div class="payment-card">
                     <span class="section-badge">Metode Transfer</span>
-                    
-                    {{-- Bank BCA --}}
-                    <div class="bank-box mb-4">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/1200px-Bank_Central_Asia.svg.png" width="80" alt="BCA">
-                        <div>
-                            <p class="m-0 fw-bold text-uppercase small text-muted">Bank Central Asia</p>
-                            <h4 class="m-0 fw-black text-primary">1112233705</h4>
-                            <p class="m-0 fw-bold small">A/N Play n Chill</p>
-                        </div>
-                    </div>
 
                     {{-- QRIS --}}
                     <div class="qris-box">
-                        <div class="section-badge bg-dark mb-3" style="font-size: 10px;">QRIS</div>
-                        <div class="qris-img mx-auto">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PlayNChillMadiun" class="img-fluid" alt="QRIS">
+                        <div class="qris-img mx-auto" >
+                            <img src="{{ asset('images/qris.jpeg') }}" class="img-fluid" alt="QRIS" style="max-width: 200px;">
                         </div>
                         <p class="m-0 fw-black text-dark">Play N Chill Madiun</p>
-                        <p class="small text-muted m-0">NMID: ID123456789</p>
                     </div>
                 </div>
 
