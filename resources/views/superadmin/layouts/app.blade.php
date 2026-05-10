@@ -69,13 +69,18 @@
                             <p>Profil</p>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link"
-                            onclick="document.getElementById('logout-form-sa').submit()">
+                    <a href="#"
+                        class="nav-link"
+                        onclick="event.preventDefault();
+
+                        if(confirm('Yakin ingin logout?')) {
+                            document.getElementById('logout-form-sa').submit();
+                        }">
+
                             <i class="nav-icon fas fa-sign-out-alt"></i>
                             <p>Logout</p>
-                        </a>
-                    </li>
+
+                    </a>
 
                 </ul>
             </nav>
