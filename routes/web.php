@@ -172,9 +172,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
-        Route::resource('paket', PaketController::class);
+        Route::resource('paket', PaketController::class)->except(['destroy']);
+        Route::patch('/paket/{id}/toggle-aktif', [PaketController::class, 'toggleAktif'])->name('paket.toggle-aktif');
         Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
-        Route::resource('layanan', LayananController::class);
+        Route::resource('layanan', LayananController::class)->except(['destroy']);
+        Route::patch('/layanan/{id}/toggle-aktif', [LayananController::class, 'toggleAktif'])->name('layanan.toggle-aktif');    
         Route::post('/layanan/{id}/penetapan-harga', [LayananController::class, 'storePenetapanHarga'])->name('layanan.penetapan.store');
         Route::delete('/penetapan-harga/{id}', [LayananController::class, 'destroyPenetapanHarga'])->name('layanan.penetapan.destroy');
         Route::resource('booking', AdminBookingController::class);
