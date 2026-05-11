@@ -1,5 +1,5 @@
 @extends('superadmin.layouts.app')
-@include('partials.sidebar-superadmin')
+
 @section('title', 'Kelola User')
 
 @section('content_header')

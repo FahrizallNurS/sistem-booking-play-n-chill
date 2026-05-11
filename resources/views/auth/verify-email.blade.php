@@ -79,7 +79,7 @@
             <div class="alert">{{ session('success') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('verification.send') }}">
+        <form method="POST" action="{{ route('aktivasi.kirim-ulang') }}">
             @csrf
             <button type="submit" class="btn">Kirim Ulang Email Verifikasi</button>
         </form>

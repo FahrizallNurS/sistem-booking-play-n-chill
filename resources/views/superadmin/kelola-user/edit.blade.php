@@ -1,5 +1,4 @@
 @extends('superadmin.layouts.app')
-@include('partials.sidebar-superadmin')
 @section('title', 'Edit User')
 
 @section('content_header',)

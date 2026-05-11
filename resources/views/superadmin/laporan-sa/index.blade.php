@@ -1,5 +1,5 @@
 @extends('superadmin.layouts.app')
-@include('partials.sidebar-superadmin')
+
 @section('title', 'Laporan Superadmin')
 
 @section('content_header')

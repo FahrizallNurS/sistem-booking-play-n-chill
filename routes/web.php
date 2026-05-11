@@ -121,6 +121,22 @@ Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Http\Request $requ
         ->with('success', 'Akun berhasil diaktifkan! Silakan login.');
 })->middleware('signed')->name('verification.verify');
 
+Route::get('/check-verification', function () {
+    $email = session('pending_verification_email');
+
+    if (!$email) {
+        return response()->json([
+            'verified' => false
+        ]);
+    }
+
+    $user = \App\Models\User::where('email', $email)->first();
+
+    return response()->json([
+        'verified' => $user && $user->hasVerifiedEmail()
+    ]);
+});
+
 /*
 |--------------------------------------------------------------------------
 | EMAIL VERIFICATION
