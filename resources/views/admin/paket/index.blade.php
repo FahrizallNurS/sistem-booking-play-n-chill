@@ -44,20 +44,43 @@
                                 @if($paket->is_active)
                                     <span class="badge badge-success">Aktif</span>
                                 @else
-                                    <span class="badge badge-danger">Nonaktif</span>
+                                    <span class="badge badge-secondary">Nonaktif</span>  {{-- ganti dari badge-danger --}}
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('admin.paket.edit', $paket->id_paket) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('admin.paket.edit', $paket->id_paket) }}" 
+                                class="btn btn-info btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
-                                <form action="{{ route('admin.paket.destroy', $paket->id_paket) }}" method="POST" style="display:inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus paket ini?')">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </form>
+                                
+                                {{-- Tombol Toggle Status --}}
+                                @if($paket->is_active)
+                                    {{-- Paket Aktif - Tampilkan tombol Nonaktifkan --}}
+                                    <form action="{{ route('admin.paket.toggle-aktif', $paket->id_paket) }}" 
+                                        method="POST" 
+                                        style="display:inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" 
+                                                class="btn btn-warning btn-sm" 
+                                                onclick="return confirm('Nonaktifkan paket {{ $paket->nama_paket }}?')">
+                                            <i class="fas fa-ban"></i> Nonaktifkan
+                                        </button>
+                                    </form>
+                                @else
+                                    {{-- Paket Nonaktif - Tampilkan tombol Aktifkan --}}
+                                    <form action="{{ route('admin.paket.toggle-aktif', $paket->id_paket) }}" 
+                                        method="POST" 
+                                        style="display:inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" 
+                                                class="btn btn-success btn-sm" 
+                                                onclick="return confirm('Aktifkan kembali paket {{ $paket->nama_paket }}?')">
+                                            <i class="fas fa-check-circle"></i> Aktifkan
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                     @empty
