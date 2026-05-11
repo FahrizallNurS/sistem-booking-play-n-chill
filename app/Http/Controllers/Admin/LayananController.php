@@ -102,21 +102,13 @@ class LayananController extends Controller
             ->with('success', 'Ruangan berhasil diupdate!');
     }
 
-    public function destroy($id)
+    public function toggleAktif($id)
     {
         $ruangan = MsRuangan::findOrFail($id);
+        $ruangan->update(['is_active' => !$ruangan->is_active]);
 
-        if ($ruangan->penetapanHarga()->exists()) {
-            return back()->with('error', 'Ruangan tidak bisa dihapus karena masih memiliki penetapan harga.');
-        }
-
-        if ($ruangan->galeri) {
-            Storage::disk('public')->delete($ruangan->galeri);
-        }
-
-        $ruangan->delete();
-        return redirect()->route('admin.layanan.index')
-            ->with('success', 'Ruangan berhasil dihapus!');
+        $status = $ruangan->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return back()->with('success', "Ruangan berhasil {$status}!");
     }
 
     // Penetapan Harga

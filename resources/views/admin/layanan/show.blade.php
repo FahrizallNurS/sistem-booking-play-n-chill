@@ -20,14 +20,22 @@
         <div class="card-header">
             <h3 class="card-title">Informasi Ruangan</h3>
             <div class="card-tools">
-                <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}"
-                    class="btn btn-warning btn-sm">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <a href="{{ route('admin.layanan.index') }}" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </a>
-            </div>
+            {{-- Toggle Aktif/Nonaktif --}}
+            <form action="{{ route('admin.layanan.toggle-aktif', $ruangan->id_ruangan) }}"
+                method="POST" style="display:inline">
+                @csrf @method('PATCH')
+                <button type="submit"
+                    class="btn btn-{{ $ruangan->is_active ? 'warning' : 'success' }} btn-sm"
+                    onclick="return confirm('{{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }} ruangan ini?')">
+                    <i class="fas fa-{{ $ruangan->is_active ? 'ban' : 'check' }}"></i>
+                    {{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                </button>
+            </form>
+
+            <a href="{{ route('admin.layanan.index') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
         </div>
         <div class="card-body">
             <div class="row">
