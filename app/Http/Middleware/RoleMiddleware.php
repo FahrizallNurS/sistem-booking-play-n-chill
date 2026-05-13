@@ -17,6 +17,14 @@ public function handle(Request $request, Closure $next, ...$roles)
 
     $user = Auth::user();
 
+       if ((int) $user->status !== 1) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login')
+            ->withErrors(['email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.']);
+    }
+
     // Kalau superadmin nyasar ke route admin, redirect ke superadmin dashboard
     if ($user->role === 'superadmin' && in_array('admin', $roles)) {
         return redirect()->route('superadmin.dashboard');

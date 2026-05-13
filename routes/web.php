@@ -177,6 +177,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [SABerandaController::class, 'index'])->name('dashboard');
         Route::resource('data-user', KelolaUserController::class)->names('users');
         Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
+        Route::patch('/data-user/{id}/toggle-status', [KelolaUserController::class, 'toggleStatus'])->name('users.toggle-status'); 
         Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
         Route::get('/tinjau-laporan/export-pdf', [SATinjauLaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');

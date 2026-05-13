@@ -96,19 +96,41 @@ class KelolaUserController extends Controller
             ->with('success', 'User berhasil diupdate!');
     }
 
-    public function destroy($id)
+   public function destroy($id)
     {
         $user = User::findOrFail($id);
+
+        if ($user->id_pengguna === auth()->id()) {
+            return back()->with('error', 'Tidak bisa menghapus akun sendiri!');
+        }
+
+        $punya_transaksi = $user->transaksis()->exists();
+
+        if ($punya_transaksi) {
+            return back()->with('error', 'User memiliki data transaksi dan tidak dapat dihapus.');
+        }
+
+        $user->delete();
+
+        return redirect()->route('superadmin.users.index')
+            ->with('success', 'User berhasil dihapus permanen!');
+    }
+
+    public function toggleStatus($id)
+    {
+        $user = User::findOrFail($id);
+
         if ($user->id_pengguna === auth()->id()) {
             return back()->with('error', 'Tidak bisa menonaktifkan akun sendiri!');
         }
 
-       $user->status = $user->status == 1 ? 0 : 1;
+        $user->status = $user->status == 1 ? 0 : 1;
         $user->save();
 
-        return redirect()->route('superadmin.users.index')
-            ->with('success', 'Status user berhasil diubah!');
+        $keterangan = $user->status == 1 ? 'diaktifkan' : 'dinonaktifkan';
 
+        return redirect()->route('superadmin.users.index')
+            ->with('success', "User berhasil {$keterangan}!");
     }
 
     public function gantiPassword(Request $request, $id)

@@ -150,7 +150,6 @@
                 {{-- Terdaftar --}}
                 <td>{{ $user->created_at->format('d/m/Y') }}</td>
 
-                {{-- Aksi --}}
                 <td>
                     <a href="{{ route('superadmin.users.edit', $user->id_pengguna) }}"
                         class="btn btn-warning btn-sm">
@@ -159,38 +158,110 @@
 
                     @if($user->id_pengguna !== auth()->user()->id_pengguna)
 
-                        <form action="{{ route('superadmin.users.destroy', $user->id_pengguna) }}"
-                            method="POST"
-                            style="display:inline">
-
+                        {{-- Toggle Status --}}
+                        <form action="{{ route('superadmin.users.toggle-status', $user->id_pengguna) }}" method="POST" class="d-inline">
                             @csrf
-                            @method('DELETE')
-
-                            @if($user->status == 1)
-
-                                <button type="submit"
-                                    class="btn btn-warning btn-sm"
-                                    onclick="return confirm('Nonaktifkan user ini?')">
-
-                                    <i class="fas fa-user-slash"></i>
-                                    Nonaktifkan
-
-                                </button>
-
-                            @else
-
-                                <button type="submit"
-                                    class="btn btn-success btn-sm"
-                                    onclick="return confirm('Aktifkan user ini kembali?')">
-
-                                    <i class="fas fa-user-check"></i>
-                                    Aktifkan
-
-                                </button>
-
-                            @endif
-
+                            @method('PATCH')
+                            <button type="submit"
+                                class="btn btn-sm {{ $user->status == 1 ? 'btn-secondary' : 'btn-success' }}"
+                                onclick="return confirm('{{ $user->status == 1 ? 'Nonaktifkan' : 'Aktifkan' }} user ini?')">
+                                {{ $user->status == 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                            </button>
                         </form>
+
+                        {{-- Tombol Hapus — cek transaksi --}}
+                        @if($user->transaksis()->exists())
+                            {{-- Punya transaksi: tampilkan modal block --}}
+                            <button type="button" class="btn btn-danger btn-sm"
+                                data-toggle="modal"
+                                data-target="#modalBlokHapus{{ $user->id_pengguna }}">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+
+                            {{-- Modal Hard Block --}}
+                            <div class="modal fade" id="modalBlokHapus{{ $user->id_pengguna }}" tabindex="-1" role="dialog">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger">
+                                            <h5 class="modal-title text-white">
+                                                <i class="fas fa-exclamation-triangle"></i> User Tidak Dapat Dihapus
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal">
+                                                <span>&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>
+                                                <strong>{{ $user->nama_pengguna }}</strong> memiliki
+                                                <strong>{{ $user->transaksis()->count() }} data transaksi</strong>
+                                                yang tersimpan di sistem.
+                                            </p>
+                                            <p>User yang memiliki riwayat transaksi <strong>tidak dapat dihapus</strong>
+                                            untuk menjaga integritas data dan laporan keuangan.</p>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-lightbulb"></i>
+                                                Jika ingin mencabut akses user ini, gunakan tombol
+                                                <strong>"Nonaktifkan"</strong> agar user tidak bisa login
+                                                namun data transaksinya tetap aman.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                <i class="fas fa-times"></i> Tutup
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        @else
+                            {{-- Tidak punya transaksi: modal konfirmasi hapus permanen --}}
+                            <button type="button" class="btn btn-danger btn-sm"
+                                data-toggle="modal"
+                                data-target="#modalHapus{{ $user->id_pengguna }}">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+
+                            
+                            <div class="modal fade" id="modalHapus{{ $user->id_pengguna }}" tabindex="-1" role="dialog">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-warning">
+                                            <h5 class="modal-title">
+                                                <i class="fas fa-exclamation-circle"></i> Konfirmasi Hapus User
+                                            </h5>
+                                            <button type="button" class="close" data-dismiss="modal">
+                                                <span>&times;</span>
+                                            </button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <div class="alert alert-danger mb-0">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Akun ini akan <strong>dihapus permanen</strong> dan
+                                                <strong>tidak dapat dipulihkan kembali.</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer d-flex justify-content-between">
+                                            <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">
+                                                <i class="fas fa-times"></i> Batal
+                                            </button>
+                                            <form action="{{ route('superadmin.users.destroy', $user->id_pengguna) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger px-4">
+                                                    <i class="fas fa-trash"></i> Ya, Hapus Permanen
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        @endif
 
                     @endif
                 </td>
