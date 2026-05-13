@@ -43,6 +43,15 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
+            if ((int) Auth::user()->status !== 1) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
+                ])->onlyInput('email');
+            }
+
             return $this->redirectByRole(Auth::user());
         }
 
@@ -82,6 +91,7 @@ class AuthController extends Controller
                 'role'              => 'pelanggan',
                 'google_id'         => $googleUser->getId(),
                 'email_verified_at' => now(),
+                'status'            => 1, // ← pastikan user baru langsung aktif
             ]
         );
 
@@ -89,6 +99,13 @@ class AuthController extends Controller
             $user->update([
                 'google_id'         => $googleUser->getId(),
                 'email_verified_at' => now(),
+            ]);
+        }
+
+        // ← Tambahkan pengecekan status sebelum login
+        if ((int) $user->status !== 1) {
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
             ]);
         }
 

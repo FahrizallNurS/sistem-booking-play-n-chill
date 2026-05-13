@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'google_id',
         'alamat',
         'role',
+        'status',
         'email_verified_at',
         'remember_token',
     ];
@@ -83,6 +84,11 @@ class User extends Authenticatable implements MustVerifyEmail
      public function isPelanggan()
     {
         return $this->role === 'pelanggan';
+    }
+
+        public function isActive()
+    {
+        return (int) $this->status === 1;
     }
 
     public function adminlte_desc()

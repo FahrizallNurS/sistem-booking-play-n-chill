@@ -159,38 +159,16 @@
 
                     @if($user->id_pengguna !== auth()->user()->id_pengguna)
 
-                        <form action="{{ route('superadmin.users.destroy', $user->id_pengguna) }}"
-                            method="POST"
-                            style="display:inline">
-
-                            @csrf
-                            @method('DELETE')
-
-                            @if($user->status == 1)
-
-                                <button type="submit"
-                                    class="btn btn-warning btn-sm"
-                                    onclick="return confirm('Nonaktifkan user ini?')">
-
-                                    <i class="fas fa-user-slash"></i>
-                                    Nonaktifkan
-
-                                </button>
-
-                            @else
-
-                                <button type="submit"
-                                    class="btn btn-success btn-sm"
-                                    onclick="return confirm('Aktifkan user ini kembali?')">
-
-                                    <i class="fas fa-user-check"></i>
-                                    Aktifkan
-
-                                </button>
-
-                            @endif
-
-                        </form>
+                    <form action="{{ route('superadmin.users.toggle-status', $user->id_pengguna) }}" method="POST" class="d-inline">
+                        
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit"
+                            class="btn btn-sm {{ $user->status == 1 ? 'btn-warning' : 'btn-success' }}"
+                            onclick="return confirm('{{ $user->status == 1 ? 'Nonaktifkan' : 'Aktifkan' }} user ini?')">
+                            {{ $user->status == 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                        </button>
+                    </form>
 
                     @endif
                 </td>
