@@ -96,7 +96,7 @@ class KelolaUserController extends Controller
             ->with('success', 'User berhasil diupdate!');
     }
 
-    public function destroy($id)
+   public function destroy($id)
     {
         $user = User::findOrFail($id);
 
@@ -104,10 +104,16 @@ class KelolaUserController extends Controller
             return back()->with('error', 'Tidak bisa menghapus akun sendiri!');
         }
 
+        $punya_transaksi = $user->transaksis()->exists();
+
+        if ($punya_transaksi) {
+            return back()->with('error', 'User memiliki data transaksi dan tidak dapat dihapus.');
+        }
+
         $user->delete();
 
         return redirect()->route('superadmin.users.index')
-            ->with('success', 'User berhasil dihapus!');
+            ->with('success', 'User berhasil dihapus permanen!');
     }
 
     public function toggleStatus($id)

@@ -91,7 +91,7 @@ class AuthController extends Controller
                 'role'              => 'pelanggan',
                 'google_id'         => $googleUser->getId(),
                 'email_verified_at' => now(),
-                'status'            => 1, // ← pastikan user baru langsung aktif
+                'status'            => 1, 
             ]
         );
 
@@ -102,7 +102,6 @@ class AuthController extends Controller
             ]);
         }
 
-        // ← Tambahkan pengecekan status sebelum login
         if ((int) $user->status !== 1) {
             return redirect()->route('login')->withErrors([
                 'email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
