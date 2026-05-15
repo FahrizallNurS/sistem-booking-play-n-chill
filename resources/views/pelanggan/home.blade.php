@@ -43,15 +43,82 @@
             z-index: -1; /* Memastikan background berada di belakang konten */
         }
 
+        /* Hapus .foreground-char yang lama, ganti dengan ini */
+        .character-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 20px; /* Jarak dari kiri layar */
+            width: 350px; /* Ukuran desktop */
+            height: auto;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        /* Gambar karakter di dalamnya harus mengikuti lebar wrapper */
+        .character-wrapper .foreground-char {
+            width: 100%;
+            height: auto;
+            position: relative; /* Bukan absolute lagi agar wrapper punya tinggi */
+            display: block;
+        }
+
+        /* Responsivitas untuk Tablet & HP */
+    @media (max-width: 768px) {
+        .cta-section {
+            display: flex;
+            flex-direction: column; /* Menyusun konten dari atas ke bawah */
+            align-items: center;
+            padding-bottom: 0; /* Menghilangkan padding bawah agar karakter nempel dasar */
+        }
+
+        .character-wrapper {
+            position: relative !important; /* Tidak lagi melayang di atas tombol */
+            bottom: 0;
+            left: 0 !important;
+            margin: 20px auto 0; /* Beri jarak di bawah tombol */
+            width: 220px; /* Ukuran karakter di HP */
+            order: 2; /* Memastikan karakter muncul setelah teks/tombol */
+        }
+        
+        .cta-content {
+            order: 1;
+            margin-left: 0 !important; /* Hilangkan margin kiri agar teks rata tengah */
+            width: 100%;
+        }
+
+        .item-interaktif {
+            width: 55px !important;
+            top: -20px !important; 
+            left: 56px !important; /* Sesuaikan koordinat mahkota agar tetap di kepala */
+        }
+    }
+
         .navbar.fixed-top {
         position: fixed !important;
         top: 0 !important;
         width: 100% !important;
         z-index: 1030 !important; /* Nilai tinggi agar di atas semua elemen */
-        background: rgba(255, 255, 255, 0.836); /* Beri warna agar tidak transparan total */
+        background: rgb(255, 255, 255); /* Beri warna agar tidak transparan total */
         backdrop-filter: blur(10px); /* Efek blur estetik */
     }
     </style>
+
+    <script>
+        // Script diletakkan di bawah agar terbaca setelah HTML dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            const item = document.getElementById('interactiveItem');
+            if (item) {
+                item.addEventListener('click', function() {
+                    item.classList.add('fall-animation');
+                    
+                    // Reset setelah 3 detik agar item muncul kembali
+                    setTimeout(() => {
+                        item.classList.remove('fall-animation');
+                    }, 3000);
+                });
+            }
+        });
+    </script>
 
 </head>
 <body>
@@ -188,7 +255,7 @@
                                             <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="background:#a020f0; border-radius: 10px;">
                                                 Book Now
                                             </a>
-                                            <a href="{{ url('/gallery') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
+                                            <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
                                                 Lihat Paket
                                             </a>
                                         </div>
@@ -246,11 +313,13 @@
    <div class="room-grid">
 
     {{-- Gaming Room --}}
-    <a href="{{ url('/gallery?category=gaming') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="100">
+    <a href="{{ url('/booking?tipe=vip') }}" class="text-decoration-none">
         <div class="r-card">
-            <div class="r-img gaming" style="background-image: url('{{ asset('images/gaming.jpg') }}'); background-size: cover; background-position: center;">
-                <span class="r-badge">🎮</span>
-                <span class="r-sofa">🛋️</span>
+            <div class="r-img gaming" style="background-image: url('{{ asset('images/gaming.jpg') }}');">
+                <!-- Ganti emoji dengan tag img -->
+                <span class="r-badge">
+                    <img src="{{ asset('gambar/ic_gem.png') }}" alt="Icon Gaming">
+                </span>
             </div>
             <div class="r-foot">
                 <h5>Gaming Room</h5>
@@ -260,11 +329,12 @@
     </a>
     
     {{-- Karaoke Room --}}
-    <a href="{{ url('/gallery?category=karaoke') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="200">
+    <a href="{{ url('/booking?tipe=vip') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="200">
         <div class="r-card">
             <div class="r-img karaoke" style="background-image: url('{{ asset('images/karaoke.jpg') }}'); background-size: cover; background-position: center;">
-                <span class="r-badge">🎤</span>
-                <span class="r-sofa">🛋️</span>
+                <span class="r-badge">
+                    <img src="{{ asset('gambar/ic_mic.png') }}" alt="Icon Karaoke">
+                </span>
             </div>
             <div class="r-foot">
                 <h5>Karaoke Room</h5>
@@ -274,11 +344,12 @@
     </a>
 
     {{-- Private Bioskop --}}
-    <a href="{{ url('/gallery?category=bioskop') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="300">
+    <a href="{{ url('/booking?tipe=vip') }}" class="text-decoration-none" data-aos="fade-up" data-aos-delay="300">
         <div class="r-card">
             <div class="r-img bioskop" style="background-image: url('{{ asset('images/cinema.jpg') }}'); background-size: cover; background-position: center;">
-                <span class="r-badge">🎞️</span>
-                <span class="r-sofa">🛋️</span>
+                <span class="r-badge">
+                    <img src="{{ asset('gambar/ic_mov.png') }}" alt="Icon Bioskop">
+                </span>
             </div>
             <div class="r-foot">
                 <h5>Private Bioskop</h5>
@@ -363,10 +434,26 @@
 </div>
 </section>
 
-<section class="cta-section" id="booking" data-aos="zoom-in-up">
-    <h2 class="teks-outline font-modak" >Siap untuk nongkrong Seru?</h2>
-    <p>Pesan kamar Anda sekarang dan ciptakan kenangan tak terlupakan bersama teman dan keluarga.</p>
-    <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
+{{-- ═══ CTA ═══ --}}
+<section class="cta-section" id="booking" data-aos="zoom-in-up" style="position: relative; overflow: hidden; min-height: 500px; display: flex; flex-direction: column;">
+    
+    <!-- Konten Teks -->
+    <div class="cta-content" style="position: relative; z-index: 5;">
+        <h2 class="teks-outline font-modak">Siap untuk nongkrong Seru?</h2>
+        <p>Pesan ruangan Anda sekarang juga dan ciptakan kenangan yang tak terlupakan bersama teman dan keluarga.</p>
+        <a href="{{ url('/booking') }}" class="btn-pesan">Pesan Sekarang!</a>
+    </div>
+
+    <!-- Wrapper Karakter -->
+    <div class="character-wrapper">
+        <img src="{{ asset('images/item.png') }}" 
+             id="interactiveItem" 
+             class="item-interaktif" 
+             alt="Item Interaktif"
+             style="width: 90px; position: absolute; top: -32px; left: 84px; cursor: pointer; z-index: 11; transform: scaleX(-1) rotate(4deg);">
+        
+        <img src="{{ asset('images/karakter1.png') }}" class="foreground-char" alt="Karakter Mascot">
+    </div>
 </section>
 
 <footer>
@@ -375,18 +462,18 @@
 
             {{-- Brand --}}
             <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-logo">Play N Chill</div>
-                <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman-teman!</p>
+                <div class="f-logo font-modak">Play N Chill</div>
+                <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
             </div>
 
             {{-- Hubungi Kami --}}
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Hubungi Kami</div>
                 <ul class="f-list">
-                    <li><span class="fi">📞</span><span>+62 857-3532-9227</span></li>
-                    <li><span class="fi">📧</span><span>playnchillmadiun@gmail.com</span></li>
+                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
+                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span>playnchillmadiun@gmail.com</span></li>
                     <li>
-                        <span class="fi">📍</span>
+                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
                         <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
                     </li>
                 </ul>
@@ -396,11 +483,19 @@
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Ikuti Kami</div>
                 <ul class="f-list">
-                    <li><a class="soc-btn" href="#" title="YouTube">▶ Youtube</a></li>
-                    <li><a class="soc-btn" href="#" title="TikTok">♫ TikTok</a></li>
+                    <li>
+                        <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
+                            <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
+                        </a>
+                    </li>
+                    <li>
+                        <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
+                            <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
+                        </a>
+                    </li>
                     <li>
                         <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
-                            📸 Instagram
+                            <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
                         </a>
                     </li>
                 </ul>
@@ -411,7 +506,7 @@
                 <div class="f-head">Jam Operasional</div>
                 <ul class="f-list">
                     <li>
-                        <span class="fi">🕐</span>
+                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
                         <div>
                             <div>Senin – Kamis: 14.00 – 22.00</div>
                             <div>Jumat: 14.00 – 23.00</div>
