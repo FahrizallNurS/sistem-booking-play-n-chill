@@ -142,10 +142,10 @@
                     <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item ms-2">
 
@@ -509,8 +509,8 @@
                         <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
                         <div>
                             <div>Senin – Kamis: 14.00 – 22.00</div>
-                            <div>Jumat: 14.00 – 23.00</div>
-                            <div>Sabtu – Minggu: 10.00 – 23.00</div>
+                            <div>Jumat: 13.00 – 00.00</div>
+                            <div>Sabtu – Minggu: 10.00 – 00.00</div>
                         </div>
                     </li>
                 </ul>

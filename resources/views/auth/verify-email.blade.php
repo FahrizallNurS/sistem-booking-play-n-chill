@@ -39,24 +39,6 @@
       pointer-events: none;
     }
 
-    .shape-left-top {
-      position: fixed;
-      width: 100px; height: 130px;
-      background-color: #c8e600;
-      top: 160px; left: -20px;
-      clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
-      z-index: 0;
-    }
-
-    .shape-left-bottom {
-      position: fixed;
-      width: 120px; height: 110px;
-      background-color: #c8e600;
-      bottom: 80px; left: -10px;
-      clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
-      z-index: 0;
-    }
-
     .card {
       position: relative;
       z-index: 1;
@@ -195,8 +177,6 @@
 <body>
 
 <div class="bg-pattern"></div>
-<div class="shape-left-top"></div>
-<div class="shape-left-bottom"></div>
 
 <div class="card">
 

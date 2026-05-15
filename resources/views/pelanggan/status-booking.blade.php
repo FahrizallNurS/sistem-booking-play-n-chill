@@ -33,10 +33,10 @@
                     <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
                 <li class="nav-item ms-2">
 
@@ -223,7 +223,7 @@
 
                         {{-- WA Button — hanya kalau masih menunggu --}}
                         @if($booking->status_sewa === 'ditahan')
-                            <a href="https://wa.me/6282234323950?text=Halo admin, saya konfirmasi booking {{ $booking->kode_sewa }}"
+                            <a href="https://wa.me/6282234323950?text=Halo min👋🏻, saya mau konfirmasi booking {{ $booking->kode_sewa }}"
                                 class="btn-wa-confirm mt-4 d-block text-center">
                                 KONFIRMASI PEMBAYARAN
                                 <i class="fa-brands fa-whatsapp fs-5 ms-2 text-success"></i>

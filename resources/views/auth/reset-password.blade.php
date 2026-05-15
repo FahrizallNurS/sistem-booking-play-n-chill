@@ -17,31 +17,17 @@
       overflow: hidden; position: relative;
     }
 
-    body::before, body::after {
-      content: ''; position: fixed;
-      background-color: #c8e600; z-index: 0;
-    }
-
-    body::before {
-      width: 280px; height: 220px; top: -40px; right: -40px;
-      clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
-    }
-
-    body::after {
-      width: 220px; height: 180px; bottom: -30px; right: 80px;
-      clip-path: polygon(20% 0%, 100% 0%, 80% 100%, 0% 100%);
-    }
-
-    .shape-left-top {
-      position: fixed; width: 100px; height: 130px;
-      background-color: #c8e600; top: 160px; left: -20px;
-      clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%); z-index: 0;
-    }
-
-    .shape-left-bottom {
-      position: fixed; width: 120px; height: 110px;
-      background-color: #c8e600; bottom: 80px; left: -10px;
-      clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%); z-index: 0;
+    .bg-pattern {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: url('{{ asset("images/bg-segitiga.png") }}');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      opacity: 1.0;
+      z-index: -1;
+      pointer-events: none;
     }
 
     .login-box {
@@ -122,8 +108,7 @@
 </head>
 <body>
 
-<div class="shape-left-top"></div>
-<div class="shape-left-bottom"></div>
+<div class="bg-pattern"></div>
 
 <div class="login-box">
 
