@@ -21,6 +21,34 @@
                     border-color: rgba(255,255,255,0.1) !important;
                     text-decoration: line-through;
                 }
+
+                body {
+                background-color: var(--purple-dark); /* Warna dasar tetap di body */
+                position: relative;
+                min-height: 100vh;
+                margin: 0;
+                }
+
+                body::before {
+                    content: "";
+                    position: fixed; /* Agar background tetap diam saat scroll */
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    
+                    /* Pengaturan gambar background */
+                    background-image: url('{{ asset("images/bg-segitiga.png") }}');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                    background-position: center;
+
+                    /* ATUR TRANSPARANSI DI SINI */
+                    opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+                    
+                    z-index: -1; /* Memastikan background berada di belakang konten */
+                }
+                
             </style>
         </head>
 

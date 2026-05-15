@@ -203,7 +203,7 @@
 
                 {{-- ── 3. TOMBOL AKSI ── --}}
                 <div class="mt-4">
-                    <a href="{{ route('booking.status') }}" 
+                    <a href="{{ route('profile') }}" 
                         class="btn-confirm d-block text-center text-decoration-none mb-3">
                         Lihat Status Booking <span class="ms-2"></span>
                     </a>
