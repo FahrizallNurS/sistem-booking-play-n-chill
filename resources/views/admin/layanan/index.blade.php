@@ -34,7 +34,7 @@
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>No</th>
                         <th>Nama Ruangan</th>
                         <th>Kategori</th>
                         <th>Perangkat</th>
@@ -69,7 +69,7 @@
                                     data-active="{{ $ruangan->is_active }}"
                                     data-toggle="modal" data-target="#modalEdit">
                                     <i class="fas fa-edit"></i> Edit
-                                </button>
+                                </button>   
                                 <form action="{{ route('admin.layanan.toggle-aktif', $ruangan->id_ruangan) }}"
                                     method="POST" style="display:inline">
                                     @csrf
@@ -80,6 +80,88 @@
                                         {{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                 </form>
+
+                                    @if($ruangan->penetapanHarga->flatMap->transaksis->isNotEmpty())
+                                        {{-- Punya transaksi: hard block --}}
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                            data-toggle="modal"
+                                            data-target="#modalBlokHapus{{ $ruangan->id_ruangan }}">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+
+                                        <div class="modal fade" id="modalBlokHapus{{ $ruangan->id_ruangan }}" tabindex="-1" role="dialog">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-danger">
+                                                        <h5 class="modal-title text-white">
+                                                            <i class="fas fa-exclamation-triangle"></i> Ruangan Tidak Dapat Dihapus
+                                                        </h5>
+                                                        <button type="button" class="close text-white" data-dismiss="modal">
+                                                            <span>&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>
+                                                            <strong>{{ $ruangan->nama_ruangan }}</strong> memiliki
+                                                            riwayat transaksi booking yang tersimpan di sistem.
+                                                        </p>
+                                                        <p>Ruangan yang memiliki riwayat transaksi tidak dapat dihapus untuk menjaga data laporan keuangan.</p>
+                                                        <div class="alert alert-info mb-0">
+                                                            <i class="fas fa-lightbulb"></i>
+                                                            Jika ingin menonaktifkan ruangan ini, gunakan tombol
+                                                            <strong>"Nonaktifkan"</strong> agar ruangan tidak muncul
+                                                            saat booking namun data transaksinya tetap aman.
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                            <i class="fas fa-times"></i> Tutup
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    @else
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                            data-toggle="modal"
+                                            data-target="#modalHapus{{ $ruangan->id_ruangan }}">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                        <div class="modal fade" id="modalHapus{{ $ruangan->id_ruangan }}" tabindex="-1" role="dialog">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-warning">
+                                                        <h5 class="modal-title">
+                                                            <i class="fas fa-exclamation-circle"></i> Konfirmasi Hapus Ruangan
+                                                        </h5>
+                                                        <button type="button" class="close" data-dismiss="modal">
+                                                            <span>&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">    
+                                                        <div class="alert alert-danger mb-0">
+                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                            Ruangan ini akan <strong>dihapus permanen</strong>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer d-flex justify-content-between">
+                                                        <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">
+                                                            <i class="fas fa-times"></i> Batal
+                                                        </button>
+                                                        <form action="{{ route('admin.layanan.destroy', $ruangan->id_ruangan) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger px-4">
+                                                                <i class="fas fa-trash"></i> Ya, Hapus Permanen
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif     
                             </td>
                         </tr>
                     @empty
@@ -129,12 +211,15 @@
                             @enderror
                         </div>
 
-                        <select name="perangkat" class="form-control">
-                            <option value="">-- Pilih Perangkat --</option>
-                            <option value="PS3" {{ old('perangkat') == 'PS3' ? 'selected' : '' }}>PS3</option>
-                            <option value="PS4" {{ old('perangkat') == 'PS4' ? 'selected' : '' }}>PS4</option>
-                            <option value="PS5" {{ old('perangkat') == 'PS5' ? 'selected' : '' }}>PS5</option>
-                        </select>
+                        <div class="form-group">
+                            <label>Perangkat</label>
+                            <select name="perangkat" class="form-control">
+                                <option value="">-- Pilih Perangkat --</option>
+                                <option value="PS3" {{ old('perangkat') == 'PS3' ? 'selected' : '' }}>PS3</option>
+                                <option value="PS4" {{ old('perangkat') == 'PS4' ? 'selected' : '' }}>PS4</option>
+                                <option value="PS5" {{ old('perangkat') == 'PS5' ? 'selected' : '' }}>PS5</option>
+                            </select>
+                        </div>
 
                         <div class="form-group">
                             <label>Status</label>
@@ -191,12 +276,15 @@
                             </select>
                         </div>
 
-                        <select name="perangkat" id="edit_perangkat" class="form-control">
-                            <option value="">-- Pilih Perangkat --</option>
-                            <option value="PS3">PS3</option>
-                            <option value="PS4">PS4</option>
-                            <option value="PS5">PS5</option>
-                        </select>
+                        <div class="form-group">
+                            <label>Perangkat</label>
+                            <select name="perangkat" id="edit_perangkat" class="form-control">
+                                <option value="">-- Pilih Perangkat --</option>
+                                <option value="PS3">PS3</option>
+                                <option value="PS4">PS4</option>
+                                <option value="PS5">PS5</option>
+                            </select>
+                        </div>  
 
                         <div class="form-group">
                             <label>Status</label>
