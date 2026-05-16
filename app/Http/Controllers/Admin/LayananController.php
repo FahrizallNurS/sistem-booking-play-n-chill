@@ -25,7 +25,7 @@ class LayananController extends Controller
                 $query->latest();
             }
 
-            $ruangans = $query->get();
+            $ruangans = $query->with(['penetapanHarga.transaksis'])->get();
 
             return view('admin.layanan.index', compact('ruangans'));
     }
@@ -158,5 +158,28 @@ class LayananController extends Controller
             ->where('is_active', 1)
             ->get(['id_ruangan', 'nama_ruangan']);
         return response()->json($ruangans);
+    }
+
+    public function destroy($id)
+    {
+        $ruangan = MsRuangan::findOrFail($id);
+
+         $punya_transaksi = $ruangan->penetapanHarga()
+        ->whereHas('transaksis')
+        ->exists();
+
+        if ($punya_transaksi) {
+            return back()->with('error', 'Ruangan tidak dapat dihapus karena memiliki data transaksi.');
+        }
+        $ruangan->permainans()->detach();
+        $ruangan->penetapanHarga()->delete();
+
+         if ($ruangan->galeri) {
+        Storage::disk('public')->delete($ruangan->galeri);
+        }
+
+        $ruangan->delete();
+        return redirect()->route('admin.layanan.index')
+            ->with('success', 'Ruangan berhasil dihapus!');
     }
 }

@@ -81,6 +81,68 @@
                                         </button>
                                     </form>
                                 @endif
+
+                                @php
+                                    $punya_transaksi = $paket->penetapanHarga->flatMap->transaksis->isNotEmpty();
+                                @endphp
+
+                                <button type="button" class="btn btn-danger btn-sm"
+                                    data-toggle="modal"
+                                    data-target="{{ $punya_transaksi ? '#modalBlokHapus' . $paket->id_paket : '#modalHapus' . $paket->id_paket }}">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                                @if($punya_transaksi)
+                                    <div class="modal fade" id="modalBlokHapus{{ $paket->id_paket }}" tabindex="-1" role="dialog">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-body">
+                                                    <p>
+                                                        <strong>{{ $paket->nama_paket }}</strong> memiliki
+                                                        riwayat transaksi booking yang tersimpan di sistem.
+                                                    </p>
+                                                    <p>Paket ini memiliki riwayat transaksi dan tidak dapat dihapus untuk menjaga data laporan keuangan.</p>
+                                                    <div class="alert alert-info mb-0">
+                                                        <i class="fas fa-lightbulb"></i>
+                                                        Jika ingin menonaktifkan paket ini, gunakan tombol
+                                                        <strong>"Nonaktifkan"</strong> agar paket tidak muncul
+                                                        saat booking namun data transaksinya tetap aman.
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                        <i class="fas fa-times"></i> Tutup
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @else
+                                    <div class="modal fade" id="modalHapus{{ $paket->id_paket }}" tabindex="-1" role="dialog">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-body">
+                                                    <div class="alert alert-danger mb-0">
+                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                        Paket ini akan dihapus permanen, apakah anda ingin menghapusnya?
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer d-flex justify-content-between">
+                                                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">
+                                                        <i class="fas fa-times"></i> Batal
+                                                    </button>
+                                                    <form action="{{ route('admin.paket.destroy', $paket->id_paket) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger px-4">
+                                                            <i class="fas fa-trash"></i> Ya, Hapus Permanen
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                             </td>
                         </tr>
                     @empty
