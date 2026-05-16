@@ -173,7 +173,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
 
     // Grouping Superadmin
-    Route::middleware([RoleMiddleware::class . ':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+        Route::middleware([RoleMiddleware::class . ':superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
         Route::get('/dashboard', [SABerandaController::class, 'index'])->name('dashboard');
         Route::resource('data-user', KelolaUserController::class)->names('users');
         Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
@@ -186,9 +186,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Grouping Admin
-    Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+        Route::resource('paket', PaketController::class);
         Route::patch('/paket/{id}/toggle-aktif', [PaketController::class, 'toggleAktif'])->name('paket.toggle-aktif');
         Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
         Route::resource('layanan', LayananController::class);

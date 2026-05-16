@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 class PaketController extends Controller
 {
    public function index(Request $request)
+
     {
         $status = $request->get('status', 'all'); // all, active, inactive
         
@@ -22,8 +23,7 @@ class PaketController extends Controller
             $query->where('is_active', 0);
         }
         
-        $pakets = $query->get();
-        
+        $pakets = $query->with(['penetapanHarga.transaksis'])->get();  
         return view('admin.paket.index', compact('pakets', 'status'));
     }
 
@@ -179,4 +179,23 @@ class PaketController extends Controller
             ->get(['id_ruangan', 'nama_ruangan']);
         return response()->json($ruangans);
     }
+
+    public function destroy($id){
+
+        $paket = MsPaket::findOrFail($id);
+        $punya_transaksi = $paket->penetapanHarga()
+        ->whereHas('transaksis')
+        ->exists();
+
+         if ($punya_transaksi) {
+            return back()->with('error', 'Paket tidak dapat dihapus karena memiliki data transaksi.');
+        }
+
+        $paket->penetapanHarga()->delete();
+        $paket->delete();
+            return redirect()->route('admin.paket.index')
+                ->with('success', 'Paket berhasil dihapus!');
+
+    }
+
 }
