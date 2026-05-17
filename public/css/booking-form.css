@@ -79,6 +79,21 @@ body {
     border-color: white;
 }
 
+.btn-time.blocked {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.25) !important;
+    cursor: not-allowed !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    text-decoration: line-through;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.btn-time.blocked:hover {
+    transform: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
 .time-full {
     background: #d9f99d !important; /* Warna Lime untuk tanda penuh */
     color: #333 !important;
@@ -166,6 +181,57 @@ body {
     cursor: not-allowed;
 }
 
+/* Button Actions (Kembali & Lanjutkan) - Ukuran Sama */
+.btn-action {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 15px;
+    padding: 16px 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary-action {
+    background: var(--orange);
+    color: white;
+}
+
+.btn-primary-action:hover:not(:disabled) {
+    background: #ff7b4d;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(230, 90, 41, 0.4);
+    color: white;
+}
+
+.btn-primary-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary-action {
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+    transform: translateY(-3px);
+    color: white;
+    text-decoration: none;
+}
+
 /* Grid Durasi Jam */
 .duration-grid {
     display: grid;
@@ -192,27 +258,63 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 576px) {
+@media (max-width: 768px) {
     .time-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
     }
+    
+    .btn-time {
+        padding: 10px 3px;
+        font-size: 0.85rem;
+    }
+    
     .booking-card {
         padding: 20px;
     }
-}   
-
-.btn-time.blocked {
-    opacity: 0.5;
-    background-color: #333 !important; /* Warna gelap */
-    pointer-events: none; /* User beneran gak bisa klik */
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: rgba(255, 255, 255, 0.25) !important;
-    cursor: not-allowed !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    text-decoration: line-through;
+    
+    .duration-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
-.btn-time.blocked:hover {
-    transform: none !important;
-    background: rgba(255, 255, 255, 0.08) !important;
+@media (max-width: 576px) {
+    .time-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .btn-time {
+        padding: 8px 2px;
+        font-size: 0.8rem;
+    }
+    
+    .booking-card {
+        padding: 15px;
+    }
+    
+    .section-badge {
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+    
+    .duration-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .price-final {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .time-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .btn-time {
+        padding: 6px 1px;
+        font-size: 0.75rem;
+    }
 }

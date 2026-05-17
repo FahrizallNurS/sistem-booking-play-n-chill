@@ -6,15 +6,12 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
     <title>Informasi Pembayaran - Play N Chill</title>
     
-    {{-- CSS Assets (Gunakan Bootstrap agar Navbar sama) --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    {{-- Hubungkan CSS Terpisah --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/payment.css') }}">
-</head>
-<body>
 
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
@@ -117,12 +114,10 @@
     </div>
     @endif
 
-    {{-- ═══ CONTENT ═══ --}}
     <div class="container pb-5">
         <h2 class="payment-title text-white">Informasi Pembayaran</h2>
 
         @php
-            // Ambil data dari session booking
             $booking = session('booking_data', []);
             $user    = auth()->user();  
         @endphp
@@ -196,36 +191,24 @@
                 {{-- ── 2. INFORMASI TRANSFER ── --}}
                 <div class="payment-card">
                     <span class="section-badge">Metode Transfer</span>
-                    
-                    {{-- Bank BCA --}}
-                    <div class="bank-box mb-4">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/1200px-Bank_Central_Asia.svg.png" width="80" alt="BCA">
-                        <div>
-                            <p class="m-0 fw-bold text-uppercase small text-muted">Bank Central Asia</p>
-                            <h4 class="m-0 fw-black text-primary">1112233705</h4>
-                            <p class="m-0 fw-bold small">A/N Play n Chill</p>
-                        </div>
-                    </div>
 
                     {{-- QRIS --}}
                     <div class="qris-box">
-                        <div class="section-badge bg-dark mb-3" style="font-size: 10px;">QRIS</div>
-                        <div class="qris-img mx-auto">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PlayNChillMadiun" class="img-fluid" alt="QRIS">
+                        <div class="qris-img mx-auto" >
+                            <img src="{{ asset('images/qris.jpeg') }}" class="img-fluid" alt="QRIS" style="max-width: 200px;">
                         </div>
                         <p class="m-0 fw-black text-dark">Play N Chill Madiun</p>
-                        <p class="small text-muted m-0">NMID: ID123456789</p>
                     </div>
                 </div>
 
                 {{-- ── 3. TOMBOL AKSI ── --}}
                 <div class="mt-4">
-                    <a href="{{ route('booking.status') }}" 
+                    <a href="{{ route('profile') }}" 
                         class="btn-confirm d-block text-center text-decoration-none mb-3">
-                        Lihat Status Booking <span class="ms-2">✓</span>
+                        Lihat Status Booking <span class="ms-2"></span>
                     </a>
                     <a href="{{ url('/') }}" class="btn-status-link">
-                        Kembali ke Beranda ➜
+                        Kembali ke Beranda 
                     </a>
                 </div>
 

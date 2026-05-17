@@ -16,7 +16,7 @@
 
     <style>
         body {
-            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            background-color: var(--    purple-dark); /* Warna dasar tetap di body */
             position: relative;
             min-height: 100vh;
             margin: 0;

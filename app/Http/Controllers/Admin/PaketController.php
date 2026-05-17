@@ -10,10 +10,21 @@ use Illuminate\Http\Request;
 
 class PaketController extends Controller
 {
-    public function index()
+   public function index(Request $request)
     {
-        $pakets = MsPaket::latest()->get();
-        return view('admin.paket.index', compact('pakets'));
+        $status = $request->get('status', 'all'); // all, active, inactive
+        
+        $query = MsPaket::latest();
+        
+        if ($status === 'active') {
+            $query->where('is_active', 1);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', 0);
+        }
+        
+        $pakets = $query->get();
+        
+        return view('admin.paket.index', compact('pakets', 'status'));
     }
 
     public function create()
@@ -25,7 +36,13 @@ class PaketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_paket'       => 'required|string|max:40|unique:ms_paket,nama_paket',
+            'nama_paket' => [
+            'required',
+            'string',
+            'max:40',
+            \Illuminate\Validation\Rule::unique('ms_paket', 'nama_paket')
+                ->where('is_active', 1)
+            ],
             'deskripsi_paket'  => 'nullable|string',
             'maksimal_orang'   => 'required|integer|min:1',
             'is_active'        => 'required|in:0,1',
@@ -127,21 +144,31 @@ class PaketController extends Controller
         return redirect()->route('admin.paket.index')
             ->with('success', 'Paket berhasil diupdate!');
     }
-    public function destroy($id)
+
+    public function toggleAktif($id)
     {
         $paket = MsPaket::findOrFail($id);
-
-        // Hapus transaksi yang terkait dengan penetapan harga paket ini
-        $penetapanIds = $paket->penetapanHarga()->pluck('id_penetapan_harga');
         
-        \App\Models\TrTransaksi::whereIn('id_penetapan_harga', $penetapanIds)->delete();
-
-        // Baru hapus penetapan harga dan paket
-        $paket->penetapanHarga()->delete();
-        $paket->delete();
+        // Toggle status
+        $newStatus = $paket->is_active == 1 ? 0 : 1;
+        $paket->update(['is_active' => $newStatus]);
+        
+        $message = $newStatus == 1 
+            ? 'Paket berhasil diaktifkan!' 
+            : 'Paket berhasil dinonaktifkan!';
 
         return redirect()->route('admin.paket.index')
-            ->with('success', 'Paket berhasil dihapus!');
+            ->with('success', $message);
+    }
+
+    public function activate($id)
+    {
+        $paket = MsPaket::findOrFail($id);
+        
+        $paket->update(['is_active' => 1]);
+
+        return redirect()->route('admin.paket.index')
+            ->with('success', 'Paket berhasil diaktifkan kembali!');
     }
 
     // AJAX: ambil ruangan by kategori

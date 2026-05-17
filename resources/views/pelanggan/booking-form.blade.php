@@ -1,4 +1,4 @@
-        <!DOCTYPE html>
+<!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
@@ -21,6 +21,34 @@
                     border-color: rgba(255,255,255,0.1) !important;
                     text-decoration: line-through;
                 }
+
+                body {
+                background-color: var(--purple-dark); /* Warna dasar tetap di body */
+                position: relative;
+                min-height: 100vh;
+                margin: 0;
+                }
+
+                body::before {
+                    content: "";
+                    position: fixed; /* Agar background tetap diam saat scroll */
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    
+                    /* Pengaturan gambar background */
+                    background-image: url('{{ asset("images/bg-segitiga.png") }}');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                    background-position: center;
+
+                    /* ATUR TRANSPARANSI DI SINI */
+                    opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+                    
+                    z-index: -1; /* Memastikan background berada di belakang konten */
+                }
+                
             </style>
         </head>
 
@@ -166,10 +194,10 @@
                             <div class="time-grid">
                                 @foreach($times as $time)
                                 <button type="button"
-                                    @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
+                                    @click="!isBlocked('{{ $time }}') && (confirmedTime = '{{ $time }}')"
                                     class="btn-time"
                                     :class="{
-                                        'active': tempTime === '{{ $time }}',
+                                        'active': confirmedTime === '{{ $time }}',
                                         'blocked': isBlocked('{{ $time }}')
                                     }"
                                     :disabled="isBlocked('{{ $time }}')">
@@ -177,30 +205,18 @@
                                 </button>
                                 @endforeach
                             </div>
-                            <div class="d-flex gap-3 mt-2 small text-white-50">
-                                <span>⬜ Tersedia</span>
-                                <span style="text-decoration:line-through">⬜ Penuh</span>
-                            </div>
-
+                            
                             <div class="d-flex justify-content-between align-items-center mt-3">
-                                <button type="button" @click="batalWaktu()" class="btn btn-light">Batal</button>
-
-                                <span class="text-white-50 small" x-show="tempTime !== ''">
-                                    Dipilih: <strong x-text="tempTime"></strong>
-                                </span>
-
-                                <button type="button"
-                                    @click="pilihWaktu()"
-                                    :disabled="tempTime === '' || isBlocked(tempTime)"
-                                    class="btn-submit-booking">
-                                    Pilih
-                                </button>
-                            </div>
-
-                            <div class="mt-2 text-center" x-show="confirmedTime !== ''">
-                                <small class="text-success">
-                                    ✓ Waktu dikonfirmasi: <strong x-text="confirmedTime"></strong>
-                                </small>
+                                <div class="d-flex gap-3 small text-white-50">
+                                    <span>⬜ Tersedia</span>
+                                    <span style="text-decoration:line-through">⬜ Penuh</span>
+                                </div>
+                                
+                                <div x-show="confirmedTime !== ''" class="text-end">
+                                    <small class="text-success">
+                                        ✓ Waktu dipilih: <strong x-text="confirmedTime"></strong>
+                                    </small>
+                                </div>
                             </div>
                         </div>
 
@@ -280,14 +296,14 @@
                                 </div>
                             </div>
 
-                            <div class="row mt-4">
+                            <div class="row mt-4 g-3">
                                 <div class="col-6">
-                                    <a href="{{ url('/booking') }}" class="btn btn-outline-light w-100">Kembali</a>
+                                    <a href="{{ url('/booking') }}" class="btn-action btn-secondary-action w-100">Kembali</a>
                                 </div>
                                 <div class="col-6">
                                     <button type="submit"
                                         :disabled="!confirmedTime || !selectedPricing"
-                                        class="btn-submit-booking w-100">
+                                        class="btn-action btn-primary-action w-100">
                                         LANJUTKAN
                                     </button>
                                 </div>
@@ -305,7 +321,6 @@
         <script>
         function bookingForm() {
             return {
-                tempTime: '',
                 confirmedTime: '',
                 selectedPricing: null,
                 paymentMethod: 'full',
@@ -369,19 +384,7 @@
                 return false;
             },
 
-                pilihWaktu() {
-                    if (this.tempTime !== '' && !this.isBlocked(this.tempTime)) {
-                        this.confirmedTime = this.tempTime;
-                    }
-                },
-
-                batalWaktu() {
-                    this.tempTime = '';
-                    this.confirmedTime = '';
-                },
-
                 async updateJamTerpakai() {
-                    this.tempTime = '';
                     this.confirmedTime = '';
                     try {
                         const res = await fetch('/booking/jam-terpakai?room=' + this.roomId + '&tanggal=' + this.tanggal);
@@ -394,7 +397,5 @@
             }
         }
         </script>
-        </script>
         </body>
         </html>
-    

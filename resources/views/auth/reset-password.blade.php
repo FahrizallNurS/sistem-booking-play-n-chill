@@ -165,12 +165,12 @@
       <input type="password" name="password_confirmation" required>
     </div>
 
-    <button type="submit" class="btn-submit">RESET PASSWORD</button>
+    <button type="submit" class="btn-submit"> RESET PASSWORD </button>
 
   </form>
 
   <p class="back-link">
-    <a href="{{ route('login') }}"> Kembali ke Login</a>
+    <a href="{{ route('login') }}"> Kembali ke Login </a>
   </p>
 
 </div>

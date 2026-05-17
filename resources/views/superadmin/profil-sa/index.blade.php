@@ -1,5 +1,4 @@
-@extends('adminlte::page')
-@include('partials.sidebar-superadmin')
+@extends('superadmin.layouts.app')
 @section('title', 'Profil Superadmin')
 
 @section('content_header')

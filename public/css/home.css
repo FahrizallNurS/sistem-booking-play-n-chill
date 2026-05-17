@@ -3,9 +3,9 @@
    Play N Chill Madiun
    ══════════════════════════════════════════ */
 
-   @import url('https://fonts.googleapis.com/css2?family=Modak&family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Modak&family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
 
-   *, *::before, *::after {
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -23,6 +23,10 @@ body {
     font-family: 'Nunito', sans-serif;
     overflow-x: hidden;
     background: #472CA1;
+}
+
+html {
+    overflow-x: hidden;
 }
 
 /* ════════════════════════
@@ -101,11 +105,12 @@ body {
    HERO / CAROUSEL
 ════════════════════════ */
 .hero {
-    background-image: url('../images/bg-segitiga.png'); /* Pastikan file ada di public/images */
+    background-image: url('../images/bg-segitiga.png');
     background-size: cover;
     background-position: center;
     position: relative;
     overflow: hidden;
+    padding: 0 !important;
 }
 
 .hero-title {
@@ -187,12 +192,12 @@ body {
 ════════════════════════ */
 .white-card {
     background: #fff;
-    padding: 20px 36px 52px;
+    padding: 20px 36px 36px;
     margin: 0px 14px 0px;
     box-shadow: 0 8px 36px rgba(0, 0, 0, .09);
     position: relative;
     z-index: 5;
-    border-radius: 50px;
+    border-radius: 30px;
 }
 
 .white-card h2 {
@@ -222,16 +227,16 @@ body {
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     align-items: stretch;
+    
+    /* 🌟 TAMBAHAN UNTUK DESKTOP: Batasi lebar agar kartu mengecil & taruh di tengah 🌟 */
+    max-width: 950px; /* Kamu bisa ubah angka ini (misal 900px atau 1000px) untuk menyesuaikan seberapa kecil/besar ukurannya */
+    margin: 0 auto;   /* Memastikan grid tetap berada di tengah layar */
 }
 
 .room-grid a {
     text-decoration: none !important;
     color: inherit;
     display: flex;
-}
-
-.room-grid a:hover {
-    text-decoration: none;
 }
 
 .r-card {
@@ -294,7 +299,7 @@ body {
     background: rgba(255, 255, 255, .2);
     backdrop-filter: blur(8px);
     border-radius: 10px;
-    padding: 6px; /* Ruang di sekitar ikon */
+    padding: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -303,8 +308,8 @@ body {
 }
 
 .r-badge img {
-    width: 22px;      /* Atur lebar ikon */
-    height: 22px;     /* Atur tinggi ikon */
+    width: 22px;
+    height: 22px;
     object-fit: contain;
     display: block;
 }
@@ -331,17 +336,17 @@ body {
 .r-foot h5 {
     font-family: 'Modak', system-ui;
     margin-bottom: 6px;
-    letter-spacing: 1.5px; /* Ditambah agar antar huruf ada jarak */
-    font-size: 1.5rem;     /* Ukuran sedikit diperbesar */
-    font-weight: normal;   /* Modak sudah tebal bawaan, tidak perlu 800 */
+    letter-spacing: 1.2px;
+    font-size: 1.6rem;
+    font-weight: normal;
     color: #f1f33f;
-    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
 }
 
 .r-foot p {
-    font-size: .85rem; /* Sedikit diperbesar agar seimbang */
+    font-size: .85rem;
     opacity: 0.85;
-    line-height: 1.5;
     margin: 0;
     color: #fff;
     line-height: 1.4;
@@ -352,15 +357,11 @@ body {
 ════════════════════════ */
 .tour-section {
     background: #d5e319 !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* Dukungan untuk Safari */
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     text-align: center;
     position: relative;
-    padding: 60px 20px;
-    margin: 40px 20px;
-    border-radius: 50px;
+    padding: 20px 20px;
+    margin: 20px 14px;
+    border-radius: 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
@@ -507,9 +508,26 @@ body {
     color: #fff !important;
 }
 
-/* Posisi awal item */
+/* Base Wrapper Karakter (Desktop) */
+.character-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    width: 350px;
+    height: auto;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.character-wrapper .foreground-char {
+    width: 100%;
+    height: auto;
+    position: relative;
+    display: block;
+}
+
 .item-interaktif {
-    width: 120px; /* Sesuaikan ukuran */
+    width: 120px;
     cursor: pointer;
     position: absolute;
     top: 50px;
@@ -522,25 +540,15 @@ body {
     filter: brightness(1.2);
 }
 
-/* Class yang dipicu oleh JavaScript */
 .fall-animation {
     animation: gravityFall 1.2s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
     pointer-events: none;
 }
 
 @keyframes gravityFall {
-    0% {
-        /* Tetap gunakan scaleX(-1) agar efek mirror tidak hilang saat jatuh */
-        transform: translateY(0) scaleX(-1) rotate(-10deg);
-        opacity: 1;
-    }
-    30% {
-        transform: translateY(-20px) scaleX(-1) rotate(-20deg);
-    }
-    100% {
-        transform: translateY(800px) scaleX(-1) rotate(180deg);
-        opacity: 0;
-    }
+    0% { transform: translateY(0) scaleX(-1) rotate(-10deg); opacity: 1; }
+    30% { transform: translateY(-20px) scaleX(-1) rotate(-20deg); }
+    100% { transform: translateY(800px) scaleX(-1) rotate(180deg); opacity: 0; }
 }
 
 /* ════════════════════════
@@ -562,9 +570,9 @@ footer {
 }
 
 .f-logo.font-modak {
-    font-family: 'Modak', system-ui; /* Memastikan font Modak terpanggil */
-    font-size: 2.5rem;               /* Sesuaikan ukurannya di sini */
-    letter-spacing: 1px;             /* Memberi sedikit ruang antar huruf jika terlalu rapat */
+    font-family: 'Modak', system-ui;
+    font-size: 2.5rem;
+    letter-spacing: 1px;
     color: #fff;
     line-height: 1.2;
 }
@@ -611,18 +619,17 @@ footer {
     font-size: .8rem;
     color: rgba(255, 255, 255, .62);
     line-height: 1.55;
-    /* Tambahan agar teks panjang mau patah ke bawah */
     word-break: break-word; 
     overflow-wrap: break-word;
     width: 100%;
 }
 
 .f-list li span:last-child {
-    flex: 1; /* Mengambil sisa ruang agar teks tidak meluap keluar kolom */
+    flex: 1;
 }
 
 .f-list li .fi img {
-    width: 20px;          /* Ukuran icon hubungi kami */
+    width: 20px;
     height: 20px;
     object-fit: contain;
     display: block;
@@ -641,12 +648,12 @@ footer {
 .soc-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;             /* Jarak antara icon dan teks Youtube/TikTok */
+    gap: 8px;
     height: 36px;
     padding: 0 12px;
     border-radius: 7px;
     background: rgba(255, 255, 255, .12);
-    font-size: .8rem;     /* Sedikit lebih kecil agar muat di mobile */
+    font-size: .8rem;
     color: #fff;
     text-decoration: none;
     transition: background .2s;
@@ -654,7 +661,7 @@ footer {
 }
 
 .soc-btn img {
-    width: 18px;          /* Ukuran icon sosmed */
+    width: 18px;
     height: 18px;
     object-fit: contain;
 }
@@ -675,32 +682,191 @@ footer {
     text-align: center;
 }
 
-@media (max-width: 576px) {
-    .f-list {
-        gap: 12px; /* Beri jarak lebih antar baris di HP */
+/* ════════════════════════
+   MEDIA QUERIES (RESPONSIVE)
+   ════════════════════════ */
+
+/* Tablet & HP Standar */
+@media (max-width: 767px) {
+    .white-card { padding: 32px 18px 40px; }
+    .tour-section { padding: 40px 0; }
+    
+    /* 🌟 RESET PADDING HERO SINKRONISASI BANNER 🌟 */
+    .hero .container-fluid {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    .hero .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* 🌟 FIX CAROUSEL BANNER INDEKS UTUH (8:3) 🌟 */
+    .carousel-inner [style*="min-height"] {
+        min-height: auto !important;
+        height: auto !important;
+    }
+    .carousel-inner .rounded-4 {
+        height: auto !important;
+        aspect-ratio: 1600 / 600 !important; 
+        background-size: cover !important; 
+        background-position: center center !important;
+        padding: 15px !important; 
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+
+    /* 🌟 PENGATURAN TEKS SLIDE 1 (DESAIN LENGKAP) AGAR RESPONSIF 🌟 */
+    .carousel-item .text-white h1 {
+        font-size: clamp(1.2rem, 5vw, 2rem) !important;
+        margin-bottom: 4px !important;
+        display: block !important;
+    }
+    .carousel-item .text-white p.fs-4 {
+        font-size: clamp(0.75rem, 3.5vw, 0.95rem) !important;
+        line-height: 1.3 !important;
+        margin-bottom: 10px !important;
+        max-width: 85% !important;
+        display: block !important;
+    }
+    .carousel-item .text-white p.text-uppercase {
+        font-size: 0.65rem !important;
+        margin-bottom: 2px !important;
+    }
+    .carousel-item .btn-lg {
+        padding: 6px 14px !important;
+        font-size: 0.75rem !important;
+    }
+    .carousel-item .d-flex.gap-3.flex-wrap {
+        display: flex !important;
+        gap: 8px !important;
+    }
+
+    /* 🌟 SEMBUNYIKAN TEKS HTML PADA SLIDE BROSUR (SLIDE 2, 3, 4) 🌟 */
+    .carousel-item .rounded-4:not([style*="linear-gradient"]) {
+        background-size: contain !important; 
+        padding: 0 !important; 
+    }
+
+    /* 🌟 PAKSA 3 KARTU ROOM GRID BERJEJER HORIZONTAL & KOTAK DI HP 🌟 */
+    .room-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 12px !important;
+        padding: 10px 5px 20px !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+    .room-grid a {
+        flex: 0 0 calc(33.333% - 8px) !important;
+        min-width: 125px; /* Sedikit dilebarkan agar teks tidak terlalu terjepit */
+    }
+    .r-card {
+        border-radius: 12px !important; 
     }
     
-    .f-list li {
-        font-size: 0.75rem; /* Teks sedikit mengecil di HP */
+    /* FIX BENTUK KOTAK: Tambahkan height: auto agar aspect-ratio berfungsi */
+    .r-img {
+        height: auto !important; 
+        aspect-ratio: 1 / 1 !important; 
+        border-radius: 12px 12px 0 0 !important; 
+    }
+    .r-foot {
+        padding: 8px 6px 12px !important; 
+    }
+    .r-foot h5 {
+        font-size: 0.95rem !important; 
+        margin-bottom: 2px !important;
+    }
+    .r-foot p {
+        font-size: 0.65rem !important; 
+        line-height: 1.2 !important;
+    }
+    .r-badge img {
+        width: 14px !important; 
+        height: 14px !important;
+    }
+
+    /* 🌟 PAKSA KARTU KOLEKSI GAME BERJEJER HORIZONTAL DI HP 🌟 */
+    .game-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important; 
+        overflow-x: auto !important;  
+        gap: 16px !important;         
+        padding-bottom: 20px !important; 
+        justify-content: flex-start !important; 
+        -webkit-overflow-scrolling: touch; 
+    }
+    .game-card {
+        flex: 0 0 140px !important; 
+        width: 140px !important;
+        max-width: none !important;
+        margin-bottom: 0 !important;
+    }
+    .game-card img {
+        width: 100% !important;
+        height: 180px !important; 
+        object-fit: cover !important;
+        border-radius: 12px;
+    }
+    .game-card h5 {
+        font-size: 0.9rem !important;
+        margin-top: 10px !important;
+        white-space: normal !important; 
+        text-align: center;
+        line-height: 1.3 !important;
+    }
+    .game-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+    .game-grid::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+    .game-grid::-webkit-scrollbar-thumb {
+        background: var(--yellow); 
+        border-radius: 10px;
+    }
+
+    /* 🌟 FIX RESPONSIVE CTA CHARACTER 🌟 */
+    .cta-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 60px 16px 0px;
+    }
+    .cta-content {
+        order: 1;
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    .character-wrapper {
+        position: relative !important;
+        margin: 20px auto 0;
+        width: 220px;
+        left: 0 !important;
+        order: 2;
+    }
+    .item-interaktif {
+        width: 50px !important;
+        top: -15px !important; 
+        left: 55px !important;
+    }
+    .vid-wrap {
+        max-width: 90% !important;
+        margin: 20px auto !important;
     }
 }
 
-/* ════════════════════════
-   RESPONSIVE
-════════════════════════ */
-@media (max-width: 767px) {
-    .white-card { padding: 32px 18px 40px; }
-    .room-grid  { grid-template-columns: 1fr; max-width: 300px; margin: 0 auto; }
-    .tour-section { padding: 40px 0; }
-    .cta-section  { padding: 60px 16px 70px; }
+/* HP Kecil / Layar Sangat Sempit */
+@media (max-width: 576px) {
+    .f-list { gap: 12px; }
+    .f-list li { font-size: 0.75rem; }
 }
 
 @media (max-width: 480px) {
-    .hero        { padding: 50px 16px 72px; }
-    .cta-section { padding: 52px 14px 60px; }
-    .hero-slide-img { height: 300px; }
-}
-
-html {
-    overflow-x: hidden;
+    .hero        { padding: 20px 0 !important; }
+    .cta-section { padding: 52px 14px 0px; }
+    .hero-slide-img { height: auto !important; }
 }

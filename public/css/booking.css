@@ -7,6 +7,8 @@
    PAGE
 ──────────────────────── */
 .booking-page {
+    position: relative;
+    z-index: 5; /* KUNCI FIX: Mengangkat seluruh konten ke atas background segitiga */
     min-height: 100vh;
     background-color: transparent;
     padding: 48px 20px 64px;
@@ -185,8 +187,82 @@
 }
 
 @media (max-width: 480px) {
-    .room-grid-booking { grid-template-columns: 1fr; max-width: 280px; margin: 0 auto; }
-    .booking-title     { font-size: 2rem; }
+    /* 🌟 1. FIX Z-INDEX AGAR KONTEN TIDAK TERTUTUP SEGITIGA 🌟 */
+    .booking-page {
+        position: relative !important;
+        z-index: 10 !important; /* Memaksa seluruh teks dan card maju di atas background */
+    }
+
+    /* 🌟 2. PAKSA CARD BERJEJER 2 KE SAMPING (KOTAK KECIL) 🌟 */
+    .room-grid-booking { 
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important; /* Kunci jadi 2 kolom */
+        gap: 10px !important; /* Jarak antar card diperkecil agar muat */
+        max-width: 100% !important; 
+        margin: 0 !important; 
+    }
+    
+    .room-container {
+        padding: 20px 10px !important; /* Kurangi padding border kuning di HP */
+    }
+
+    /* 🌟 3. KECILKAN ISI CARD AGAR PROPORSIONAL 🌟 */
+    .room-card-booking {
+        padding: 10px !important; /* Kurangi ruang kosong di dalam card */
+        border-radius: 12px !important;
+    }
+
+    .room-foto {
+        height: 90px !important; /* Pendekkan gambar agar rasio kotak rapi */
+        margin-bottom: 8px !important;
+        border-radius: 8px !important;
+    }
+
+    .room-status {
+        font-size: 0.6rem !important;
+        padding: 2px 6px !important;
+        top: 6px !important;
+        right: 6px !important;
+    }
+    
+    .room-name {
+        font-size: 0.85rem !important;
+        margin-bottom: 2px !important;
+        /* Potong teks jika nama ruangan terlalu panjang agar tidak merusak layout */
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .room-device {
+        font-size: 0.65rem !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .btn-booking {
+        font-size: 0.75rem !important;
+        padding: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    /* 🌟 4. PENYESUAIAN TEKS JUDUL 🌟 */
+    .booking-title { 
+        font-size: 1.8rem !important; 
+    }
+    
+    .room-container-title {
+        font-size: 1.1rem !important;
+        text-align: center;
+        margin-bottom: 20px !important;
+    }
+    
+    .booking-tabs {
+        gap: 8px !important;
+    }
+    .tab-link {
+        font-size: 0.9rem !important;
+        padding: 6px 12px !important;
+    }
 }
 
 .room-foto {

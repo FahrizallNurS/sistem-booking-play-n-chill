@@ -84,15 +84,22 @@ body {
     padding: 25px;
     text-align: center;
     color: #333;
+    width: 100%;
 }
 
 .qris-img {
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 15px;
-    border: 2px dashed #ccc;
+    width: 100%;
+    margin: 0 auto 0;
     padding: 10px;
     border-radius: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+.qris-img img {
+    width: 250px !important;
+    height: 250px !important;
+    object-fit: contain;
 }
 
 /* Angka Total */

@@ -56,8 +56,12 @@ class BookingController extends Controller
 
         $room = MsRuangan::findOrFail($roomId);
 
+        // Filter paket yang is_active = 1
         $penetapanHarga = PenetapanHarga::with('paket')
             ->where('id_ruangan', $roomId)
+            ->whereHas('paket', function($query) {
+                $query->where('is_active', 1);  // ← Hanya paket aktif
+            })
             ->get()
             ->groupBy('id_paket');
 
@@ -71,7 +75,10 @@ class BookingController extends Controller
         $paketId = $request->input('paket');
         $tanggal = now()->format('Y-m-d');
         $room    = MsRuangan::findOrFail($roomId);
-        $paket   = MsPaket::findOrFail($paketId);
+        $paket   = MsPaket::where('id_paket', $paketId)
+        ->where('is_active', 1)  
+        ->firstOrFail();
+
 
         $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
             ->where('id_paket', $paketId)

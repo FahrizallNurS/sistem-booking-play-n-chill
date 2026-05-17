@@ -121,6 +121,22 @@ Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Http\Request $requ
         ->with('success', 'Akun berhasil diaktifkan! Silakan login.');
 })->middleware('signed')->name('verification.verify');
 
+Route::get('/check-verification', function () {
+    $email = session('pending_verification_email');
+
+    if (!$email) {
+        return response()->json([
+            'verified' => false
+        ]);
+    }
+
+    $user = \App\Models\User::where('email', $email)->first();
+
+    return response()->json([
+        'verified' => $user && $user->hasVerifiedEmail()
+    ]);
+});
+
 /*
 |--------------------------------------------------------------------------
 | EMAIL VERIFICATION
@@ -161,7 +177,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [SABerandaController::class, 'index'])->name('dashboard');
         Route::resource('data-user', KelolaUserController::class)->names('users');
         Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
+        Route::patch('/data-user/{id}/toggle-status', [KelolaUserController::class, 'toggleStatus'])->name('users.toggle-status'); 
         Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/tinjau-laporan/export-pdf', [SATinjauLaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [SAProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');
@@ -171,9 +189,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
-        Route::resource('paket', PaketController::class);
+        Route::resource('paket', PaketController::class)->except(['destroy']);
+        Route::patch('/paket/{id}/toggle-aktif', [PaketController::class, 'toggleAktif'])->name('paket.toggle-aktif');
         Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
-        Route::resource('layanan', LayananController::class);
+        Route::resource('layanan', LayananController::class)->except(['destroy']);
+        Route::patch('/layanan/{id}/toggle-aktif', [LayananController::class, 'toggleAktif'])->name('layanan.toggle-aktif');    
         Route::post('/layanan/{id}/penetapan-harga', [LayananController::class, 'storePenetapanHarga'])->name('layanan.penetapan.store');
         Route::delete('/penetapan-harga/{id}', [LayananController::class, 'destroyPenetapanHarga'])->name('layanan.penetapan.destroy');
         Route::resource('booking', AdminBookingController::class);

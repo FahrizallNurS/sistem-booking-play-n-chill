@@ -70,13 +70,14 @@
                                     data-toggle="modal" data-target="#modalEdit">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
-                                <form action="{{ route('admin.layanan.destroy', $ruangan->id_ruangan) }}"
+                                <form action="{{ route('admin.layanan.toggle-aktif', $ruangan->id_ruangan) }}"
                                     method="POST" style="display:inline">
                                     @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Yakin hapus ruangan ini?')">
-                                        <i class="fas fa-trash"></i> Hapus
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-{{ $ruangan->is_active ? 'warning' : 'success' }} btn-sm"
+                                        onclick="return confirm('{{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }} ruangan ini?')">
+                                        <i class="fas fa-{{ $ruangan->is_active ? 'ban' : 'check' }}"></i>
+                                        {{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                 </form>
                             </td>
