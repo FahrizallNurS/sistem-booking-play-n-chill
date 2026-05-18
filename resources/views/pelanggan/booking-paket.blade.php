@@ -116,20 +116,18 @@
                         <p class="paket-card-sub">{{ $room->nama_ruangan }}</p>
 
                         {{-- Harga per durasi --}}
+                        {{-- Harga --}}
                         @foreach($items as $ph)
                             <div class="paket-card-price">
                                 Rp {{ number_format($ph->harga, 0, ',', '.') }}
-                                <small class="text-muted" style="font-size:12px">
-                                    / {{ $ph->durasi_jam }} jam
-                                    ({{ $ph->tipe_hari }})
-                                </small>
+                            </div>
+
+                            {{-- Durasi + Max Orang sejajar dalam 1 baris --}}
+                            <div class="paket-card-info-row">
+                                <span class="paket-card-durasi">/ {{ $ph->durasi_jam }} jam ({{ $ph->tipe_hari }})</span>
+                                <span class="paket-card-meta">👥 Max {{ $paket->maksimal_orang }} Orang</span>
                             </div>
                         @endforeach
-
-                        {{-- Meta --}}
-                        <div class="paket-card-meta">
-                            <span>👥 Max {{ $paket->maksimal_orang }} Orang</span>
-                        </div>
 
                         {{-- Deskripsi sebagai list --}}
                         @if($paket->deskripsi_paket)
