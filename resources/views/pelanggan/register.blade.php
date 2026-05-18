@@ -186,8 +186,6 @@
 <body>
 
 <div class="bg-pattern"></div>
-<div class="shape-left-top"></div>
-<div class="shape-left-bottom"></div>
 
 <div class="login-box">
 
