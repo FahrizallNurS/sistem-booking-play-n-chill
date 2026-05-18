@@ -4,6 +4,29 @@
 @section('content_header', 'Tambah User')
 
 @section('content')
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error!</strong> {{ session('error') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Perhatian!</strong> Ada kesalahan pada form:
+        <ul class="mb-0 mt-2">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
+
 <div class="card">
     <div class="card-body">
         <form action="{{ route('superadmin.users.store') }}" method="POST">
@@ -48,13 +71,24 @@
 
             <div class="form-group">
                 <label>No. HP</label>
-                <input type="text" name="no_hp" class="form-control"
+                <input type="text" name="no_hp" class="form-control @error('no_hp') is-invalid @enderror"
                     value="{{ old('no_hp') }}" maxlength="15">
+                @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label>Alamat</label>
-                <textarea name="alamat" class="form-control" rows="3">{{ old('alamat') }}</textarea>
+                <textarea name="alamat" 
+                    class="form-control @error('alamat') is-invalid @enderror" 
+                    rows="3" 
+                    maxlength="255" 
+                    id="alamatInput">{{ old('alamat') }}</textarea>
+                @error('alamat') 
+                    <div class="invalid-feedback">{{ $message }}</div> 
+                @enderror
+                <small class="form-text text-muted">
+                    <span id="charCount">0</span>/255 karakter
+                </small>
             </div>
 
             <a href="{{ route('superadmin.users.index') }}" class="btn btn-secondary">Batal</a>
@@ -62,4 +96,27 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alamatInput = document.getElementById('alamatInput');
+        const charCount = document.getElementById('charCount');
+        
+        if (alamatInput) {
+            charCount.textContent = alamatInput.value.length;
+
+            alamatInput.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+
+                if (this.value.length > 240) {
+                    charCount.classList.add('text-warning');
+                } else {
+                    charCount.classList.remove('text-warning');
+                }
+            });
+        }
+    });
+</script>
+@endpush
 @endsection

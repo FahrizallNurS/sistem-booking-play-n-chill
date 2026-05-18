@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\QueryException;
 
 class KelolaUserController extends Controller
 {
@@ -48,22 +49,40 @@ class KelolaUserController extends Controller
             'password'      => 'required|min:8|confirmed',
             'role'          => 'required|in:admin,pelanggan,superadmin',
             'no_hp'         => 'nullable|string|max:15',
-            'alamat'        => 'nullable|string',
+            'alamat'        => 'nullable|string|max:255', 
+        ], [
+            
+            'alamat.max' => 'Alamat terlalu panjang. Maksimal 50 karakter.',
+            'nama_pengguna.max' => 'Nama pengguna terlalu panjang. Maksimal 50 karakter.',
         ]);
 
-        User::create([
-            'nama_pengguna'      => $request->nama_pengguna,
-            'email'              => $request->email,
-            'password'           => Hash::make($request->password),
-            'role'               => $request->role,
-            'no_hp'              => $request->no_hp,
-            'alamat'             => $request->alamat,
-            'status'             => 1,
-            'email_verified_at'  => now(),
-        ]);
+        try {
+            User::create([
+                'nama_pengguna'      => $request->nama_pengguna,
+                'email'              => $request->email,
+                'password'           => Hash::make($request->password),
+                'role'               => $request->role,
+                'no_hp'              => $request->no_hp,
+                'alamat'             => $request->alamat,
+                'status'             => 1,
+                'email_verified_at'  => now(),
+            ]);
 
-        return redirect()->route('superadmin.users.index')
-            ->with('success', 'User berhasil ditambahkan!');
+            return redirect()->route('superadmin.users.index')
+                ->with('success', 'User berhasil ditambahkan!');
+
+        } catch (QueryException $e) {
+            
+            if ($e->getCode() === '22001') {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Data yang dimasukkan terlalu panjang. Silakan persingkat alamat atau informasi lainnya.');
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+        }
     }
 
     public function edit($id)
@@ -81,19 +100,36 @@ class KelolaUserController extends Controller
             'email'         => 'required|email|unique:users,email,' . $user->id_pengguna . ',id_pengguna',
             'role'          => 'required|in:admin,pelanggan,superadmin',
             'no_hp'         => 'nullable|string|max:15',
-            'alamat'        => 'nullable|string',
+            'alamat'        => 'nullable|string|max:50', 
+        ], [
+            // ✅ Custom error messages
+            'alamat.max' => 'Alamat terlalu panjang. Maksimal 50 karakter.',
         ]);
 
-        $user->update([
-            'nama_pengguna' => $request->nama_pengguna,
-            'email'         => $request->email,
-            'role'          => $request->role,
-            'no_hp'         => $request->no_hp,
-            'alamat'        => $request->alamat,
-        ]);
+        try {
+            $user->update([
+                'nama_pengguna' => $request->nama_pengguna,
+                'email'         => $request->email,
+                'role'          => $request->role,
+                'no_hp'         => $request->no_hp,
+                'alamat'        => $request->alamat,
+            ]);
 
-        return redirect()->route('superadmin.users.index')
-            ->with('success', 'User berhasil diupdate!');
+            return redirect()->route('superadmin.users.index')
+                ->with('success', 'User berhasil diupdate!');
+
+        } catch (QueryException $e) {
+
+            if ($e->getCode() === '22001') {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Data yang dimasukkan terlalu panjang. Silakan persingkat alamat atau informasi lainnya.');
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat update data: ' . $e->getMessage());
+        }
     }
 
    public function destroy($id)
