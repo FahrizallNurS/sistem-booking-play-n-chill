@@ -1,14 +1,36 @@
 @extends('superadmin.layouts.app')
 @section('title', 'Edit User')
 
-@section('content_header',)
+@section('content_header')
     <h1>Edit User</h1>
 @stop
 
 @section('content')
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            <strong>Error!</strong> {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show">
+            <strong>Perhatian!</strong> Ada kesalahan pada form:
+            <ul class="mb-0 mt-2">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
     @endif
 
     <div class="row">
@@ -40,22 +62,36 @@
 
                         <div class="form-group">
                             <label>Role</label>
-                            <select name="role" class="form-control" required>
-                                <option value="pelanggan" {{ $user->role == 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
-                                <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                                <option value="superadmin" {{ $user->role == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
+                            {{-- ✅ TAMBAHKAN error class --}}
+                            <select name="role" class="form-control @error('role') is-invalid @enderror" required>
+                                <option value="pelanggan" {{ old('role', $user->role) == 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
+                                <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="superadmin" {{ old('role', $user->role) == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
                             </select>
+                            @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="form-group">
                             <label>No. HP</label>
-                            <input type="text" name="no_hp" class="form-control"
+                            {{-- ✅ TAMBAHKAN error class --}}
+                            <input type="text" name="no_hp" class="form-control @error('no_hp') is-invalid @enderror"
                                 value="{{ old('no_hp', $user->no_hp) }}" maxlength="15">
+                            @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="form-group">
                             <label>Alamat</label>
-                            <textarea name="alamat" class="form-control" rows="3">{{ old('alamat', $user->alamat) }}</textarea>
+                            <textarea name="alamat" 
+                                class="form-control @error('alamat') is-invalid @enderror" 
+                                rows="3" 
+                                maxlength="255"
+                                id="alamatInput">{{ old('alamat', $user->alamat) }}</textarea>
+                            @error('alamat') 
+                                <div class="invalid-feedback">{{ $message }}</div> 
+                            @enderror
+                            <small class="form-text text-muted">
+                                <span id="charCount">0</span>/255 karakter
+                            </small>
                         </div>
 
                         <a href="{{ route('superadmin.users.index') }}" class="btn btn-secondary">Batal</a>
@@ -65,7 +101,6 @@
             </div>
         </div>
 
-        {{-- Ganti Password --}}
         <div class="col-md-5">
             <div class="card">
                 <div class="card-header bg-warning">
@@ -95,7 +130,6 @@
                 </div>
             </div>
 
-            {{-- Info Akun --}}
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Info Akun</h3>
@@ -116,5 +150,31 @@
         </div>
 
     </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alamatInput = document.getElementById('alamatInput');
+        const charCount = document.getElementById('charCount');
+        
+        if (alamatInput && charCount) {
+            // Update counter saat halaman load
+            charCount.textContent = alamatInput.value.length;
+            
+            // Update counter saat user mengetik
+            alamatInput.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+                
+                // Warning jika mendekati limit
+                if (this.value.length > 240) {
+                    charCount.classList.add('text-warning');
+                } else {
+                    charCount.classList.remove('text-warning');
+                }
+            });
+        }
+    });
+</script>
+@endpush
 
 @stop
