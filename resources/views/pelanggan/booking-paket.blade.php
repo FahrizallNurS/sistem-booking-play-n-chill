@@ -38,7 +38,6 @@
                 <li class="nav-item ms-2">
 
                     @guest
-                        {{-- Belum login: tampilkan tombol Login --}}
                         <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
                         style="background-color: var(--orange) !important;">
                             Login
@@ -46,7 +45,6 @@
                     @endguest
 
                     @auth
-                        {{-- Sudah login: tampilkan avatar + dropdown --}}
                         <div class="dropdown">
                             <div class="nav-avatar" id="userDropdown"
                                 data-bs-toggle="dropdown" aria-expanded="false">

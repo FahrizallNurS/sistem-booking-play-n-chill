@@ -214,7 +214,7 @@
                                 </div>
                                 
                                 <div x-show="confirmedTime !== ''" class="text-end">
-                                    <small class="text-success">
+                                    <small style="color: #ffcc00;">
                                         ✓ Waktu dipilih: <strong x-text="confirmedTime"></strong>
                                     </small>
                                 </div>
@@ -262,6 +262,23 @@
                                     :max="selectedPricing ? selectedPricing.harga : ''">
                             </div>
                         </div>
+
+                        @if(!auth()->user()->no_hp)
+                        <div class="booking-card">
+                            <span class="section-badge">Nomor Telepon</span>
+                            <p class="text-white-50 small mt-1 mb-2">
+                                Nomor telepon diperlukan untuk konfirmasi booking.
+                            </p>
+                            <input type="tel" name="no_hp" class="form-control"
+                                placeholder="Contoh: 08123456789"
+                                maxlength="15"
+                                value="{{ old('no_hp') }}"
+                                required>
+                            @error('no_hp')
+                                <small class="text-danger mt-1 d-block">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        @endif
 
                         {{-- SUMMARY --}}
                         <div class="booking-card border-warning">

@@ -134,28 +134,48 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+
+        if (empty(Auth::user()->no_hp)) {
+        $request->merge(['no_hp_required' => true]);
+        }
+
         $request->validate([
-            'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
-            'tanggal'            => 'required|date|after_or_equal:today',
-            'waktu_mulai'        => ['required', 'regex:/^([01]?[0-9]|2[0-3])[.:][0-5][0-9]$/'],
-            'opsi_pembayaran'    => 'required|in:full,dp',
-            'jumlah_dp'          => [
-                'required_if:opsi_pembayaran,dp',
-                'nullable',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->opsi_pembayaran === 'dp') {
-                        $dp = (int) str_replace('.', '', $value);
-                        $ph = PenetapanHarga::find($request->id_penetapan_harga);
-                        if ($dp <= 0) {
-                            $fail('Jumlah DP harus lebih dari 0.');
-                        }
-                        if ($ph && $dp >= $ph->harga) {
-                            $fail('Jumlah DP tidak boleh melebihi atau sama dengan total harga.');
-                        }
+        'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
+        'tanggal' => 'required|date|after_or_equal:today',
+        'waktu_mulai' => ['required', 'regex:/^([01]?[0-9]|2[0-3])[.:][0-5][0-9]$/'],
+        'opsi_pembayaran' => 'required|in:full,dp',
+
+        'jumlah_dp' => [
+            'required_if:opsi_pembayaran,dp',
+            'nullable',
+            function ($attribute, $value, $fail) use ($request) {
+
+                if ($request->opsi_pembayaran === 'dp') {
+
+                    $dp = (int) str_replace('.', '', $value);
+
+                    $ph = PenetapanHarga::find($request->id_penetapan_harga);
+
+                    if ($dp <= 0) {
+                        $fail('Jumlah DP harus lebih dari 0.');
+                    }
+
+                    if ($ph && $dp >= $ph->harga) {
+                        $fail('Jumlah DP tidak boleh melebihi atau sama dengan total harga.');
                     }
                 }
-            ],
+            }
+        ]
+        ], [
+            'no_hp.required' => 'Nomor telepon wajib diisi.',
+            'no_hp.regex' => 'Format nomor telepon tidak valid.',
         ]);
+
+        if (empty(Auth::user()->no_hp) && $request->filled('no_hp')) {
+        Auth::user()->update([
+            'no_hp' => $request->no_hp
+        ]);
+         }
 
         return DB::transaction(function () use ($request) {
             $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);

@@ -185,13 +185,20 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');
     });
 
-    // Grouping Admin
+   // Grouping Admin
         Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+        
+        Route::delete('/paket/penetapan/{id}', [PaketController::class, 'destroyPenetapan'])
+            ->name('paket.penetapan.destroy');
+        Route::patch('/paket/{id}/toggle-aktif', [PaketController::class, 'toggleAktif'])
+            ->name('paket.toggle-aktif');
+        Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])
+            ->name('kategori.ruangan');
+        
         Route::resource('paket', PaketController::class);
-        Route::patch('/paket/{id}/toggle-aktif', [PaketController::class, 'toggleAktif'])->name('paket.toggle-aktif');
-        Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])->name('kategori.ruangan');
+                
         Route::resource('layanan', LayananController::class);
         Route::patch('/layanan/{id}/toggle-aktif', [LayananController::class, 'toggleAktif'])->name('layanan.toggle-aktif');    
         Route::post('/layanan/{id}/penetapan-harga', [LayananController::class, 'storePenetapanHarga'])->name('layanan.penetapan.store');
@@ -209,7 +216,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
         Route::get('/logout', function() {
-        auth()->logout();
+            auth()->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
             return redirect('/login');

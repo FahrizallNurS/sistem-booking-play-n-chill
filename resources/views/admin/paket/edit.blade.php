@@ -96,58 +96,81 @@
             </div>
 
         </form>
-        {{-- END FORM 1 --}}
-
     </div>
 </div>
 
-<!-- {{-- TABEL PENETAPAN HARGA (di luar form utama) --}}
 <div class="card mt-3">
-    <div class="card-header">
-        <h5 class="mb-0">Penetapan Harga yang Sudah Ada</h5>
+    <div class="card-header bg-info">
+        <h5 class="mb-0">📋 Penetapan Harga yang Berlaku Saat Ini</h5>
     </div>
     <div class="card-body">
         @if($paket->penetapanHarga->count() > 0)
-            <table class="table table-bordered table-sm">
-                <thead>
+            <table class="table table-bordered table-sm table-hover">
+                <thead class="thead-light">
                     <tr>
-                        <th>#</th>
+                        <th width="5%">#</th>
                         <th>Ruangan</th>
                         <th>Tipe Hari</th>
                         <th>Durasi</th>
                         <th>Harga</th>
-                        <th>Aksi</th>
+                        <th width="15%">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($paket->penetapanHarga as $index => $ph)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $ph->ruangan->nama_ruangan ?? '-' }}</td>
-                            <td><span class="badge badge-info">{{ $ph->tipe_hari }}</span></td>
-                            <td>{{ $ph->durasi_jam }} jam</td>
-                            <td>Rp {{ number_format($ph->harga, 0, ',', '.') }}</td>
                             <td>
-                                <form action="{{ route('admin.layanan.penetapan.destroy', $ph->id_penetapan_harga) }}"
-                                    method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Hapus penetapan harga ini?')">
-                                        <i class="fas fa-trash"></i>
+                                <span class="badge badge-primary">
+                                    {{ $ph->ruangan->nama_ruangan ?? '-' }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($ph->tipe_hari == 'harian')
+                                    <span class="badge badge-success">Harian</span>
+                                @elseif($ph->tipe_hari == 'akhir_pekan')
+                                    <span class="badge badge-warning">Akhir Pekan</span>
+                                @else
+                                    <span class="badge badge-danger">Liburan</span>
+                                @endif
+                            </td>
+                            <td>{{ $ph->durasi_jam }} jam</td>
+                            <td><strong>Rp {{ number_format($ph->harga, 0, ',', '.') }}</strong></td>
+                            <td>
+                                @if($ph->transaksis()->exists())
+                                    <button class="btn btn-secondary btn-sm" disabled title="Tidak bisa dihapus (ada transaksi)">
+                                        <i class="fas fa-lock"></i> Terkunci
                                     </button>
-                                </form>
+                                @else
+                                    <form action="{{ route('admin.paket.penetapan.destroy', $ph->id_penetapan_harga) }}"
+                                        method="POST" style="display:inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Hapus penetapan harga ini?')">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+            
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="fas fa-info-circle"></i>
+                <strong>Catatan:</strong> Harga yang ditampilkan adalah harga terbaru yang berlaku saat ini. 
+                Riwayat perubahan harga tetap tersimpan untuk keperluan laporan transaksi.
+            </div>
         @else
-            <p class="text-muted">Belum ada penetapan harga.</p>
+            <div class="alert alert-warning mb-0">
+                <i class="fas fa-exclamation-triangle"></i>
+                Belum ada penetapan harga untuk paket ini.
+            </div>
         @endif
     </div>
-</div> -->
-
+</div>
 @stop
 
 @section('js')
