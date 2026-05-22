@@ -5,14 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logo_dumb.png') }}">
     <title>Tentang Kami - Play N Chill</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
-        html { overflow-x: hidden; }
+        html {
+            overflow-x: hidden;
+        }
 
         body {
             background-color: #442c94;
@@ -28,8 +32,10 @@
         body::before {
             content: "";
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-image: url('{{ asset("images/bg-segitiga.png") }}');
             background-repeat: no-repeat;
             background-size: cover;
@@ -38,7 +44,7 @@
             z-index: -1;
         }
 
-        /* ── HERO ── */
+        /* HERO */
         .hero-section {
             padding: 100px 0 50px;
             text-align: center;
@@ -62,7 +68,9 @@
             margin-bottom: 20px;
         }
 
-        .text-purple-light { color: #A855F7; }
+        .text-purple-light {
+            color: #A855F7;
+        }
 
         .description-text {
             color: #CBD5E1;
@@ -73,7 +81,7 @@
             font-size: 1.1rem;
         }
 
-        /* ── CARDS ── */
+        /* CARDS */
         .custom-card {
             background-size: cover;
             background-position: center;
@@ -94,8 +102,15 @@
         .custom-card::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(180deg, rgba(36, 20, 68, 0.2) 0%, rgba(36, 20, 68, 0.9) 80%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(36, 20, 68, 0.2) 0%,
+                rgba(36, 20, 68, 0.9) 80%
+            );
             z-index: -1;
         }
 
@@ -106,7 +121,8 @@
 
         .card-icon-box {
             border: 1px solid #FFD700;
-            width: 45px; height: 45px;
+            width: 45px;
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -116,7 +132,8 @@
         }
 
         .orange-line {
-            width: 50px; height: 4px;
+            width: 50px;
+            height: 4px;
             background-color: #FFD700;
             display: inline-block;
             margin-right: 15px;
@@ -124,7 +141,7 @@
             border-radius: 2px;
         }
 
-        /* ── FEATURES SCROLL (4 card sejajar, swipe di mobile) ── */
+        /* FEATURES SCROLL */
         .features-scroll-wrap {
             display: flex;
             gap: 16px;
@@ -134,11 +151,15 @@
             padding-bottom: 12px;
         }
 
-        .features-scroll-wrap::-webkit-scrollbar { height: 4px; }
+        .features-scroll-wrap::-webkit-scrollbar {
+            height: 4px;
+        }
+
         .features-scroll-wrap::-webkit-scrollbar-track {
             background: rgba(255,255,255,0.05);
             border-radius: 10px;
         }
+
         .features-scroll-wrap::-webkit-scrollbar-thumb {
             background: #FFD700;
             border-radius: 10px;
@@ -152,7 +173,7 @@
             min-height: 350px;
         }
 
-        /* ── CTA ── */
+        /* CTA */
         .cta-banner {
             background: var(--purple);
             border-radius: 35px;
@@ -183,61 +204,21 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
         }
 
-        h2.section-title { font-weight: 700; margin-bottom: 10px; }
-        .sub-title { color: #94A3B8; margin-bottom: 50px; }
-
-        /* ── TEAM ── */
-        .team-section { margin-top: 80px; margin-bottom: 40px; }
-
-        .team-member-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 30px 15px;
-            transition: 0.3s;
-            height: 100%;
+        h2.section-title {
+            font-weight: 700;
+            margin-bottom: 10px;
         }
 
-        .team-member-card:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #FFD700;
+        .sub-title {
+            color: #94A3B8;
+            margin-bottom: 50px;
         }
 
-        .member-role {
-            color: #FFD700;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .avatar-img {
-            width: 130px; height: 130px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 20px;
-            border: 4px solid #FFD700;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-            transition: 0.3s ease;
-        }
-
-        .team-member-card:hover .avatar-img { transform: scale(1.05); }
-
-        /* ════════════════════════
-           FOOTER
-        ════════════════════════ */
+        /* FOOTER */
         footer {
             background: #14083a;
             color: rgba(255, 255, 255, .75);
             padding: 50px 0 20px;
-        }
-
-        .f-logo {
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.45rem;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .f-logo.font-modak {
@@ -265,7 +246,8 @@
 
         .f-list {
             list-style: none;
-            padding: 0; margin: 0;
+            padding: 0;
+            margin: 0;
             display: flex;
             flex-direction: column;
             gap: 9px;
@@ -278,20 +260,18 @@
             font-size: .8rem;
             color: rgba(255, 255, 255, .62);
             line-height: 1.55;
-            word-break: break-word;
-            overflow-wrap: break-word;
-            width: 100%;
         }
 
-        .f-list li span:last-child { flex: 1; }
+        .f-list li span:last-child {
+            flex: 1;
+        }
 
         .f-list li .fi img {
-            width: 20px; height: 20px;
+            width: 20px;
+            height: 20px;
             object-fit: contain;
             display: block;
         }
-
-        .f-list li .fi { flex-shrink: 0; font-size: .88rem; }
 
         .soc-btn {
             display: inline-flex;
@@ -300,32 +280,36 @@
             height: 36px;
             padding: 0 12px;
             border-radius: 7px;
-            background: rgba(255, 255, 255, .12);
+            background: rgba(255,255,255,.12);
             font-size: .8rem;
             color: #fff;
             text-decoration: none;
             transition: background .2s;
-            white-space: nowrap;
         }
 
-        .soc-btn img { width: 18px; height: 18px; object-fit: contain; }
-        .soc-btn:hover { background: var(--purple); color: #fff; }
-
-        .f-copy {
-            font-size: .72rem;
-            color: rgba(255, 255, 255, .32);
-            text-align: center;
+        .soc-btn img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
         }
 
-        /* ════════════════════════
-           RESPONSIVE
-        ════════════════════════ */
+        .soc-btn:hover {
+            background: var(--purple);
+            color: #fff;
+        }
+
         @media (max-width: 767px) {
-            .hero-section { padding: 70px 16px 30px; }
+            .hero-section {
+                padding: 70px 16px 30px;
+            }
 
-            .main-title { font-size: clamp(1.8rem, 7vw, 2.5rem); }
+            .main-title {
+                font-size: clamp(1.8rem, 7vw, 2.5rem);
+            }
 
-            .description-text { font-size: 0.95rem; }
+            .description-text {
+                font-size: 0.95rem;
+            }
 
             .features-scroll-wrap .custom-card {
                 flex: 0 0 75vw;
@@ -339,55 +323,97 @@
                 border-radius: 20px;
             }
 
-            .btn-booking { padding: 12px 28px; font-size: 0.9rem; }
-        }
-
-        @media (max-width: 576px) {
-            .f-list { gap: 12px; }
-            .f-list li { font-size: 0.75rem; }
+            .btn-booking {
+                padding: 12px 28px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
+
 <body>
 
-{{-- Navbar --}}
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+
+        <button class="navbar-toggler border-0 shadow-none"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navMain">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse justify-content-end" id="navMain">
             <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/booking') }}">Booking</a></li>
-                <li class="nav-item"><a class="nav-link nav-btn-active" href="{{ url('/tentang-kami') }}">Tentang Kami</a></li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/') }}">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link nav-btn-active" href="{{ url('/tentang-kami') }}">
+                        Tentang Kami
+                    </a>
+                </li>
+
                 <li class="nav-item ms-2">
                     @guest
-                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}" style="background-color: var(--orange) !important;">Login</a>
+                        <a class="nav-link nav-btn-active"
+                           href="{{ url('/login') }}"
+                           style="background-color: var(--orange) !important;">
+                            Login
+                        </a>
                     @endguest
+
                     @auth
                         <div class="dropdown">
-                            <div class="nav-avatar" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                            <div class="nav-avatar"
+                                 id="userDropdown"
+                                 data-bs-toggle="dropdown"
+                                 aria-expanded="false">
+
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                                </svg>
                             </div>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
-                                <li><span class="dropdown-item-text fw-bold">{{ auth()->user()->name }}</span></li>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li>
+                                    <span class="dropdown-item-text fw-bold">
+                                        {{ auth()->user()->name }}
+                                    </span>
+                                </li>
+
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
+
+                                <li>
+                                    <a class="dropdown-item" href="{{ url('/profile') }}">
+                                        Profil Saya
+                                    </a>
+                                </li>
+
                                 <li><hr class="dropdown-divider"></li>
+
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="dropdown-item text-danger">Keluar (Logout)</button>
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Keluar (Logout)
+                                        </button>
                                     </form>
                                 </li>
                             </ul>
                         </div>
                     @endauth
                 </li>
+
             </ul>
         </div>
     </div>
@@ -395,74 +421,123 @@
 
 <div class="container">
 
-    {{-- Hero --}}
     <div class="hero-section">
         <div class="badge-location">Play N Chill</div>
-        <h1 class="main-title">Istirahat Total di <span class="text-purple-light">Level</span> Maksimal</h1>
+
+        <h1 class="main-title">
+            Istirahat Total di
+            <span class="text-purple-light">Level</span>
+            Maksimal
+        </h1>
+
         <p class="description-text">
-            Di Play N Chill, kami percaya waktu luang itu berharga. Kami hadir bukan cuma sebagai tempat main,
-            tapi sebagai tempat kamu bersembunyi sejenak dari rutinitas dan benar-benar menikmati waktu untuk dirimu sendiri.
+            Di Play N Chill, kami percaya waktu luang itu berharga.
+            Kami hadir bukan cuma sebagai tempat main,
+            tapi sebagai tempat kamu bersembunyi sejenak dari rutinitas
+            dan benar-benar menikmati waktu untuk dirimu sendiri.
         </p>
     </div>
 
-    {{-- Card Lahir dari Rasa Bosan --}}
     <div class="row justify-content-center mt-5">
         <div class="col-md-11">
             <div class="custom-card">
-                <h3 class="fw-bold mb-4"><span class="orange-line"></span>Lahir dari Rasa Bosan</h3>
-                <p class="description-text" style="margin-left: 0; text-align: left; max-width: 100%; text-align: justify;">
-                Play N Chill hadir di Madiun sebagai tempat hiburan all-in-one yang berbeda dari yang lain. 
-                Kami bukan sekadar tempat main biasa — kami adalah ruang di mana kamu bisa benar-benar melepas penat dan menikmati waktu terbaikmu. 
-                Mau seru-seruan gaming dari PS3 sampai PS5 terbaru? Ada. 
-                Mau nyanyi lepas bareng teman atau keluarga di karaoke privat? Siap. 
-                Atau mau santai nonton film favorit di private bioskop dengan layar besar dan suara cinema? Semua tersedia hanya di satu tempat. Karena kami percaya, 
-                quality time itu harus benar-benar berkualitas — tanpa gangguan, tanpa kompromi.
+                <h3 class="fw-bold mb-4">
+                    <span class="orange-line"></span>
+                    Lahir dari Rasa Bosan
+                </h3>
+
+                <p class="description-text"
+                   style="margin-left: 0; text-align: left; max-width: 100%;">
+                    Play N Chill hadir di Madiun sebagai tempat hiburan all-in-one
+                    yang berbeda dari yang lain.
+                    Kami bukan sekadar tempat main biasa,
+                    kami adalah ruang di mana kamu bisa benar-benar melepas penat
+                    dan menikmati waktu terbaikmu.
                 </p>
             </div>
         </div>
     </div>
 
-    {{-- Kenapa Harus Kami --}}
     <div class="text-center mt-5 pt-5">
+
         <h2 class="section-title">Kenapa Harus Kami?</h2>
         <p class="sub-title">Pengalaman gaming premium yang berbeda</p>
 
         <div class="features-scroll-wrap">
-            <div class="custom-card" style="background-image: url('{{ asset('images/cinema.jpg') }}');">
-                <div class="card-icon-box"><i class="fas fa-lock"></i></div>
+
+            <div class="custom-card"
+                 style="background-image: url('{{ asset('images/cinema.jpg') }}');">
+                <div class="card-icon-box">
+                    <i class="fas fa-lock"></i>
+                </div>
+
                 <h5 class="fw-bold">Privasi Mutlak</h5>
-                <p class="small opacity-75">Ruangan Serba Privat
-                Semua ruangan kami — Reguler, VIP, hingga VVIP — dirancang khusus agar kamu bisa menikmati waktu tanpa gangguan siapapun.</p>
+
+                <p class="small opacity-75">
+                    Semua ruangan kami dirancang agar kamu bisa menikmati waktu
+                    tanpa gangguan siapapun.
+                </p>
             </div>
 
-            <div class="custom-card" style="background-image: url('{{ asset('images/gaming.jpg') }}');">
-                <div class="card-icon-box"><i class="fas fa-gamepad"></i></div>
+            <div class="custom-card"
+                 style="background-image: url('{{ asset('images/gaming.jpg') }}');">
+                <div class="card-icon-box">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+
                 <h5 class="fw-bold">Gaming Terkini</h5>
-                <p class="small opacity-75">Gaming Next-Gen
-                Rasakan sensasi bermain di konsol PS3 hingga PS5 terbaru, dengan layar 4K dan audio yang bikin makin seru.</p>
+
+                <p class="small opacity-75">
+                    Rasakan sensasi bermain di konsol PS3 hingga PS5 terbaru
+                    dengan layar 4K dan audio maksimal.
+                </p>
             </div>
 
-            <div class="custom-card" style="background-image: url('{{ asset('images/cinema.jpg') }}');">
-                <div class="card-icon-box"><i class="fas fa-tv"></i></div>
+            <div class="custom-card"
+                 style="background-image: url('{{ asset('images/cinema.jpg') }}');">
+                <div class="card-icon-box">
+                    <i class="fas fa-tv"></i>
+                </div>
+
                 <h5 class="fw-bold">Private Bioskop</h5>
-                <p class="small opacity-75">Private Bioskop
-                Nonton film favorit dalam ruangan privat dengan layar besar dan suara cinema — pengalaman bioskop yang benar-benar hanya milikmu.</p>
+
+                <p class="small opacity-75">
+                    Nonton film favorit dalam ruangan privat
+                    dengan layar besar dan suara cinema.
+                </p>
             </div>
 
-            <div class="custom-card" style="background-image: url('{{ asset('images/karaoke.jpg') }}');">
-                <div class="card-icon-box"><i class="fas fa-calendar-alt"></i></div>
-                <h5 class="fw-bold">Smart Booking</h5>
-                <p class="small opacity-75">Karaoke Seru
-                Ajak teman atau keluarga bernyanyi bareng di ruang karaoke privat kami yang nyaman dan lengkap dengan lagu terbaru.</p>
+            <div class="custom-card"
+                 style="background-image: url('{{ asset('images/karaoke.jpg') }}');">
+                <div class="card-icon-box">
+                    <i class="fas fa-microphone"></i>
+                </div>
+
+                <h5 class="fw-bold">Karaoke Seru</h5>
+
+                <p class="small opacity-75">
+                    Ajak teman atau keluarga bernyanyi bareng
+                    di ruang karaoke privat kami.
+                </p>
             </div>
+
         </div>
     </div>
 
-    {{-- CTA Banner --}}
     <div class="cta-banner">
-        <h2 class="fw-bold mb-3">Siap untuk recharge energimu?</h2>
-        <p class="fs-5">Pilih ruangan favoritmu sekarang dan rasakan pengalaman Chill yang sesungguhnya hanya di Play N Chill.</p>
-        <a href="{{ url('/booking') }}" class="btn btn-booking">Booking Sekarang <i class="fas fa-arrow-right ms-2"></i></a>
+        <h2 class="fw-bold mb-3">
+            Siap untuk recharge energimu?
+        </h2>
+
+        <p class="fs-5">
+            Pilih ruangan favoritmu sekarang dan rasakan pengalaman Chill
+            yang sesungguhnya hanya di Play N Chill.
+        </p>
+
+        <a href="{{ url('/booking') }}" class="btn btn-booking">
+            Booking Sekarang
+            <i class="fas fa-arrow-right ms-2"></i>
+        </a>
     </div>
 
 </div>
@@ -471,58 +546,30 @@
     <div class="container">
         <div class="row g-4 pb-2">
 
-            {{-- Brand --}}
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="f-logo font-modak">Play N Chill</div>
-                <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
+
+                <p class="f-tagline">
+                    Nikmati pengalaman tak terlupakan bersama teman dan keluarga.
+                </p>
             </div>
 
-            {{-- Hubungi Kami --}}
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Hubungi Kami</div>
-                <ul class="f-list">
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span>playnchillmadiun@gmail.com</span></li>
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
-                        <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
-                    </li>
-                </ul>
-            </div>
 
-            {{-- Ikuti Kami --}}
-            <div class="col-6 col-sm-3 col-lg-3">
-                <div class="f-head">Ikuti Kami</div>
                 <ul class="f-list">
                     <li>
-                        <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
-                            <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
-                        </a>
+                        <span class="fi">
+                            <img src="{{ asset('gambar/ic_tel.png') }}">
+                        </span>
+                        <span>+62 857-3532-9227</span>
                     </li>
-                    <li>
-                        <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
-                            <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
-                        </a>
-                    </li>
-                    <li>
-                        <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
-                            <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
-                        </a>
-                    </li>
-                </ul>
-            </div>
 
-            {{-- Jam Operasional --}}
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-head">Jam Operasional</div>
-                <ul class="f-list">
                     <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
-                        <div>
-                            <div>Senin – Kamis: 14.00 – 22.00</div>
-                            <div>Jumat: 14.00 – 24.00</div>
-                            <div>Sabtu – Minggu: 10.00 – 24.00</div>
-                        </div>
+                        <span class="fi">
+                            <img src="{{ asset('gambar/ic_email.png') }}">
+                        </span>
+                        <span>playnchillmadiun@gmail.com</span>
                     </li>
                 </ul>
             </div>
@@ -532,5 +579,6 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

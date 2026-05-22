@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Tambah Paket')
 
 @section('content_header')
@@ -33,7 +33,7 @@
             </div>
 
             <div class="form-group">
-                <label>Deskripsi <small class="text-muted">(pisahkan dengan enter, tampil sebagai list ✅)</small></label>
+                <label>Deskripsi <small class="text-muted"></small></label>
                 <textarea name="deskripsi_paket" class="form-control" rows="4"
                     placeholder="AC & WiFi&#10;PS5 Terbaru&#10;Sofa Nyaman">{{ old('deskripsi_paket') }}</textarea>
             </div>

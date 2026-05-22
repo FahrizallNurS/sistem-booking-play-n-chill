@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Kelola Booking')
 
 @section('content_header')
@@ -67,14 +67,6 @@
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Daftar Booking</h3>
-            <div class="card-tools">
-                <a href="{{ route('admin.booking.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Tambah Booking Manual
-                </a>
-            </div>
-        </div>
         <div class="card-body p-0">
             <table class="table table-bordered table-hover mb-0">
                 <thead class="thead-light">
@@ -101,7 +93,7 @@
                             <td>{{ $bookings->firstItem() + $loop->index }}</td>
 
                             <td>
-                                {{ $booking->pengguna->name ?? '-' }}
+                                {{ $booking->pengguna->nama_pengguna ?? '-' }}
                             </td>
 
                             <td><code>{{ $booking->kode_sewa }}</code></td>
@@ -203,7 +195,7 @@
         </div>
         @if($bookings->hasPages())
             <div class="card-footer">
-                {{ $bookings->links() }}
+                {{ $bookings->links('pagination::bootstrap-4') }}
             </div>
         @endif
     </div>

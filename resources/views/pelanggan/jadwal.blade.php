@@ -29,7 +29,101 @@
         let jamBaru = (jam + parseInt(this.durasi)) % 24;
         return (jamBaru < 10 ? '0' : '') + jamBaru + ':' + (menit < 10 ? '0' : '') + menit;
     }
+
+    getJamBuka() {
+        const hari = new Date(this.tanggal).getDay();
+        return (hari === 0 || hari === 6) ? '10:00' : '14:00';
+    },
+
+    getJamTutup() {
+        const hari = new Date(this.tanggal).getDay();
+        if (hari === 4) return '22:00'; // Kamis
+        return '23:00';
+    },
+
+    isBlocked(slot) {
+        const [jamSlot] = slot.split(':').map(Number);
+        const [jamBuka] = this.getJamBuka().split(':').map(Number);
+        const [jamTutup] = this.getJamTutup().split(':').map(Number);
+        return jamSlot < jamBuka || jamSlot >= jamTutup;
+    },
 }">
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand p-0" href="{{ url('/') }}">
+            <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
+        </a>
+
+        <button class="navbar-toggler border-0 shadow-none" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navMain">
+            <ul class="navbar-nav align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                </li>
+                <li class="nav-item ms-2">
+
+                    @guest
+                        {{-- Belum login: tampilkan tombol Login --}}
+                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
+                        style="background-color: var(--orange) !important;">
+                            Login
+                        </a>
+                    @endguest
+
+                    @auth
+                        {{-- Sudah login: tampilkan avatar + dropdown --}}
+                        <div class="dropdown">
+                            <div class="nav-avatar" id="userDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
+                                            7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
+                                            1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                                        fill="var(--purple-dark)"/>
+                                </svg>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                                aria-labelledby="userDropdown">
+                                <li>
+                                    <span class="dropdown-item-text fw-bold">
+                                        {{ auth()->user()->nama_pengguna }}
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url('/profile') }}">
+                                        Profil Saya
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Keluar (Logout)
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @endauth
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 <div class="max-w-2xl mx-auto py-12 px-6">
     <div class="text-center mb-10">
@@ -81,10 +175,17 @@
             <div class="border-t border-slate-100 pt-4">
                 <label class="block text-sm font-bold text-slate-700 uppercase mb-4">Pilih Jam Mulai</label>
                 <div class="grid grid-cols-5 gap-2">
-                    @php $times = ['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']; @endphp
+                    @php 
+                    $times = ['10:00','11:00','12:00','13:00','14:00','15:00',
+                            '16:00','17:00','18:00','19:00','20:00','21:00','22:00']; 
+                    @endphp
                     @foreach($times as $time)
-                        <button type="button" @click="tempTime = '{{ $time }}'"
-                            :class="tempTime === '{{ $time }}' ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                        <button type="button" 
+                            @click="!isBlocked('{{ $time }}') && (tempTime = '{{ $time }}')"
+                            :disabled="isBlocked('{{ $time }}')"
+                            :class="tempTime === '{{ $time }}' ? 'bg-orange-500 text-white' : 
+                                    isBlocked('{{ $time }}') ? 'bg-slate-200 text-slate-400 cursor-not-allowed line-through' : 
+                                    'bg-slate-50 text-slate-600 hover:bg-slate-100'"
                             class="py-2 rounded-lg font-bold text-xs border border-slate-200 transition-all">
                             {{ $time }}
                         </button>

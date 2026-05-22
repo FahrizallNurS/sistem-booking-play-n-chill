@@ -69,13 +69,18 @@
                             <p>Profil</p>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link"
-                            onclick="document.getElementById('logout-form-sa').submit()">
+                    <a href="#"
+                        class="nav-link"
+                        onclick="event.preventDefault();
+
+                        if(confirm('Yakin ingin logout?')) {
+                            document.getElementById('logout-form-sa').submit();
+                        }">
+
                             <i class="nav-icon fas fa-sign-out-alt"></i>
                             <p>Logout</p>
-                        </a>
-                    </li>
+
+                    </a>
 
                 </ul>
             </nav>
@@ -86,9 +91,9 @@
     <div class="content-wrapper">
         <div class="content-header">
             <div class="container-fluid">
-                <h1 class="m-0">@yield('content_header')</h1>
-            </div>
+            @yield('content_header')
         </div>
+    </div>
         <div class="content">
             <div class="container-fluid">
                 @yield('content')
@@ -109,5 +114,7 @@
 <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('vendor/adminlte/dist/js/adminlte.min.js') }}"></script>
 @yield('js')
+
+@stack('scripts')
 </body>
 </html>

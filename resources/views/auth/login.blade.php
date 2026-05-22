@@ -28,28 +28,19 @@
       position: relative;
     }
 
-    body::before,
-    body::after {
-      content: '';
-      position: fixed;
-      background-color: #c8e600;
-      z-index: 0;
-    }
-
-    body::before {
-      width: 280px;
-      height: 220px;
-      top: -40px;
-      right: -40px;
-      clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
-    }
-
-    body::after {
-      width: 220px;
-      height: 180px;
-      bottom: -30px;
-      right: 80px;
-      clip-path: polygon(20% 0%, 100% 0%, 80% 100%, 0% 100%);
+    .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{{ asset("images/bg-segitiga.png") }}');
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+        opacity: 1.0; /* Atur transparansi agar tidak menutupi kotak login */
+        z-index: -1; /* Di bawah kotak login, tapi di atas warna body */
+        pointer-events: none; /* Agar tidak bisa diklik/mengganggu input */
     }
 
     .shape-left-top {
@@ -245,8 +236,7 @@
 </head>
 <body>
 
-<div class="shape-left-top"></div>
-<div class="shape-left-bottom"></div>
+<div class="bg-pattern"></div>
 
 <div class="login-box">
 
@@ -254,14 +244,13 @@
     <h1>Play <span class="n-icon">N</span> Chill</h1>
   </div>
 
-  {{-- Tampilkan error login --}}
+
   @if ($errors->any())
     <div style="background:#fff0f0;border:1px solid #e63946;border-radius:10px;padding:12px 16px;margin-bottom:20px;color:#e63946;font-size:0.9rem;">
       {{ $errors->first() }}
     </div>
   @endif
-
-  {{-- Form pakai route('login.post') --}}
+ 
   <form action="{{ route('login.post') }}" method="post">
     @csrf
 

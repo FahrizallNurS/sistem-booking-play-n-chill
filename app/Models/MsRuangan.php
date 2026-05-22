@@ -8,8 +8,10 @@ class MsRuangan extends Model
 {
     protected $table = 'ms_ruangan';
     protected $primaryKey = 'id_ruangan';
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
-        'nama_ruangan', 'kategori', 'deskripsi',
+        'nama_ruangan', 'kategori',
         'perangkat', 'is_active', 'galeri'
     ];
 

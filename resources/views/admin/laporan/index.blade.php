@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Laporan')
 
 @section('content_header')
@@ -11,53 +11,94 @@
     {{-- Filter --}}
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="#">
+            <form method="GET" action="{{ route('admin.laporan.index') }}">
                 <div class="row align-items-end">
-                    <div class="col-md-3">
+
+                    {{-- Periode --}}
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label>Periode</label>
                             <select name="periode" id="periode" class="form-control">
-                                <option value="harian">Harian</option>
-                                <option value="mingguan">Mingguan</option>
-                                <option value="bulanan">Bulanan</option>
+                                <option value="harian"   {{ request('periode','harian') === 'harian'   ? 'selected' : '' }}>Harian</option>
+                                <option value="mingguan" {{ request('periode') === 'mingguan' ? 'selected' : '' }}>Mingguan</option>
+                                <option value="bulanan"  {{ request('periode') === 'bulanan'  ? 'selected' : '' }}>Bulanan</option>
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3" id="filter_tanggal">
+
+                    {{-- Tanggal --}}
+                    <div class="col-md-2" id="filter_tanggal">
                         <div class="form-group mb-0">
                             <label>Tanggal</label>
-                            <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}">
+                            <input type="date" name="tanggal" class="form-control"
+                                value="{{ request('tanggal', now()->format('Y-m-d')) }}">
                         </div>
                     </div>
-                    <div class="col-md-3" id="filter_minggu" style="display:none">
+
+                    {{-- Minggu --}}
+                    <div class="col-md-2" id="filter_minggu" style="display:none">
                         <div class="form-group mb-0">
                             <label>Minggu</label>
-                            <input type="week" name="minggu" class="form-control">
+                            <input type="week" name="minggu" class="form-control"
+                                value="{{ request('minggu', now()->format('Y-\WW')) }}">
                         </div>
                     </div>
-                    <div class="col-md-3" id="filter_bulan" style="display:none">
+
+                    {{-- Bulan --}}
+                    <div class="col-md-2" id="filter_bulan" style="display:none">
                         <div class="form-group mb-0">
                             <label>Bulan</label>
-                            <input type="month" name="bulan" class="form-control" value="{{ date('Y-m') }}">
+                            <input type="month" name="bulan" class="form-control"
+                                value="{{ request('bulan', now()->format('Y-m')) }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+
+                    {{-- Status Booking --}}
+                    <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label>Status Booking</label>
                             <select name="status_booking" class="form-control">
-                                <option value="">Semua Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="completed">Completed</option>
+                                <option value="">Semua</option>
+                                <option value="ditahan"      {{ request('status_booking') === 'ditahan'      ? 'selected' : '' }}>Ditahan</option>
+                                <option value="dikonfirmasi" {{ request('status_booking') === 'dikonfirmasi' ? 'selected' : '' }}>Dikonfirmasi</option>
+                                <option value="selesai"      {{ request('status_booking') === 'selesai'      ? 'selected' : '' }}>Selesai</option>
+                                <option value="dibatalkan"   {{ request('status_booking') === 'dibatalkan'   ? 'selected' : '' }}>Dibatalkan</option>
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3 mt-2">
+
+                    {{-- Status Bayar --}}
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label>Status Bayar</label>
+                            <select name="status_bayar" class="form-control">
+                                <option value="">Semua</option>
+                                <option value="menunggu" {{ request('status_bayar') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                                <option value="dp"       {{ request('status_bayar') === 'dp'       ? 'selected' : '' }}>DP</option>
+                                <option value="lunas"    {{ request('status_bayar') === 'lunas'    ? 'selected' : '' }}>Lunas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Jenis Bayar --}}
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label>Jenis Bayar</label>
+                            <select name="jenis_bayar" class="form-control">
+                                <option value="">Semua</option>
+                                <option value="full" {{ request('jenis_bayar') === 'full' ? 'selected' : '' }}>Full Payment</option>
+                                <option value="dp"   {{ request('jenis_bayar') === 'dp'   ? 'selected' : '' }}>DP</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Tombol --}}
+                    <div class="col-md-2 mt-2">
                         <button type="submit" class="btn btn-primary btn-block">
                             <i class="fas fa-search"></i> Tampilkan
                         </button>
                     </div>
+
                 </div>
             </form>
         </div>
@@ -68,7 +109,7 @@
         <div class="col-md-3">
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>12</h3>
+                    <h3>{{ $totalBooking }}</h3>
                     <p>Total Booking</p>
                 </div>
                 <div class="icon"><i class="fas fa-calendar-check"></i></div>
@@ -77,8 +118,8 @@
         <div class="col-md-3">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>8</h3>
-                    <p>Booking Confirmed</p>
+                    <h3>{{ $totalSelesai }}</h3>
+                    <p>Booking Selesai</p>
                 </div>
                 <div class="icon"><i class="fas fa-check-circle"></i></div>
             </div>
@@ -86,8 +127,8 @@
         <div class="col-md-3">
             <div class="small-box bg-danger">
                 <div class="inner">
-                    <h3>2</h3>
-                    <p>Booking Cancelled</p>
+                    <h3>{{ $totalDibatalkan }}</h3>
+                    <p>Booking Dibatalkan</p>
                 </div>
                 <div class="icon"><i class="fas fa-times-circle"></i></div>
             </div>
@@ -95,82 +136,104 @@
         <div class="col-md-3">
             <div class="small-box bg-warning">
                 <div class="inner">
-                    <h3>Rp 1.200.000</h3>
-                    <p>Total Pendapatan</p>
+                    <h3>Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h3>
+                    <p>Total Pendapatan (Selesai)</p>
                 </div>
                 <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
             </div>
         </div>
     </div>
 
-    {{-- Tabel Laporan --}}
+    {{-- Tabel --}}
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Detail Laporan</h3>
+            <h3 class="card-title">
+                Detail Laporan —
+                <small class="text-muted">
+                    {{ $start->translatedFormat('d F Y') }}
+                    @if($start->format('Y-m-d') !== $end->format('Y-m-d'))
+                        s/d {{ $end->translatedFormat('d F Y') }}
+                    @endif
+                </small>
+            </h3>
             <div class="card-tools">
-                <a href="#" class="btn btn-danger btn-sm">
-                    <i class="fas fa-file-pdf"></i> Export PDF
-                </a>
+            
+            <a href="{{ route('admin.laporan.export-pdf', request()->all()) }}" 
+                        class="btn btn-danger btn-sm" 
+                        target="_blank">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+            
             </div>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered table-hover">
-                <thead>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="thead-light">
                     <tr>
                         <th>#</th>
                         <th>Kode Booking</th>
                         <th>Pelanggan</th>
                         <th>Ruangan</th>
                         <th>Paket</th>
-                        <th>Tanggal</th>
+                        <th>Waktu Main</th>
+                        <th>Jenis Bayar</th>
                         <th>Total Harga</th>
                         <th>Status Booking</th>
                         <th>Status Bayar</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- Dummy data --}}
+                    @forelse($transaksis as $i => $t)
+                    @php
+                        $ph = $t->penetapanHarga;
+                        $badgeSewa = match($t->status_sewa) {
+                            'dikonfirmasi' => 'success',
+                            'dibatalkan'   => 'danger',
+                            'selesai'      => 'primary',
+                            default        => 'secondary',
+                        };
+                        $badgeBayar = match($t->status_pembayaran) {
+                            'lunas'    => 'success',
+                            'dp'       => 'info',
+                            default    => 'warning',
+                        };
+                    @endphp
                     <tr>
-                        <td>1</td>
-                        <td>BK-001</td>
-                        <td>John Doe</td>
-                        <td>Reguler - 01</td>
-                        <td>Paket PS4 1 Jam</td>
-                        <td>05/04/2026</td>
-                        <td>Rp 50.000</td>
-                        <td><span class="badge badge-success">Confirmed</span></td>
-                        <td><span class="badge badge-success">Paid</span></td>
+                        <td>{{ $i + 1 }}</td>
+                        <td><code>{{ $t->kode_sewa }}</code></td>
+                        <td>{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
+                        <td>{{ $ph->ruangan->nama_ruangan ?? '-' }}</td>
+                        <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
+                        <td>
+                            {{ \Carbon\Carbon::parse($t->waktu_mulai)->format('d/m/Y H:i') }}
+                            — {{ \Carbon\Carbon::parse($t->waktu_selesai)->format('H:i') }}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ $t->opsi_pembayaran === 'full' ? 'primary' : 'info' }}">
+                                {{ $t->opsi_pembayaran === 'full' ? 'Full Payment' : 'DP' }}
+                            </span>
+                        </td>
+                        <td>Rp {{ number_format($t->total_harga, 0, ',', '.') }}</td>
+                        <td><span class="badge badge-{{ $badgeSewa }}">{{ ucfirst($t->status_sewa) }}</span></td>
+                        <td><span class="badge badge-{{ $badgeBayar }}">{{ ucfirst($t->status_pembayaran) }}</span></td>
                     </tr>
+                    @empty
                     <tr>
-                        <td>2</td>
-                        <td>BK-002</td>
-                        <td>Jane Doe</td>
-                        <td>VIP - 01</td>
-                        <td>Paket Gaming 2 Jam</td>
-                        <td>05/04/2026</td>
-                        <td>Rp 150.000</td>
-                        <td><span class="badge badge-secondary">Pending</span></td>
-                        <td><span class="badge badge-warning">Unpaid</span></td>
+                        <td colspan="10" class="text-center text-muted py-3">
+                            Tidak ada data untuk periode ini.
+                        </td>
                     </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>BK-003</td>
-                        <td>Bob Smith</td>
-                        <td>VVIP - 01</td>
-                        <td>Paket Karaoke 1 Jam</td>
-                        <td>05/04/2026</td>
-                        <td>Rp 200.000</td>
-                        <td><span class="badge badge-danger">Cancelled</span></td>
-                        <td><span class="badge badge-danger">Unpaid</span></td>
-                    </tr>
+                    @endforelse
                 </tbody>
+                @if($transaksis->isNotEmpty())
                 <tfoot>
                     <tr>
-                        <th colspan="6" class="text-right">Total Pendapatan:</th>
-                        <th>Rp 1.200.000</th>
+                        <th colspan="7" class="text-right">Total Pendapatan (Selesai):</th>
+                        <th>Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</th>
                         <th colspan="2"></th>
                     </tr>
                 </tfoot>
+                @endif
             </table>
         </div>
     </div>
@@ -179,16 +242,24 @@
 
 @section('js')
 <script>
-    // Switch filter input berdasarkan periode
-    document.getElementById('periode').addEventListener('change', function() {
-        const periode = this.value;
-        document.getElementById('filter_tanggal').style.display = 'none';
-        document.getElementById('filter_minggu').style.display = 'none';
-        document.getElementById('filter_bulan').style.display = 'none';
+    const periode = '{{ request('periode', 'harian') }}';
 
-        if (periode === 'harian') document.getElementById('filter_tanggal').style.display = 'block';
-        else if (periode === 'mingguan') document.getElementById('filter_minggu').style.display = 'block';
-        else if (periode === 'bulanan') document.getElementById('filter_bulan').style.display = 'block';
+    function updateFilter(val) {
+        document.getElementById('filter_tanggal').style.display = 'none';
+        document.getElementById('filter_minggu').style.display  = 'none';
+        document.getElementById('filter_bulan').style.display   = 'none';
+
+        if (val === 'harian')   document.getElementById('filter_tanggal').style.display = 'block';
+        if (val === 'mingguan') document.getElementById('filter_minggu').style.display  = 'block';
+        if (val === 'bulanan')  document.getElementById('filter_bulan').style.display   = 'block';
+    }
+
+    // Set saat load
+    updateFilter(periode);
+
+    // Set saat ganti
+    document.getElementById('periode').addEventListener('change', function() {
+        updateFilter(this.value);
     });
 </script>
 @stop

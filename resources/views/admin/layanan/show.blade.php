@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Detail Ruangan')
 
 @section('content_header')
@@ -15,132 +15,140 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    {{-- Info Ruangan --}}
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Informasi Ruangan</h3>
             <div class="card-tools">
-                <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}"
-                    class="btn btn-warning btn-sm">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
+                <form action="{{ route('admin.layanan.toggle-aktif', $ruangan->id_ruangan) }}"
+                    method="POST" style="display:inline">
+                    @csrf @method('PATCH')
+                    <button type="submit"
+                        class="btn btn-{{ $ruangan->is_active ? 'warning' : 'success' }} btn-sm"
+                        onclick="return confirm('{{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }} ruangan ini?')">
+                        <i class="fas fa-{{ $ruangan->is_active ? 'ban' : 'check' }}"></i>
+                        {{ $ruangan->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                    </button>
+                </form>
+                @php
+                    $punya_transaksi = $ruangan->penetapanHarga->flatMap->transaksis->isNotEmpty();
+                @endphp
+
+                <button type="button" class="btn btn-danger btn-sm"
+                    data-toggle="modal"
+                    data-target="{{ $punya_transaksi ? '#modalBlokHapus' : '#modalHapus' }}">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
+
                 <a href="{{ route('admin.layanan.index') }}" class="btn btn-secondary btn-sm">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </a>
             </div>
         </div>
         <div class="card-body">
-            <table class="table table-borderless">
-                <tr><th width="150">Nama Ruangan</th><td>{{ $ruangan->nama_ruangan }}</td></tr>
-                <tr><th>Kategori</th><td><span class="badge badge-info">{{ $ruangan->kategori }}</span></td></tr>
-                <tr><th>Perangkat</th><td>{{ $ruangan->perangkat ?? '-' }}</td></tr>
-                <tr><th>Deskripsi</th><td>{{ $ruangan->deskripsi ?? '-' }}</td></tr>
-                <tr><th>Status</th><td>
-                    @if($ruangan->is_active)
-                        <span class="badge badge-success">Aktif</span>
+            <div class="row">
+                {{-- Kiri: Info --}}
+                <div class="col-md-7">
+                    <table class="table table-borderless">
+                        <tr><th width="150">Nama Ruangan</th><td>{{ $ruangan->nama_ruangan }}</td></tr>
+                        <tr><th>Kategori</th><td><span class="badge badge-info">{{ $ruangan->kategori }}</span></td></tr>
+                        <tr><th>Perangkat</th><td>{{ $ruangan->perangkat ?? '-' }}</td></tr>
+                        <tr><th>Status</th><td>
+                            @if($ruangan->is_active)
+                                <span class="badge badge-success">Aktif</span>
+                            @else
+                                <span class="badge badge-danger">Nonaktif</span>
+                            @endif
+                        </td></tr>
+                    </table>
+                </div>
+
+                <div class="col-md-5 text-center">
+                    @if($ruangan->galeri)
+                        <img src="{{ asset('storage/' . $ruangan->galeri) }}"
+                            alt="{{ $ruangan->nama_ruangan }}"
+                            style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid #dee2e6;">
                     @else
-                        <span class="badge badge-danger">Nonaktif</span>
+                        <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted"
+                            style="border:2px dashed #dee2e6;border-radius:10px;padding:40px 20px;">
+                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <p class="mb-2">Belum ada foto</p>
+                            <a href="{{ route('admin.layanan.edit', $ruangan->id_ruangan) }}"
+                                class="btn btn-sm btn-warning">
+                                <i class="fas fa-upload"></i> Upload Foto
+                            </a>
+                        </div>
                     @endif
-                </td></tr>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    {{-- Form Tambah Penetapan Harga --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Penetapan Harga</h3>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('admin.layanan.penetapan.store', $ruangan->id_ruangan) }}"
-                method="POST" class="mb-4">
-                @csrf
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Paket</label>
-                            <select name="id_paket" class="form-control" required>
-                                <option value="">-- Pilih Paket --</option>
-                                @foreach($pakets as $paket)
-                                    <option value="{{ $paket->id_paket }}">{{ $paket->nama_paket }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Tipe Hari</label>
-                            <select name="tipe_hari" class="form-control" required>
-                                <option value="harian">Harian</option>
-                                <option value="akhir_pekan">Akhir Pekan</option>
-                                <option value="liburan">Liburan</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Durasi (jam)</label>
-                            <input type="number" name="durasi_jam" class="form-control"
-                                min="1" required placeholder="contoh: 1">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Harga (Rp)</label>
-                            <input type="number" name="harga" class="form-control"
-                                min="0" required>
-                        </div>
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
+    <div class="modal fade" id="modalBlokHapus" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-exclamation-triangle"></i> Ruangan Tidak Dapat Dihapus
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>{{ $ruangan->nama_ruangan }}</strong> memiliki
+                        riwayat transaksi booking yang tersimpan di sistem.
+                    </p>
+                    <p>Ruangan yang memiliki riwayat transaksi <strong>tidak dapat dihapus</strong>
+                    untuk menjaga integritas data dan laporan keuangan.</p>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lightbulb"></i>
+                        Jika ingin menonaktifkan ruangan ini, gunakan tombol
+                        <strong>"Nonaktifkan"</strong> agar ruangan tidak muncul
+                        saat booking namun data transaksinya tetap aman.
                     </div>
                 </div>
-            </form>
-
-            {{-- Tabel Penetapan Harga --}}
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Paket</th>
-                        <th>Tipe Hari</th>
-                        <th>Durasi</th>
-                        <th>Harga</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($ruangan->penetapanHarga as $index => $ph)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
-                            <td><span class="badge badge-info">{{ $ph->tipe_hari }}</span></td>
-                            <td>{{ $ph->durasi_jam }} jam</td>
-                            <td>Rp {{ number_format($ph->harga, 0, ',', '.') }}</td>
-                            <td>
-                                <form action="{{ route('admin.layanan.penetapan.destroy', $ph->id_penetapan_harga) }}"
-                                    method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Hapus penetapan harga ini?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center">Belum ada penetapan harga</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Tutup
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
+    <div class="modal fade" id="modalHapus" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-circle"></i> Konfirmasi Hapus Ruangan
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Ruangan ini akan dihapus permanen dan tidak dapat dipulihkan kembali.
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                    <form action="{{ route('admin.layanan.destroy', $ruangan->id_ruangan) }}"
+                        method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fas fa-trash"></i> Ya, Hapus Permanen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 @stop

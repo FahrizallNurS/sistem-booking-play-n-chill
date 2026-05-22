@@ -7,18 +7,27 @@ use App\Models\MsRuangan;
 use App\Models\MsPaket;
 use App\Models\PenetapanHarga;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class LayananController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ruangans = MsRuangan::latest()->get();
-        return view('admin.layanan.index', compact('ruangans'));
-    }
+            $query = MsRuangan::query();
 
-    public function create()
-    {
-        return view('admin.layanan.create');
+            // SORTING
+            if ($request->sort == 'kategori_asc') {
+                $query->orderBy('kategori', 'asc');
+            } elseif ($request->sort == 'kategori_desc') {
+                $query->orderBy('kategori', 'desc');
+            } else {
+                // default (kayak sekarang)
+                $query->latest();
+            }
+
+            $ruangans = $query->with(['penetapanHarga.transaksis'])->get();
+
+            return view('admin.layanan.index', compact('ruangans'));
     }
 
     public function store(Request $request)
@@ -26,18 +35,23 @@ class LayananController extends Controller
         $request->validate([
             'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan',
             'kategori'     => 'required|in:REGULAR,VIP,VVIP',
-            'deskripsi'    => 'nullable|string|max:60',
-            'perangkat'    => 'nullable|string|max:10',
+            'perangkat' => 'nullable|in:PS3,PS4,PS5',
             'is_active'    => 'required|in:0,1',
+            'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        MsRuangan::create([
+        $data = [
             'nama_ruangan' => $request->nama_ruangan,
             'kategori'     => $request->kategori,
-            'deskripsi'    => $request->deskripsi,
             'perangkat'    => $request->perangkat,
             'is_active'    => $request->is_active,
-        ]);
+        ];
+
+        if ($request->hasFile('galeri')) {
+            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
+        }
+
+        MsRuangan::create($data);
 
         return redirect()->route('admin.layanan.index')
             ->with('success', 'Ruangan berhasil ditambahkan!');
@@ -53,7 +67,7 @@ class LayananController extends Controller
     public function edit($id)
     {
         $ruangan = MsRuangan::findOrFail($id);
-        return view('admin.layanan.edit', compact('ruangan'));
+        return response()->json($ruangan);
     }
 
     public function update(Request $request, $id)
@@ -61,34 +75,40 @@ class LayananController extends Controller
         $request->validate([
             'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan,' . $id . ',id_ruangan',
             'kategori'     => 'required|in:REGULAR,VIP,VVIP',
-            'deskripsi'    => 'nullable|string|max:60',
-            'perangkat'    => 'nullable|string|max:10',
+            'perangkat'    => 'nullable|in:PS3,PS4,PS5',
             'is_active'    => 'required|in:0,1',
+            'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        MsRuangan::findOrFail($id)->update([
+        $ruangan = MsRuangan::findOrFail($id);
+
+        $data = [
             'nama_ruangan' => $request->nama_ruangan,
             'kategori'     => $request->kategori,
-            'deskripsi'    => $request->deskripsi,
             'perangkat'    => $request->perangkat,
             'is_active'    => $request->is_active,
-        ]);
+        ];
+
+        if ($request->hasFile('galeri')) {
+            if ($ruangan->galeri) {
+                Storage::disk('public')->delete($ruangan->galeri);
+            }
+            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
+        }
+
+        $ruangan->update($data);
 
         return redirect()->route('admin.layanan.index')
             ->with('success', 'Ruangan berhasil diupdate!');
     }
 
-    public function destroy($id)
+    public function toggleAktif($id)
     {
         $ruangan = MsRuangan::findOrFail($id);
+        $ruangan->update(['is_active' => !$ruangan->is_active]);
 
-        if ($ruangan->penetapanHarga()->exists()) {
-            return back()->with('error', 'Ruangan tidak bisa dihapus karena masih memiliki penetapan harga.');
-        }
-
-        $ruangan->delete();
-        return redirect()->route('admin.layanan.index')
-            ->with('success', 'Ruangan berhasil dihapus!');
+        $status = $ruangan->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return back()->with('success', "Ruangan berhasil {$status}!");
     }
 
     // Penetapan Harga
@@ -101,7 +121,6 @@ class LayananController extends Controller
             'harga'      => 'required|integer|min:0',
         ]);
 
-        // Cek duplikat
         $exists = PenetapanHarga::where('id_ruangan', $id)
             ->where('id_paket', $request->id_paket)
             ->where('tipe_hari', $request->tipe_hari)
@@ -139,5 +158,28 @@ class LayananController extends Controller
             ->where('is_active', 1)
             ->get(['id_ruangan', 'nama_ruangan']);
         return response()->json($ruangans);
+    }
+
+    public function destroy($id)
+    {
+        $ruangan = MsRuangan::findOrFail($id);
+
+         $punya_transaksi = $ruangan->penetapanHarga()
+        ->whereHas('transaksis')
+        ->exists();
+
+        if ($punya_transaksi) {
+            return back()->with('error', 'Ruangan tidak dapat dihapus karena memiliki data transaksi.');
+        }
+        $ruangan->permainans()->detach();
+        $ruangan->penetapanHarga()->delete();
+
+         if ($ruangan->galeri) {
+        Storage::disk('public')->delete($ruangan->galeri);
+        }
+
+        $ruangan->delete();
+        return redirect()->route('admin.layanan.index')
+            ->with('success', 'Ruangan berhasil dihapus!');
     }
 }

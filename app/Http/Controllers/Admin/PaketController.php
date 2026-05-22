@@ -10,10 +10,26 @@ use Illuminate\Http\Request;
 
 class PaketController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pakets = MsPaket::latest()->get();
-        return view('admin.paket.index', compact('pakets'));
+        $status = $request->get('status', 'all');
+        
+        $query = MsPaket::latest();
+        
+        if ($status === 'active') {
+            $query->where('is_active', 1);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', 0);
+        }
+        
+        $pakets = $query->with([
+            'penetapanHarga' => function($q) {
+                $q->currentPrices()->with('ruangan');
+            },
+            'penetapanHarga.transaksis'
+        ])->get();
+        
+        return view('admin.paket.index', compact('pakets', 'status'));
     }
 
     public function create()
@@ -25,7 +41,13 @@ class PaketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_paket'       => 'required|string|max:40|unique:ms_paket,nama_paket',
+            'nama_paket' => [
+            'required',
+            'string',
+            'max:40',
+            \Illuminate\Validation\Rule::unique('ms_paket', 'nama_paket')
+                ->where('is_active', 1)
+            ],
             'deskripsi_paket'  => 'nullable|string',
             'maksimal_orang'   => 'required|integer|min:1',
             'is_active'        => 'required|in:0,1',
@@ -76,12 +98,18 @@ class PaketController extends Controller
 
     public function edit($id)
     {
-        $paket    = MsPaket::with('penetapanHarga.ruangan')->findOrFail($id);
+        $paket = MsPaket::with([
+            'penetapanHarga' => function($q) {
+                $q->currentPrices()->with('ruangan');
+            }
+        ])->findOrFail($id);
+        
         $ruangans = MsRuangan::where('is_active', 1)->get();
+        
         return view('admin.paket.edit', compact('paket', 'ruangans'));
     }
 
-        public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'nama_paket'      => 'required|string|max:40',
@@ -94,7 +122,7 @@ class PaketController extends Controller
             'durasi_jam'      => 'nullable|array',
             'durasi_jam.*'    => 'integer|min:1',
             'harga'           => 'nullable|array',
-            'harga.*'         => 'nullable|string', // ← string biar titik tidak terpotong
+            'harga.*'         => 'nullable|string',
         ]);
 
         $paket = MsPaket::findOrFail($id);
@@ -109,16 +137,23 @@ class PaketController extends Controller
             foreach ($request->ruangan_ids as $ruanganId) {
                 foreach ($request->durasi_jam as $index => $durasi) {
                     if ($durasi && isset($request->harga[$index])) {
-                        // ← strip titik ribuan di dalam loop
                         $harga = (int) str_replace('.', '', $request->harga[$index]);
 
-                        PenetapanHarga::create([
-                            'id_ruangan' => $ruanganId,
-                            'id_paket'   => $paket->id_paket,
-                            'tipe_hari'  => $request->tipe_hari,
-                            'durasi_jam' => $durasi,
-                            'harga'      => $harga,
-                        ]);
+                        $existing = PenetapanHarga::findExisting(
+                            $ruanganId, 
+                            $paket->id_paket, 
+                            $request->tipe_hari, 
+                            $durasi
+                        );
+                        if (!$existing || $existing->harga != $harga) {
+                            PenetapanHarga::create([
+                                'id_ruangan' => $ruanganId,
+                                'id_paket'   => $paket->id_paket,
+                                'tipe_hari'  => $request->tipe_hari,
+                                'durasi_jam' => $durasi,
+                                'harga'      => $harga,
+                            ]);
+                        }
                     }
                 }
             }
@@ -127,16 +162,32 @@ class PaketController extends Controller
         return redirect()->route('admin.paket.index')
             ->with('success', 'Paket berhasil diupdate!');
     }
-    public function destroy($id)
+
+    public function toggleAktif($id)
     {
         $paket = MsPaket::findOrFail($id);
-        $paket->penetapanHarga()->delete();
-        $paket->delete();
+        
+        $newStatus = $paket->is_active == 1 ? 0 : 1;
+        $paket->update(['is_active' => $newStatus]);
+        
+        $message = $newStatus == 1 
+            ? 'Paket berhasil diaktifkan!' 
+            : 'Paket berhasil dinonaktifkan!';
+
         return redirect()->route('admin.paket.index')
-            ->with('success', 'Paket berhasil dihapus!');
+            ->with('success', $message);
     }
 
-    // AJAX: ambil ruangan by kategori
+    public function activate($id)
+    {
+        $paket = MsPaket::findOrFail($id);
+        
+        $paket->update(['is_active' => 1]);
+
+        return redirect()->route('admin.paket.index')
+            ->with('success', 'Paket berhasil diaktifkan kembali!');
+    }
+
     public function getRuanganByKategori($kategori)
     {
         $ruangans = MsRuangan::where('kategori', $kategori)
@@ -144,4 +195,37 @@ class PaketController extends Controller
             ->get(['id_ruangan', 'nama_ruangan']);
         return response()->json($ruangans);
     }
+
+    public function destroy($id){
+
+        $paket = MsPaket::findOrFail($id);
+        $punya_transaksi = $paket->penetapanHarga()
+        ->whereHas('transaksis')
+        ->exists();
+
+         if ($punya_transaksi) {
+            return back()->with('error', 'Paket tidak dapat dihapus karena memiliki data transaksi.');
+        }
+
+        $paket->penetapanHarga()->delete();
+        $paket->delete();
+            return redirect()->route('admin.paket.index')
+                ->with('success', 'Paket berhasil dihapus!');
+
+    }
+    
+    public function destroyPenetapan($id)
+    {
+        $penetapan = PenetapanHarga::findOrFail($id);
+        
+        // Cek apakah ada transaksi
+        if ($penetapan->transaksis()->exists()) {
+            return back()->with('error', 'Penetapan harga tidak dapat dihapus karena sudah ada transaksi terkait.');
+        }
+        
+        $penetapan->delete();
+        
+        return back()->with('success', 'Penetapan harga berhasil dihapus!');
+    }
+
 }

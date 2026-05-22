@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-
+@include('partials.sidebar-admin')
 @section('title', 'Kelola Game')
 
 @section('content_header')
@@ -16,7 +16,7 @@
         <div class="card-header">
             <h3 class="card-title">Daftar Game</h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalTambahGame">
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalTambah">
                     <i class="fas fa-plus"></i> Tambah Game
                 </button>
             </div>
@@ -28,140 +28,288 @@
                         <th>#</th>
                         <th>Gambar</th>
                         <th>Nama Game</th>
-                        <th>Device</th>
+                        <th>Perangkat</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- Dummy data --}}
+                    @forelse($permainans as $i => $permainan)
                     <tr>
-                        <td>1</td>
+                        <td>{{ $i + 1 }}</td>
                         <td>
-                            <img src="https://via.placeholder.com/60x60" alt="game" class="img-thumbnail" width="60">
+                            @if($permainan->gambar)
+                                <img src="{{ asset('storage/' . $permainan->gambar) }}"
+                                    alt="{{ $permainan->nama_permainan }}"
+                                    class="img-thumbnail" width="60" height="60"
+                                    style="object-fit:cover;">
+                            @else
+                                <img src="https://via.placeholder.com/60x60?text=No+Image"
+                                    alt="no image" class="img-thumbnail" width="60">
+                            @endif
                         </td>
-                        <td>FIFA 24</td>
-                        <td><span class="badge badge-info">PS4</span></td>
+                        <td>{{ $permainan->nama_permainan }}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditGame">
+                            @php
+                                $devices = $permainan->ruangans
+                                    ->pluck('perangkat')
+                                    ->unique();
+                            @endphp
+
+                            @forelse($devices as $device)
+                                <span class="badge badge-info">{{ $device }}</span>
+                            @empty
+                                <span class="badge badge-secondary">-</span>
+                            @endforelse
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-warning btn-sm btn-edit"
+                                data-id="{{ $permainan->id_permainan }}"
+                                data-nama="{{ $permainan->nama_permainan }}"
+                                data-devices="{{ $permainan->ruangans->pluck('perangkat')->unique()->implode(',') }}"
+                                data-gambar="{{ $permainan->gambar ? asset('storage/' . $permainan->gambar) : '' }}"
+                                data-toggle="modal" data-target="#modalEdit">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="return confirm('Hapus game ini?')">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
+                            <form action="{{ route('admin.game.destroy', $permainan->id_permainan) }}"
+                                method="POST" class="d-inline"
+                                onsubmit="return confirm('Hapus game {{ $permainan->nama_permainan }}?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            </form>
                         </td>
                     </tr>
+                    @empty
                     <tr>
-                        <td>2</td>
-                        <td>
-                            <img src="https://via.placeholder.com/60x60" alt="game" class="img-thumbnail" width="60">
-                        </td>
-                        <td>GTA V</td>
-                        <td><span class="badge badge-success">PS5</span></td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditGame">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="return confirm('Hapus game ini?')">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
-                        </td>
+                        <td colspan="5" class="text-center">Belum ada data game.</td>
                     </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    {{-- Modal Tambah Game --}}
-    <div class="modal fade" id="modalTambahGame" tabindex="-1">
+    <div class="modal fade" id="modalTambah" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Game</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <form action="#" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.game.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tambah Game</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
                     <div class="modal-body">
+
                         <div class="form-group">
-                            <label>Nama Game</label>
-                            <input type="text" name="nama_game" class="form-control" required maxlength="60"
-                                placeholder="contoh: FIFA 24">
+                            <label>Nama Game <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_permainan"
+                                class="form-control @error('nama_permainan') is-invalid @enderror"
+                                value="{{ old('nama_permainan') }}" 
+                                maxlength="30" 
+                                placeholder="Contoh: God of War Ragnarök"
+                                required>
+                            @error('nama_permainan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Maksimal 30 karakter</small>
                         </div>
+
+                    <div class="form-group">
+                        <label>Perangkat</label>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="PS3">
+                            <label>PS3</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="PS4">
+                            <label>PS4</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="PS5">
+                            <label>PS5</label>
+                        </div>
+                    </div>
+
                         <div class="form-group">
-                            <label>Device</label>
-                            <select name="device_game" class="form-control" required>
-                                <option value="">-- Pilih Device --</option>
-                                <option value="PS3">PS3</option>
-                                <option value="PS4">PS4</option>
-                                <option value="PS5">PS5</option>
-                                <option value="Nintendo">Nintendo</option>
-                                <option value="PC">PC</option>
-                            </select>
+                            <label>Gambar Cover Game</label>
+                            <input type="file" name="gambar" 
+                                class="form-control-file @error('gambar') is-invalid @enderror"
+                                accept="image/jpg,image/jpeg,image/png,image/webp"
+                                onchange="previewImage(event, 'preview-tambah')">
+                            @error('gambar')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB</small>
+                            
+                            {{-- Preview Image --}}
+                            <div class="mt-2">
+                                <img id="preview-tambah" src="" alt="Preview" 
+                                    class="img-thumbnail" 
+                                    style="display:none; max-width: 200px; max-height: 200px; object-fit: cover;">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Gambar Game</label>
-                            <input type="file" name="gambar_game" class="form-control-file" accept="image/*">
-                            <small class="text-muted">Format: JPG, PNG. Maks 2MB</small>
-                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    {{-- Modal Edit Game --}}
-    <div class="modal fade" id="modalEditGame" tabindex="-1">
+  
+    <div class="modal fade" id="modalEdit" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Game</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <form action="#" method="POST" enctype="multipart/form-data">
+                <form id="formEdit" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Game</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
                     <div class="modal-body">
+
                         <div class="form-group">
-                            <label>Nama Game</label>
-                            <input type="text" name="nama_game" class="form-control" required maxlength="60"
-                                value="FIFA 24">
+                            <label>Nama Game <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_permainan" id="edit_nama_permainan"
+                                class="form-control" 
+                                maxlength="30" 
+                                required>
+                            <small class="text-muted">Maksimal 30 karakter</small>
                         </div>
+
                         <div class="form-group">
-                            <label>Device</label>
-                            <select name="device_game" class="form-control" required>
-                                <option value="">-- Pilih Device --</option>
-                                <option value="PS3">PS3</option>
-                                <option value="PS4" selected>PS4</option>
-                                <option value="PS5">PS5</option>
-                                <option value="Nintendo">Nintendo</option>
-                                <option value="PC">PC</option>
-                            </select>
+                            <label>Perangkat <span class="text-danger">*</span></label>
+
+                            <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="PS3"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">PS3</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="PS4"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">PS4</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="PS5"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">PS5</label>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label>Gambar Sekarang</label>
-                            <br>
-                            <img src="https://via.placeholder.com/100x100" alt="game" class="img-thumbnail mb-2" width="100">
+                            <label>Gambar Cover Game</label>
+                            <input type="file" name="gambar" 
+                                class="form-control-file"
+                                accept="image/jpg,image/jpeg,image/png,image/webp"
+                                onchange="previewImage(event, 'preview-edit')">
+                            <small class="text-muted d-block">
+                                Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB<br>
+                                <span class="text-info">Kosongkan jika tidak ingin mengubah gambar</span>
+                            </small>
+                            
+                            <div class="mt-2">
+                                <img id="preview-edit" src="" alt="Preview" 
+                                    class="img-thumbnail" 
+                                    style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Ganti Gambar <small class="text-muted">(opsional)</small></label>
-                            <input type="file" name="gambar_game" class="form-control-file" accept="image/*">
-                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Update</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Update
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+@stop
+
+@section('js')
+<script>
+  
+    function previewImage(event, previewId) {
+        const file = event.target.files[0];
+        const preview = document.getElementById(previewId);
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '';
+            preview.style.display = 'none';
+        }
+    }
+
+  
+    document.querySelectorAll('.btn-edit').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const nama = this.dataset.nama;
+            const devices = this.dataset.devices
+            ? this.dataset.devices.split(',')
+            : [];
+            const gambar = this.dataset.gambar;
+
+            // Set action form ke route update
+            document.getElementById('formEdit').action = '/admin/game/' + id;
+
+            // Isi field
+            document.getElementById('edit_nama_permainan').value = nama;
+            document.querySelectorAll('.edit-device').forEach(function(checkbox) {
+                checkbox.checked = devices.includes(checkbox.value);
+            });
+
+            // Tampilkan gambar existing jika ada
+            const previewEdit = document.getElementById('preview-edit');
+            if (gambar) {
+                previewEdit.src = gambar;
+                previewEdit.style.display = 'block';
+            } else {
+                previewEdit.src = 'https://via.placeholder.com/200x200?text=No+Image';
+                previewEdit.style.display = 'block';
+            }
+        });
+    });
+
+    $('#modalTambah').on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+        document.getElementById('preview-tambah').style.display = 'none';
+    });
+
+    $('#modalEdit').on('hidden.bs.modal', function () {
+        $(this).find('input[type="file"]').val('');
+    });
+
+    $('#modalEdit').on('hidden.bs.modal', function () {
+    $(this).find('input[type="file"]').val('');
+    document.querySelectorAll('.edit-device').forEach(function(checkbox) {
+        checkbox.checked = false;
+    });
+});
+</script>
 @stop

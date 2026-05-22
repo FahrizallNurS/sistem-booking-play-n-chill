@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Play N Chill | Register</title>
+  <title>Play N Chill | Daftar</title>
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="{{ asset('adminLTE/plugins/fontawesome-free/css/all.min.css') }}">
@@ -26,62 +26,45 @@
       position: relative;
     }
 
-    /* KOTAK KUNING BACKGROUND (Sama persis dengan Login) */
-    body::before,
-    body::after {
-      content: '';
+    .bg-pattern {
       position: fixed;
-      background-color: #c8e600;
-      z-index: 0;
-    }
-
-    body::before {
-      width: 280px;
-      height: 220px;
-      top: -40px;
-      right: -40px;
-      clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
-    }
-
-    body::after {
-      width: 220px;
-      height: 180px;
-      bottom: -30px;
-      right: 80px;
-      clip-path: polygon(20% 0%, 100% 0%, 80% 100%, 0% 100%);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: url('{{ asset("images/bg-segitiga.png") }}');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      opacity: 1.0;
+      z-index: -1;
+      pointer-events: none;
     }
 
     .shape-left-top {
       position: fixed;
-      width: 100px;
-      height: 130px;
+      width: 100px; height: 130px;
       background-color: #c8e600;
-      top: 160px;
-      left: -20px;
+      top: 160px; left: -20px;
       clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
       z-index: 0;
     }
 
     .shape-left-bottom {
       position: fixed;
-      width: 120px;
-      height: 110px;
+      width: 120px; height: 110px;
       background-color: #c8e600;
-      bottom: 80px;
-      left: -10px;
+      bottom: 80px; left: -10px;
       clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
       z-index: 0;
     }
 
-    /* CARD REGISTER */
     .login-box {
       position: relative;
       z-index: 1;
       background: #ffffff;
       border-radius: 24px;
-      padding: 40px;
+      padding: 48px 40px 40px;
       width: 100%;
-      max-width: 480px; /* Sedikit lebih lebar untuk form lebih panjang */
+      max-width: 460px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
       animation: slideUp 0.5s ease forwards;
     }
@@ -93,13 +76,14 @@
 
     .login-logo {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 32px;
     }
 
     .login-logo h1 {
       font-family: 'Fredoka One', cursive;
-      font-size: 2.5rem;
+      font-size: 2.8rem;
       color: #3a1fa8;
+      letter-spacing: 1px;
       line-height: 1;
     }
 
@@ -107,15 +91,15 @@
       display: inline-block;
       background: linear-gradient(135deg, #ff6b35, #e63946);
       color: white;
-      font-size: 1.8rem;
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      line-height: 42px;
+      font-size: 2rem;
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      line-height: 48px;
       text-align: center;
       vertical-align: middle;
       margin: 0 4px;
       transform: rotate(-5deg);
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
     }
 
     .field-label {
@@ -124,23 +108,29 @@
       gap: 10px;
       color: #3a1fa8;
       font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 6px;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+
+    .field-label i {
+      font-size: 1.2rem;
+      color: #3a1fa8;
     }
 
     .input-group {
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .input-group input {
       width: 100%;
-      padding: 12px 16px;
+      padding: 14px 16px;
       border: 2px solid #7c4dff;
       border-radius: 12px;
       font-size: 1rem;
       font-family: 'Nunito', sans-serif;
       outline: none;
-      transition: all 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      color: #333;
     }
 
     .input-group input:focus {
@@ -148,23 +138,35 @@
       box-shadow: 0 0 0 3px rgba(58, 31, 168, 0.12);
     }
 
+    .input-group input.is-invalid {
+      border-color: #e63946;
+    }
+
+    .error-msg {
+      color: #e63946;
+      font-size: 0.85rem;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
     .btn-login {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       background: #7c4dff;
       color: white;
       border: none;
       border-radius: 12px;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-family: 'Fredoka One', cursive;
       letter-spacing: 2px;
       cursor: pointer;
-      transition: 0.2s;
-      margin-top: 10px;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 8px;
       margin-bottom: 20px;
     }
 
     .btn-login:hover { background: #3a1fa8; }
+    .btn-login:active { transform: scale(0.98); }
 
     .register-link {
       text-align: center;
@@ -177,12 +179,13 @@
       font-weight: 700;
       text-decoration: none;
     }
+
+    .register-link a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
 
-<div class="shape-left-top"></div>
-<div class="shape-left-bottom"></div>
+<div class="bg-pattern"></div>
 
 <div class="login-box">
 
@@ -190,7 +193,14 @@
     <h1>Play <span class="n-icon">N</span> Chill</h1>
   </div>
 
-  <form action="{{ route('register.post') }}" method="post">
+  @if ($errors->any())
+    <div style="background:#fff0f0;border:1px solid #e63946;border-radius:10px;
+                padding:12px 16px;margin-bottom:20px;color:#e63946;font-size:0.9rem;">
+      {{ $errors->first() }}
+    </div>
+  @endif
+
+  <form action="{{ route('register.post') }}" method="POST">
     @csrf
 
     <div class="input-group">
@@ -198,10 +208,12 @@
         <i class="fas fa-user"></i>
         <span>Username</span>
       </div>
-      <input type="text" name="nama_pengguna" value="{{ old('nama_pengguna') }}" 
-             style="{{ $errors->has('nama_pengguna') ? 'border-color: #e63946;' : '' }}" required>
+      <input type="text" name="nama_pengguna"
+        value="{{ old('nama_pengguna') }}"
+        class="{{ $errors->has('nama_pengguna') ? 'is-invalid' : '' }}"
+        required>
       @error('nama_pengguna')
-        <small style="color: #e63946; font-weight: 700;">{{ $message }}</small>
+        <div class="error-msg">{{ $message }}</div>
       @enderror
     </div>
 
@@ -210,22 +222,26 @@
         <i class="fas fa-envelope"></i>
         <span>Email</span>
       </div>
-      <input type="email" name="email" value="{{ old('email') }}"
-             style="{{ $errors->has('email') ? 'border-color: #e63946;' : '' }}" required>
+      <input type="email" name="email"
+        value="{{ old('email') }}"
+        class="{{ $errors->has('email') ? 'is-invalid' : '' }}"
+        required>
       @error('email')
-        <small style="color: #e63946; font-weight: 700;">{{ $message }}</small>
+        <div class="error-msg">{{ $message }}</div>
       @enderror
     </div>
 
     <div class="input-group">
       <div class="field-label">
         <i class="fas fa-phone"></i>
-        <span>Nomor Telephone</span>
+        <span>Nomor Telepon</span>
       </div>
-      <input type="text" name="no_hp" value="{{ old('no_hp') }}"
-             style="{{ $errors->has('no_hp') ? 'border-color: #e63946;' : '' }}" required>
+      <input type="text" name="no_hp"
+        value="{{ old('no_hp') }}"
+        class="{{ $errors->has('no_hp') ? 'is-invalid' : '' }}"
+        required>
       @error('no_hp')
-        <small style="color: #e63946; font-weight: 700;">{{ $message }}</small>
+        <div class="error-msg">{{ $message }}</div>
       @enderror
     </div>
 
@@ -235,17 +251,23 @@
         <span>Password</span>
       </div>
       <input type="password" name="password"
-             style="{{ $errors->has('password') ? 'border-color: #e63946;' : '' }}" required>
+        class="{{ $errors->has('password') ? 'is-invalid' : '' }}"
+        required>
       @error('password')
-        <small style="color: #e63946; font-weight: 700;">{{ $message }}</small>
+        <div class="error-msg">{{ $message }}</div>
       @enderror
     </div>
 
     <button type="submit" class="btn-login">DAFTAR</button>
-</form>
-    <p class="register-link">
-        Sudah punya akun? <a href="{{ route('login') }}">Login</a>
-     </p>
+  </form>
+
+  <p class="register-link">
+    Sudah punya akun? <a href="{{ route('login') }}">Login</a>
+  </p>
+
 </div>
+
+<script src="{{ asset('adminLTE/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('adminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

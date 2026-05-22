@@ -10,40 +10,108 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
+
+    <style>
+        body {
+            background-color: var(--purple-dark); /* Warna dasar tetap di body */
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        body::before {
+            content: "";
+            position: fixed; /* Agar background tetap diam saat scroll */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            /* Pengaturan gambar background */
+            background-image: url('{{ asset("images/bg-segitiga.png") }}');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            /* ATUR TRANSPARANSI DI SINI */
+            opacity: 0.7; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+            
+            z-index: -1; /* Memastikan background berada di belakang konten */
+        }
+    </style>
+    
 </head>
 <body>
 
-{{-- NAVBAR --}}
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
+
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
+
+        <button class="navbar-toggler border-0 shadow-none" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
         <div class="collapse navbar-collapse justify-content-end" id="navMain">
             <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/booking') }}">Booking</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/gallery') }}">Gallery</a></li>
+                <li class="nav-item">
+                    <a class="nav-link nav-btn-active" href="{{ url('/') }}">Home</a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
+                </li>
                 <li class="nav-item ms-2">
+
+                    @guest
+                        {{-- Belum login: tampilkan tombol Login --}}
+                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
+                        style="background-color: var(--orange) !important;">
+                            Login
+                        </a>
+                    @endguest
+
                     @auth
-                    <div class="dropdown">
-                        <div class="nav-avatar" id="userDropdown" data-bs-toggle="dropdown">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="var(--purple-dark)"/>
-                            </svg>
+                        {{-- Sudah login: tampilkan avatar + dropdown --}}
+                        <div class="dropdown">
+                            <div class="nav-avatar" id="userDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
+                                            7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
+                                            1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                                        fill="var(--purple-dark)"/>
+                                </svg>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                                aria-labelledby="userDropdown">
+                                <li>
+                                    <span class="dropdown-item-text fw-bold">
+                                        {{ auth()->user()->nama_pengguna }}
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url('/profile') }}">
+                                        Profil Saya
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Keluar (Logout)
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
                         </div>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="{{ url('/profile') }}">Profil Saya</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/booking/status') }}">Status Booking</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item text-danger">Keluar</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
                     @endauth
                 </li>
             </ul>
@@ -77,7 +145,7 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-header-info">
-                <h2>{{ $user->name }}</h2>
+                <h2>{{ $user->nama_pengguna }}</h2>
                 <p><i class="fas fa-envelope me-1"></i> {{ $user->email }}</p>
                 @if($user->no_hp)
                     <p><i class="fas fa-phone me-1"></i> {{ $user->no_hp }}</p>
@@ -100,23 +168,38 @@
         </div>
     </div>
 
-    {{-- ═══ BOOKING AKTIF ═══ --}}
     @if($bookingAktif)
     @php
         $ph      = $bookingAktif->penetapanHarga;
         $mulai   = \Carbon\Carbon::parse($bookingAktif->waktu_mulai);
         $selesai = \Carbon\Carbon::parse($bookingAktif->waktu_selesai);
         $now     = now();
-        $totalMenit   = $mulai->diffInMinutes($selesai);
-        $jalanMenit   = $now->between($mulai, $selesai) ? $mulai->diffInMinutes($now) : ($now->gt($selesai) ? $totalMenit : 0);
-        $persenJalan  = $totalMenit > 0 ? min(100, round($jalanMenit / $totalMenit * 100)) : 0;
-        $sisaMenit    = max(0, $totalMenit - $jalanMenit);
-        $sisaJam      = floor($sisaMenit / 60);
+        $totalMenit    = $mulai->diffInMinutes($selesai);
+        $jalanMenit    = $now->between($mulai, $selesai) ? $mulai->diffInMinutes($now) : ($now->gt($selesai) ? $totalMenit : 0);
+        $persenJalan   = $totalMenit > 0 ? min(100, round($jalanMenit / $totalMenit * 100)) : 0;
+        $sisaMenit     = max(0, $totalMenit - $jalanMenit);
+        $sisaJam       = floor($sisaMenit / 60);
         $sisaMenitSisa = $sisaMenit % 60;
-
-        $statusWaktu = $now->lt($mulai) ? 'Belum Dimulai' : ($now->gt($selesai) ? 'Sudah Selesai' : 'Sedang Berjalan');
+        $statusWaktu      = $now->lt($mulai) ? 'Belum Dimulai' : ($now->gt($selesai) ? 'Sudah Selesai' : 'Sedang Berjalan');
         $statusWaktuColor = $now->lt($mulai) ? '#6b7280' : ($now->gt($selesai) ? '#3b82f6' : '#22c55e');
     @endphp
+
+    {{-- Timer --}}
+    @if($bookingAktif->status_sewa === 'ditahan' && $sisaDetik > 0)
+    <div class="alert text-center fw-bold mb-3"
+        style="background:rgba(255,165,0,0.2);border:1px solid orange;color:white;border-radius:12px;">
+        ⏳ Selesaikan pembayaran dalam:
+        <span id="countdown" style="color:var(--yellow);font-size:1.2rem;">
+            {{ gmdate('i:s', $sisaDetik) }}
+        </span>
+    </div>
+    @elseif($bookingAktif->status_sewa === 'ditahan' && $sisaDetik <= 0)
+    <div class="alert text-center fw-bold mb-3"
+        style="background:rgba(255,0,0,0.2);border:1px solid red;color:white;border-radius:12px;">
+        ❌ Waktu pembayaran habis. Booking dibatalkan otomatis.
+    </div>
+    @endif
+
     <div class="section-title mb-3">
         <i class="fas fa-clock me-2"></i> Booking Aktif
     </div>
@@ -203,22 +286,28 @@
                     </div>
                 </div>
 
+                {{-- Catatan --}}
                 @if($bookingAktif->catatan_pembayaran)
                 <div class="catatan-box mt-2">
                     <i class="fas fa-info-circle me-1"></i> {{ $bookingAktif->catatan_pembayaran }}
                 </div>
                 @endif
 
-                {{-- Tombol WA konfirmasi kalau belum lunas --}}
+                {{-- Tombol aksi --}}
                 @if($bookingAktif->status_pembayaran !== 'lunas')
-                <a href="https://wa.me/628123456789?text=Halo admin, saya ingin konfirmasi pembayaran booking {{ $bookingAktif->kode_sewa }}"
-                    class="btn-bayar mt-3">
-                    <i class="fab fa-whatsapp me-2"></i> Konfirmasi Pembayaran
-                </a>
+                <div class="d-flex gap-3 mt-3 flex-wrap">
+                    <a href="https://wa.me/6285735329227?text=Halo admin, saya ingin konfirmasi pembayaran booking {{ $bookingAktif->kode_sewa }}"
+                        class="btn-bayar">
+                        <i class="fab fa-whatsapp me-2"></i> Konfirmasi Pembayaran
+                    </a>
+                    <a href="{{ route('booking.payment.show', $bookingAktif->id_transaksi) }}"
+                        class="btn-bayar btn-bayar-payment">
+                        <i class="fas fa-credit-card me-2"></i> Lihat Pembayaran
+                    </a>
+                </div>
                 @endif
             </div>
 
-            {{-- Gambar ruangan --}}
             <div class="booking-aktif-gambar">
                 @if($ph->ruangan->galeri)
                     <img src="{{ asset('storage/' . $ph->ruangan->galeri) }}" alt="{{ $ph->ruangan->nama_ruangan }}">
@@ -233,7 +322,7 @@
     </div>
     @endif
 
-    {{-- ═══ RIWAYAT BOOKING ═══ --}}
+
     <div class="section-title mb-3">
         <i class="fas fa-history me-2"></i> Riwayat Booking
     </div>
@@ -269,6 +358,13 @@
                         @endif
                     </div>
                 </div>
+                @if($booking->status_sewa === 'dibatalkan' && $booking->catatan_pembayaran)
+                <div style="margin-top:8px;background:#fff3cd;border:1px solid #ffc107;
+                            border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#856404;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Alasan:</strong> {{ $booking->catatan_pembayaran }}
+                </div>
+                @endif
             </div>
 
             <div class="riwayat-actions">
@@ -290,7 +386,6 @@
 </div>
 </div>
 
-{{-- ═══ MODAL EDIT PROFIL ═══ --}}
 <div class="modal fade" id="modalEditProfil" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -305,8 +400,8 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nama</label>
-                        <input type="text" name="name" class="form-control"
-                            value="{{ old('name', $user->name) }}" required>
+                        <input type="text" name="nama_pengguna" class="form-control"
+                            value="{{ old('nama_pengguna', $user->nama_pengguna) }}" required>
                     </div>
 
                     <div class="mb-3">
@@ -383,6 +478,28 @@
             toggleEditModal();
         });
     @endif
+</script>
+<script>
+    let sisaDetik = {{ $sisaDetik }};
+
+    if (sisaDetik > 0) {
+        const interval = setInterval(() => {
+            sisaDetik--;
+
+            if (sisaDetik <= 0) {
+                clearInterval(interval);
+                location.reload();
+                return;
+            }
+
+            const menit = Math.floor(sisaDetik / 60).toString().padStart(2, '0');
+            const detik = Math.floor(sisaDetik % 60).toString().padStart(2, '0');
+            const el = document.getElementById('countdown');
+            if (el) el.textContent = menit + ':' + detik;
+
+            if (sisaDetik <= 300 && el) el.style.color = 'red';
+        }, 1000);
+    }
 </script>
 </body>
 </html>
