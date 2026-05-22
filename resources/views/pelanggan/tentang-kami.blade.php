@@ -466,7 +466,7 @@
         <div class="features-scroll-wrap">
 
             <div class="custom-card"
-                 style="background-image: url('{{ asset('images/cinema.jpg') }}');">
+                 style="background-image: url('{{ asset('images/privateroom.jpg') }}');">
                 <div class="card-icon-box">
                     <i class="fas fa-lock"></i>
                 </div>
