@@ -546,35 +546,66 @@
     <div class="container">
         <div class="row g-4 pb-2">
 
+            {{-- Brand --}}
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="f-logo font-modak">Play N Chill</div>
-
-                <p class="f-tagline">
-                    Nikmati pengalaman tak terlupakan bersama teman dan keluarga.
-                </p>
+                <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
             </div>
 
+            {{-- Hubungi Kami --}}
             <div class="col-6 col-sm-3 col-lg-3">
                 <div class="f-head">Hubungi Kami</div>
+                <ul class="f-list">
+                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
+                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span>playnchillmadiun@gmail.com</span></li>
+                    <li>
+                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
+                        <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
+                    </li>
+                </ul>
+            </div>
 
+            {{-- Ikuti Kami --}}
+            <div class="col-6 col-sm-3 col-lg-3">
+                <div class="f-head">Ikuti Kami</div>
                 <ul class="f-list">
                     <li>
-                        <span class="fi">
-                            <img src="{{ asset('gambar/ic_tel.png') }}">
-                        </span>
-                        <span>+62 857-3532-9227</span>
+                        <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
+                            <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
+                        </a>
                     </li>
-
                     <li>
-                        <span class="fi">
-                            <img src="{{ asset('gambar/ic_email.png') }}">
-                        </span>
-                        <span>playnchillmadiun@gmail.com</span>
+                        <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
+                            <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
+                        </a>
+                    </li>
+                    <li>
+                        <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
+                            <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {{-- Jam Operasional --}}
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="f-head">Jam Operasional</div>
+                <ul class="f-list">
+                    <li>
+                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
+                        <div>
+                            <div>Senin – Kamis: 14.00 – 22.00</div>
+                            <div>Jumat: 13.00 – 00.00</div>
+                            <div>Sabtu – Minggu: 10.00 – 00.00</div>
+                        </div>
                     </li>
                 </ul>
             </div>
 
         </div>
+
+        <hr class="f-divider">
+        <p class="f-copy">&copy; {{ date('Y') }} Play N Chill Madiun. All rights reserved.</p>
     </div>
 </footer>
 
