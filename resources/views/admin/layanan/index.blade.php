@@ -218,6 +218,7 @@
                                 <option value="PS3" {{ old('perangkat') == 'PS3' ? 'selected' : '' }}>PS3</option>
                                 <option value="PS4" {{ old('perangkat') == 'PS4' ? 'selected' : '' }}>PS4</option>
                                 <option value="PS5" {{ old('perangkat') == 'PS5' ? 'selected' : '' }}>PS5</option>
+                                <option value="Nintendo Switch" {{ old('perangkat') == 'Nintendo Switch' ? 'selected' : '' }}>Nintendo Switch</option>
                             </select>
                         </div>
 
@@ -283,6 +284,7 @@
                                 <option value="PS3">PS3</option>
                                 <option value="PS4">PS4</option>
                                 <option value="PS5">PS5</option>
+                                <option value="Nintendo Switch">Nintendo Switch</option>
                             </select>
                         </div>  
 

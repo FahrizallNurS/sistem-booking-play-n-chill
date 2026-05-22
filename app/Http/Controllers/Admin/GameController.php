@@ -69,7 +69,7 @@ class GameController extends Controller
             'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan,' . $id . ',id_permainan',
             'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'devices' => 'required|array|min:1',
-            'devices.*' => 'in:PS3,PS4,PS5',
+            'devices.*' => 'in:PS3,PS4,PS5,Nintendo Switch',
         ]);
 
         if ($request->hasFile('gambar')) {

@@ -77,6 +77,7 @@
                         <option value="PS3" {{ old('device') === 'PS3' ? 'selected' : '' }}>PS3</option>
                         <option value="PS4" {{ old('device') === 'PS4' ? 'selected' : '' }}>PS4</option>
                         <option value="PS5" {{ old('device') === 'PS5' ? 'selected' : '' }}>PS5</option>
+                        <option value="Nintendo Switch" {{ old('device') == 'Nintendo Switch' ? 'selected' : '' }}>Nintendo Switch</option>
                     </select>
                     <small class="text-muted">Game akan otomatis diassign ke semua ruangan dengan device ini.</small>
                 </div>

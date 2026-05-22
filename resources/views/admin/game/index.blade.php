@@ -25,7 +25,7 @@
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>No</th>
                         <th>Gambar</th>
                         <th>Nama Game</th>
                         <th>Perangkat</th>
@@ -134,6 +134,11 @@
                             <input type="checkbox" name="devices[]" value="PS5">
                             <label>PS5</label>
                         </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" name="devices[]" value="Nintendo Switch">
+                            <label>Nintendo Switch</label>
+                        </div>
                     </div>
 
                         <div class="form-group">
@@ -210,6 +215,11 @@
                                 <input type="checkbox" name="devices[]" value="PS5"
                                     class="form-check-input edit-device">
                                 <label class="form-check-label">PS5</label>
+                            </div>
+                             <div class="form-check">
+                                <input type="checkbox" name="devices[]" value="Nintendo Switch"
+                                    class="form-check-input edit-device">
+                                <label class="form-check-label">Nintendo Switch</label>
                             </div>
                         </div>
 
