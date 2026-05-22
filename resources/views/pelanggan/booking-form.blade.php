@@ -177,18 +177,19 @@
                             <div class="text-white-50 small mb-2 mt-1" x-show="tanggal">
                                 <i class="fas fa-clock"></i>
                                 <span x-text="(() => {
-                                    const h = new Date(tanggal).getDay();
-                                    if (h === 0 || h === 6) return 'Jam operasional: 10.00 – 23.00';
-                                    if (h === 4) return 'Jam operasional: 14.00 – 22.00';
-                                    return 'Jam operasional: 14.00 – 23.00';
+                                    const [y, m, d] = tanggal.split('-').map(Number);
+                                    const h = new Date(y, m - 1, d).getDay();
+                                    if (h === 0 || h === 6) return 'Jam operasional: 10.00 – 00.00';
+                                    if (h === 5) return 'Jam operasional: 13.00 – 00.00';
+                                    return 'Jam operasional: 14.00 – 22.00';
                                 })()"></span>
                             </div>
 
                             @php
                                 $times = ['10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
-                                        '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
-                                        '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
-                                        '22.00'];
+                                '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
+                                '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
+                                '22.00','22.30','23.00','23.30'];
                             @endphp
 
                             <div class="time-grid">
@@ -213,7 +214,7 @@
                                 </div>
                                 
                                 <div x-show="confirmedTime !== ''" class="text-end">
-                                    <small class="text-success">
+                                    <small style="color: #ffcc00;">
                                         ✓ Waktu dipilih: <strong x-text="confirmedTime"></strong>
                                     </small>
                                 </div>
@@ -261,6 +262,23 @@
                                     :max="selectedPricing ? selectedPricing.harga : ''">
                             </div>
                         </div>
+
+                        @if(!auth()->user()->no_hp)
+                        <div class="booking-card">
+                            <span class="section-badge">Nomor Telepon</span>
+                            <p class="text-white-50 small mt-1 mb-2">
+                                Nomor telepon diperlukan untuk konfirmasi booking.
+                            </p>
+                            <input type="tel" name="no_hp" class="form-control"
+                                placeholder="Contoh: 08123456789"
+                                maxlength="15"
+                                value="{{ old('no_hp') }}"
+                                required>
+                            @error('no_hp')
+                                <small class="text-danger mt-1 d-block">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        @endif
 
                         {{-- SUMMARY --}}
                         <div class="booking-card border-warning">
@@ -366,14 +384,14 @@
 
                 let bukaMenit, tutupMenit;
                 if (hari === 0 || hari === 6) {
-                    bukaMenit  = 10 * 60;
-                    tutupMenit = 23 * 60;
-                } else if (hari === 4) {
-                    bukaMenit  = 14 * 60;
-                    tutupMenit = 22 * 60;
+                    bukaMenit  = 10 * 60; // Sabtu-Minggu: 10:00 - 00:00 (24:00)
+                    tutupMenit = 24 * 60;
+                } else if (hari === 5) {
+                    bukaMenit  = 13 * 60; // Jumat: 13:00 - 00:00 (24:00)
+                    tutupMenit = 24 * 60;
                 } else {
-                    bukaMenit  = 14 * 60;
-                    tutupMenit = 23 * 60;
+                    bukaMenit  = 14 * 60; // Senin-Kamis: 14:00 - 22:00
+                    tutupMenit = 22 * 60;
                 }
 
                 if (slotMenit < bukaMenit || slotMenit >= tutupMenit) return true;

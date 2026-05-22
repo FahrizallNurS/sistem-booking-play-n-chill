@@ -10,10 +10,9 @@ use Illuminate\Http\Request;
 
 class PaketController extends Controller
 {
-   public function index(Request $request)
-
+    public function index(Request $request)
     {
-        $status = $request->get('status', 'all'); // all, active, inactive
+        $status = $request->get('status', 'all');
         
         $query = MsPaket::latest();
         
@@ -23,7 +22,13 @@ class PaketController extends Controller
             $query->where('is_active', 0);
         }
         
-        $pakets = $query->with(['penetapanHarga.transaksis'])->get();  
+        $pakets = $query->with([
+            'penetapanHarga' => function($q) {
+                $q->currentPrices()->with('ruangan');
+            },
+            'penetapanHarga.transaksis'
+        ])->get();
+        
         return view('admin.paket.index', compact('pakets', 'status'));
     }
 
@@ -93,12 +98,18 @@ class PaketController extends Controller
 
     public function edit($id)
     {
-        $paket    = MsPaket::with('penetapanHarga.ruangan')->findOrFail($id);
+        $paket = MsPaket::with([
+            'penetapanHarga' => function($q) {
+                $q->currentPrices()->with('ruangan');
+            }
+        ])->findOrFail($id);
+        
         $ruangans = MsRuangan::where('is_active', 1)->get();
+        
         return view('admin.paket.edit', compact('paket', 'ruangans'));
     }
 
-        public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'nama_paket'      => 'required|string|max:40',
@@ -111,7 +122,7 @@ class PaketController extends Controller
             'durasi_jam'      => 'nullable|array',
             'durasi_jam.*'    => 'integer|min:1',
             'harga'           => 'nullable|array',
-            'harga.*'         => 'nullable|string', // ← string biar titik tidak terpotong
+            'harga.*'         => 'nullable|string',
         ]);
 
         $paket = MsPaket::findOrFail($id);
@@ -126,16 +137,23 @@ class PaketController extends Controller
             foreach ($request->ruangan_ids as $ruanganId) {
                 foreach ($request->durasi_jam as $index => $durasi) {
                     if ($durasi && isset($request->harga[$index])) {
-                        // ← strip titik ribuan di dalam loop
                         $harga = (int) str_replace('.', '', $request->harga[$index]);
 
-                        PenetapanHarga::create([
-                            'id_ruangan' => $ruanganId,
-                            'id_paket'   => $paket->id_paket,
-                            'tipe_hari'  => $request->tipe_hari,
-                            'durasi_jam' => $durasi,
-                            'harga'      => $harga,
-                        ]);
+                        $existing = PenetapanHarga::findExisting(
+                            $ruanganId, 
+                            $paket->id_paket, 
+                            $request->tipe_hari, 
+                            $durasi
+                        );
+                        if (!$existing || $existing->harga != $harga) {
+                            PenetapanHarga::create([
+                                'id_ruangan' => $ruanganId,
+                                'id_paket'   => $paket->id_paket,
+                                'tipe_hari'  => $request->tipe_hari,
+                                'durasi_jam' => $durasi,
+                                'harga'      => $harga,
+                            ]);
+                        }
                     }
                 }
             }
@@ -149,7 +167,6 @@ class PaketController extends Controller
     {
         $paket = MsPaket::findOrFail($id);
         
-        // Toggle status
         $newStatus = $paket->is_active == 1 ? 0 : 1;
         $paket->update(['is_active' => $newStatus]);
         
@@ -171,7 +188,6 @@ class PaketController extends Controller
             ->with('success', 'Paket berhasil diaktifkan kembali!');
     }
 
-    // AJAX: ambil ruangan by kategori
     public function getRuanganByKategori($kategori)
     {
         $ruangans = MsRuangan::where('kategori', $kategori)
@@ -196,6 +212,20 @@ class PaketController extends Controller
             return redirect()->route('admin.paket.index')
                 ->with('success', 'Paket berhasil dihapus!');
 
+    }
+    
+    public function destroyPenetapan($id)
+    {
+        $penetapan = PenetapanHarga::findOrFail($id);
+        
+        // Cek apakah ada transaksi
+        if ($penetapan->transaksis()->exists()) {
+            return back()->with('error', 'Penetapan harga tidak dapat dihapus karena sudah ada transaksi terkait.');
+        }
+        
+        $penetapan->delete();
+        
+        return back()->with('success', 'Penetapan harga berhasil dihapus!');
     }
 
 }
