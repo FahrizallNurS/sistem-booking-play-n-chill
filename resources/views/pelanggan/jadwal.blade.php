@@ -72,6 +72,15 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/galeri') }}">Menu F&B</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/galeri') }}">Galeri</a>
+                </li>
+
                 <li class="nav-item ms-2">
 
                     @guest

@@ -358,9 +358,15 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link nav-btn-active" href="{{ url('/tentang-kami') }}">
-                        Tentang Kami
-                    </a>
+                    <a class="nav-link" href="{{ url('/galeri') }}">Menu F&B</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/galeri') }}">Galeri</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link nav-btn-active" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
                 </li>
 
                 <li class="nav-item ms-2">

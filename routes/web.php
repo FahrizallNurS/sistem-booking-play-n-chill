@@ -56,6 +56,16 @@ Route::get('/home', function () {
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
+// Route Galeri
+Route::get('/galeri', function () {
+    return view('pelanggan.galeri');
+});
+
+// Route Menu F&B
+Route::get('/menu-fb', function () {
+    return view('pelanggan.menu-fb');
+});
+
 Route::get('/aktivasi-akun', function () {
     return view('auth.verify-email');
 })->name('aktivasi.notice');

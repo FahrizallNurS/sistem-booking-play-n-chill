@@ -61,12 +61,23 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url('/') }}">Home</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link nav-btn-active" href="{{ url('/booking') }}">Booking</a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/menu-fb') }}">Menu F&B</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/galeri') }}">Galeri</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
+                </li>
+
                 <li class="nav-item ms-2">
                     @guest
                         <a class="nav-link nav-btn-active" href="{{ url('/login') }}"
