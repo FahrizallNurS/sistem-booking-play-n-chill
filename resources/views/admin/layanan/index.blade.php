@@ -203,7 +203,7 @@
                             <select name="kategori" class="form-control @error('kategori') is-invalid @enderror" required>
                                 <option value="">-- Pilih Kategori --</option>
                                 <option value="REGULAR" {{ old('kategori') == 'REGULAR' ? 'selected' : '' }}>REGULAR</option>
-                                <option value="PRIVATE ROOM" {{ old('kategori') == 'PRIVATE ROOM' ? 'selected' : '' }}>PRIVATE ROOM</option>
+                                <option value="PRIVATE-ROOM" {{ old('kategori') == 'PRIVATE-ROOM' ? 'selected' : '' }}>PRIVATE ROOM</option>
                             </select>
                             @error('kategori')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -271,7 +271,7 @@
                             <label>Kategori</label>
                             <select name="kategori" id="edit_kategori" class="form-control" required>
                                 <option value="REGULAR">REGULAR</option>
-                                <option value="PRIVATE ROOM">PRIVATE ROOM</option>
+                                <option value="PRIVATE-ROOM">PRIVATE ROOM</option>
                             </select>
                         </div>
 

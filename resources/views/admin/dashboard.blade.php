@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    {{-- Tabel Booking Terbaru --}}
+
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -72,7 +72,7 @@
                     <table class="table table-bordered table-hover mb-0">
                         <thead class="thead-light">
                             <tr>
-                                <th>#</th>
+                                <th>NO</th>
                                 <th>Kode</th>
                                 <th>Pelanggan</th>
                                 <th>Ruangan</th>

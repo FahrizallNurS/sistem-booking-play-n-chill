@@ -69,7 +69,7 @@
                 <select id="kategori_select" class="form-control">
                     <option value="">-- Pilih Kategori --</option>
                     <option value="REGULAR">Regular</option>
-                    <option value="PRIVATE ROOM">Private Room</option>
+                    <option value="PRIVATE-ROOM">Private Room</option>
                 </select>
             </div>
 

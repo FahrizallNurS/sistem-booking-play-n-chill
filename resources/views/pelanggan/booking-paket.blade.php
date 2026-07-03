@@ -94,57 +94,85 @@
 
 <section class="paket-section section-ps">
     <div class="container">
+
         @if($penetapanHarga->isEmpty())
             <div class="alert alert-warning text-center">
                 Belum ada paket tersedia untuk ruangan ini.
             </div>
         @else
-            <div class="paket-grid">
-                @foreach($penetapanHarga as $paketId => $items)
-                    @php
-                        $paket = $items->first()->paket;
-                        $kategoriClass = strtolower(str_replace(' ', '-', $room->kategori));
-                    @endphp
+
+            @php
+                $grouped = $penetapanHarga->groupBy(function ($items) {
+                    return optional($items->first()->paket->subKategori)->nama_sub_kategori ?? 'Lainnya';
+                });
+            @endphp
+
+            @foreach($grouped as $namaSubKategori => $paketGroup)
+
+                <h3 class="subkategori-heading">{{ $namaSubKategori }}</h3>
+
+                <div class="paket-grid">
+
+                    @foreach($paketGroup as $paketId => $items)
+
+                        @php
+                            $paket = $items->first()->paket;
+                            $kategoriClass = strtolower(str_replace(' ', '-', $room->kategori));
+                        @endphp
+
                         <div class="paket-card paket-card-{{ $kategoriClass }}">
 
-                        @if($paket->subKategori)
-                            <span class="badge badge-secondary paket-card-subkategori">{{ $paket->subKategori->nama_sub_kategori }}</span>
-                        @endif
-
-                        <div class="paket-card-name">{{ $paket->nama_paket }}</div>
-
-                        <p class="paket-card-sub">{{ $room->nama_ruangan }}</p>
-
-                        @foreach($items as $ph)
-                            <div class="paket-card-price">
-                                Rp {{ number_format($ph->harga, 0, ',', '.') }}
+                            <div class="paket-card-name">
+                                {{ $paket->nama_paket }}
                             </div>
 
-                            {{-- Durasi + Max Orang sejajar dalam 1 baris --}}
-                            <div class="paket-card-info-row">
-                                <span class="paket-card-durasi">/ {{ $ph->durasi_jam }} jam ({{ $ph->tipe_hari }})</span>
-                                <span class="paket-card-meta">👥 Max {{ $paket->maksimal_orang }} Orang</span>
-                            </div>
-                        @endforeach
+                            <p class="paket-card-sub">
+                                {{ $room->nama_ruangan }}
+                            </p>
 
-                        {{-- Deskripsi sebagai list --}}
-                        @if($paket->deskripsi_paket)
-                            <ul class="paket-features">
-                                @foreach(explode("\n", $paket->deskripsi_paket) as $item)
-                                    @if(trim($item))
-                                        <li>{{ trim($item) }}</li>
-                                    @endif
-                                @endforeach
-                            </ul>
-                        @endif
+                            @foreach($items as $ph)
 
-                        {{-- Button --}}
-                        <a href="{{ url('/booking/form?room='.$roomId.'&tipe='.$tipe.'&paket='.$paket->id_paket) }}"
-                           class="btn-pilih-paket">Pilih Paket</a>
-                    </div>
-                @endforeach
-            </div>
+                                <div class="paket-card-price">
+                                    Rp {{ number_format($ph->harga, 0, ',', '.') }}
+                                </div>
+
+                                <div class="paket-card-info-row">
+                                    <span class="paket-card-durasi">
+                                        / {{ $ph->durasi_jam }} jam ({{ $ph->tipe_hari }})
+                                    </span>
+
+                                    <span class="paket-card-meta">
+                                        👥 Max {{ $paket->maksimal_orang }} Orang
+                                    </span>
+                                </div>
+
+                            @endforeach
+
+                            @if($paket->deskripsi_paket)
+                                <ul class="paket-features">
+                                    @foreach(explode("\n", $paket->deskripsi_paket) as $item)
+                                        @if(trim($item))
+                                            <li>{{ trim($item) }}</li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            @endif
+
+                            <a href="{{ url('/booking/form?room='.$roomId.'&tipe='.$tipe.'&paket='.$paket->id_paket) }}"
+                               class="btn-pilih-paket">
+                                Pilih Paket
+                            </a>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
+            @endforeach
+
         @endif
+
     </div>
 </section>
 

@@ -4,15 +4,34 @@ config(['adminlte.menu' => array_merge(
     [
         ['header' => 'MENU UTAMA'],
         ['text' => 'Dashboard', 'url' => 'admin/dashboard', 'icon' => 'fas fa-fw fa-tachometer-alt', 'active' => ['admin/dashboard']],
-        ['header' => 'MANAJEMEN'],
         ['text' => 'Data Pelanggan', 'url' => 'admin/pelanggan', 'icon' => 'fas fa-fw fa-users'],
-        ['text' => 'Booking', 'url' => 'admin/booking', 'icon' => 'fas fa-fw fa-calendar-check'],
-        ['text' => 'Layanan', 'url' => 'admin/layanan', 'icon' => 'fas fa-fw fa-concierge-bell'],
-        ['text' => 'Paket', 'url' => 'admin/paket', 'icon' => 'fas fa-fw fa-box'],
+        ['text' => 'Kelola Booking', 'url' => 'admin/booking', 'icon' => 'fas fa-fw fa-calendar-check'],
+        ['text' => 'Layanan & Ruangan', 'url' => 'admin/layanan', 'icon' => 'fas fa-fw fa-concierge-bell'],
+        ['text' => 'Produk', 'url' => 'admin/paket', 'icon' => 'fas fa-fw fa-box'],
+        
+        ['header' => 'MANAJEMEN F&B'],
+        [
+            'text' => 'Kasir POS',
+            'icon' => 'fas fa-fw fa-utensils',
+            'active' => ['admin/fb*'], // Otomatis tetap terbuka saat sub-menu diakses
+            'submenu' => [
+                [
+                    'text' => 'Data Produk',
+                    'url' => 'admin/fb/produk',
+                ],
+                [
+                    'text' => 'Kelola Transaksi F&B',
+                    'url' => 'admin/fb/transaksi',
+                ],
+            ]
+        ],
+        
         ['header' => 'KONTEN'],
-        ['text' => 'Upload Game', 'url' => 'admin/game', 'icon' => 'fas fa-fw fa-gamepad'],
+        ['text' => 'Katalog Game', 'url' => 'admin/game', 'icon' => 'fas fa-fw fa-gamepad'],
+        
         ['header' => 'LAPORAN'],
-        ['text' => 'Laporan', 'url' => 'admin/laporan', 'icon' => 'fas fa-fw fa-file-alt'],
+        ['text' => 'Laporan Keuangan', 'url' => 'admin/laporan', 'icon' => 'fas fa-fw fa-file-alt'],
+        
         ['header' => 'AKUN'],
         ['text' => 'Profil', 'url' => 'admin/profil', 'icon' => 'fas fa-fw fa-user-cog'],
         ['text' => 'Keluar', 'url' => '#', 'icon' => 'fas fa-fw fa-sign-out-alt', 'id' => 'logout-link'],

@@ -24,8 +24,8 @@ class BookingController extends Controller
         $kategoriMap = [
             'reguler'       => 'REGULAR',
             'regular'       => 'REGULAR',
-            'private-room'  => 'PRIVATE ROOM',
-            'private_room'  => 'PRIVATE ROOM',
+            'private-room'  => 'PRIVATE-ROOM',
+            'private_room'  => 'PRIVATE-ROOM',
         ];
 
         $kategori = $kategoriMap[strtolower($tipe)] ?? 'REGULAR';
