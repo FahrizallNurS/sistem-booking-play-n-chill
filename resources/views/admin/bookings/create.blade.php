@@ -33,10 +33,8 @@
                         <label>Kategori Ruangan</label>
                         <select id="kategori_select" class="form-control">
                             <option value="">-- Pilih Kategori --</option>
-                            {{-- nanti diisi dari database --}}
                             <option value="1">Reguler</option>
-                            <option value="2">VIP</option>
-                            <option value="3">VVIP</option>
+                            <option value="2">PRIVATE ROOM</option>
                         </select>
                     </div>
                 </div>

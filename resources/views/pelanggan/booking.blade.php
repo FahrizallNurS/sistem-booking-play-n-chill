@@ -138,13 +138,9 @@
            class="tab-link {{ request('tipe', 'reguler') == 'reguler' ? 'active' : '' }}">
             Reguler
         </a>
-        <a href="{{ url('/booking?tipe=vip') }}"
-           class="tab-link {{ request('tipe') == 'vip' ? 'active' : '' }}">
-            VIP
-        </a>
-        <a href="{{ url('/booking?tipe=vvip') }}"
-           class="tab-link {{ request('tipe') == 'vvip' ? 'active' : '' }}">
-            VVIP
+        <a href="{{ url('/booking?tipe=private-room') }}"
+           class="tab-link {{ request('tipe') == 'private-room' ? 'active' : '' }}">
+            Private Room
         </a>
     </div>
 
@@ -153,11 +149,7 @@
         <h2 class="room-container-title">Tentukan Nomor Ruangan Favoritmu!</h2>
 
         <div class="room-grid-booking">
-            {{--
-                Nanti data ruangan diambil dari controller/database.
-                Untuk sementara menggunakan data dummy.
-                Ganti @foreach($rooms as $room) setelah database tersambung.
-            --}}
+            
 
 
             @foreach($rooms as $room)

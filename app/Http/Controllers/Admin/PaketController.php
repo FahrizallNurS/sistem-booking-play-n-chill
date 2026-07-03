@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MsPaket;
 use App\Models\MsRuangan;
+use App\Models\MsSubKategoriPaket;
 use App\Models\PenetapanHarga;
 use Illuminate\Http\Request;
 
@@ -23,6 +24,7 @@ class PaketController extends Controller
         }
         
         $pakets = $query->with([
+            'subKategori',
             'penetapanHarga' => function($q) {
                 $q->currentPrices()->with('ruangan');
             },
@@ -35,7 +37,8 @@ class PaketController extends Controller
     public function create()
     {
         $ruangans = MsRuangan::where('is_active', 1)->get();
-        return view('admin.paket.create', compact('ruangans'));
+        $subKategoris = MsSubKategoriPaket::where('is_active', 1)->orderBy('nama_sub_kategori')->get();
+        return view('admin.paket.create', compact('ruangans', 'subKategoris'));
     }
 
     public function store(Request $request)
@@ -48,6 +51,8 @@ class PaketController extends Controller
             \Illuminate\Validation\Rule::unique('ms_paket', 'nama_paket')
                 ->where('is_active', 1)
             ],
+            'id_sub_kategori_paket'  => 'required_without:sub_kategori_baru|nullable|exists:ms_sub_kategori_paket,id_sub_kategori_paket',
+            'sub_kategori_baru'      => 'required_without:id_sub_kategori_paket|nullable|string|max:50',
             'deskripsi_paket'  => 'nullable|string',
             'maksimal_orang'   => 'required|integer|min:1',
             'is_active'        => 'required|in:0,1',
@@ -60,8 +65,20 @@ class PaketController extends Controller
             'harga.*'          => 'nullable|string', // ← ubah ke string biar titik tidak dipotong
         ]);
 
+        // Sub kategori baru? buat dulu, kalau enggak pakai yang sudah dipilih
+        if ($request->filled('sub_kategori_baru')) {
+            $subKategori = MsSubKategoriPaket::create([
+                'nama_sub_kategori' => $request->sub_kategori_baru,
+                'is_active'         => 1,
+            ]);
+            $idSubKategori = $subKategori->id_sub_kategori_paket;
+        } else {
+            $idSubKategori = $request->id_sub_kategori_paket;
+        }
+
         $paket = MsPaket::create([
             'nama_paket'      => $request->nama_paket,
+            'ms_sub_kategori_paket_id_sub_kategori_paket' => $idSubKategori,
             'deskripsi_paket' => $request->deskripsi_paket,
             'maksimal_orang'  => $request->maksimal_orang,
             'is_active'       => $request->is_active,
@@ -105,14 +122,17 @@ class PaketController extends Controller
         ])->findOrFail($id);
         
         $ruangans = MsRuangan::where('is_active', 1)->get();
+        $subKategoris = MsSubKategoriPaket::where('is_active', 1)->orderBy('nama_sub_kategori')->get();
         
-        return view('admin.paket.edit', compact('paket', 'ruangans'));
+        return view('admin.paket.edit', compact('paket', 'ruangans', 'subKategoris'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
             'nama_paket'      => 'required|string|max:40',
+            'id_sub_kategori_paket'  => 'required_without:sub_kategori_baru|nullable|exists:ms_sub_kategori_paket,id_sub_kategori_paket',
+            'sub_kategori_baru'      => 'required_without:id_sub_kategori_paket|nullable|string|max:50',
             'deskripsi_paket' => 'nullable|string',
             'maksimal_orang'  => 'required|integer|min:1',
             'is_active'       => 'required|in:0,1',
@@ -125,9 +145,21 @@ class PaketController extends Controller
             'harga.*'         => 'nullable|string',
         ]);
 
+        // Sub kategori baru? buat dulu, kalau enggak pakai yang sudah dipilih
+        if ($request->filled('sub_kategori_baru')) {
+            $subKategori = MsSubKategoriPaket::create([
+                'nama_sub_kategori' => $request->sub_kategori_baru,
+                'is_active'         => 1,
+            ]);
+            $idSubKategori = $subKategori->id_sub_kategori_paket;
+        } else {
+            $idSubKategori = $request->id_sub_kategori_paket;
+        }
+
         $paket = MsPaket::findOrFail($id);
         $paket->update([
             'nama_paket'      => $request->nama_paket,
+            'ms_sub_kategori_paket_id_sub_kategori_paket' => $idSubKategori,
             'deskripsi_paket' => $request->deskripsi_paket,
             'maksimal_orang'  => $request->maksimal_orang,
             'is_active'       => $request->is_active,
@@ -217,8 +249,6 @@ class PaketController extends Controller
     public function destroyPenetapan($id)
     {
         $penetapan = PenetapanHarga::findOrFail($id);
-        
-        // Cek apakah ada transaksi
         if ($penetapan->transaksis()->exists()) {
             return back()->with('error', 'Penetapan harga tidak dapat dihapus karena sudah ada transaksi terkait.');
         }

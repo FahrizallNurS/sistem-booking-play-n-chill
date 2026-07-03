@@ -22,6 +22,32 @@
             @csrf
 
             <div class="form-group">
+                <label>Sub Kategori Paket</label>
+                <select name="id_sub_kategori_paket" id="sub_kategori_select" class="form-control @error('id_sub_kategori_paket') is-invalid @enderror">
+                    <option value="">-- Pilih Sub Kategori --</option>
+                    @foreach($subKategoris as $sk)
+                        <option value="{{ $sk->id_sub_kategori_paket }}" {{ old('id_sub_kategori_paket') == $sk->id_sub_kategori_paket ? 'selected' : '' }}>
+                            {{ $sk->nama_sub_kategori }}
+                        </option>
+                    @endforeach
+                    <option value="__baru__" {{ old('sub_kategori_baru') ? 'selected' : '' }}>+ Tambah Sub Kategori Baru</option>
+                </select>
+                @error('id_sub_kategori_paket')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+
+                <input type="text" name="sub_kategori_baru" id="sub_kategori_baru"
+                    class="form-control mt-2 @error('sub_kategori_baru') is-invalid @enderror"
+                    placeholder="Nama sub kategori baru, contoh: PS4 Reguler"
+                    value="{{ old('sub_kategori_baru') }}"
+                    style="{{ old('sub_kategori_baru') ? '' : 'display:none' }}">
+                @error('sub_kategori_baru')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+
+
+            <div class="form-group">
                 <label>Nama Paket</label>
                 <input type="text" name="nama_paket"
                     class="form-control @error('nama_paket') is-invalid @enderror"
@@ -60,8 +86,7 @@
                 <select id="kategori_select" class="form-control">
                     <option value="">-- Pilih Kategori --</option>
                     <option value="REGULAR">Regular</option>
-                    <option value="VIP">VIP</option>
-                    <option value="VVIP">VVIP</option>
+                    <option value="PRIVATE ROOM">Private Room</option>
                 </select>
             </div>
 
@@ -107,6 +132,23 @@
 
 @section('js')
 <script>
+    const subKategoriSelect = document.getElementById('sub_kategori_select');
+    const subKategoriBaruInput = document.getElementById('sub_kategori_baru');
+
+    function toggleSubKategoriBaru() {
+        if (subKategoriSelect.value === '__baru__') {
+            subKategoriBaruInput.style.display = 'block';
+            subKategoriSelect.name = ''; 
+        } else {
+            subKategoriBaruInput.style.display = 'none';
+            subKategoriBaruInput.value = '';
+            subKategoriSelect.name = 'id_sub_kategori_paket';
+        }
+    }
+
+    subKategoriSelect.addEventListener('change', toggleSubKategoriBaru);
+    toggleSubKategoriBaru(); 
+
     document.getElementById('kategori_select').addEventListener('change', function() {
         const kategori = this.value;
         const container = document.getElementById('ruangan_container');

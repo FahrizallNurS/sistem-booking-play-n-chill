@@ -22,10 +22,10 @@ class BookingController extends Controller
         $tipe = $request->input('tipe', 'reguler');
 
         $kategoriMap = [
-            'reguler' => 'REGULAR',
-            'regular' => 'REGULAR',
-            'vip'     => 'VIP',
-            'vvip'    => 'VVIP',
+            'reguler'       => 'REGULAR',
+            'regular'       => 'REGULAR',
+            'private-room'  => 'PRIVATE ROOM',
+            'private_room'  => 'PRIVATE ROOM',
         ];
 
         $kategori = $kategoriMap[strtolower($tipe)] ?? 'REGULAR';
@@ -57,7 +57,7 @@ class BookingController extends Controller
         $room = MsRuangan::findOrFail($roomId);
 
         // Filter paket yang is_active = 1
-        $penetapanHarga = PenetapanHarga::with('paket')
+        $penetapanHarga = PenetapanHarga::with('paket.subKategori')
             ->where('id_ruangan', $roomId)
             ->whereHas('paket', function($query) {
                 $query->where('is_active', 1);  // ← Hanya paket aktif
@@ -220,7 +220,7 @@ class BookingController extends Controller
 
             if ($konflik) {
                 return back()->withInput()->withErrors([
-                    'waktu_mulai' => 'Waduh, jam segini ruangannya udah ada yang nempetin, bro. Coba geser jamnya dikit!'
+                    'waktu_mulai' => 'Waduh, jam segini ruangannya udah ada yang nempetin lads. Coba geser jamnya dikit!'
                 ]);
             }
 

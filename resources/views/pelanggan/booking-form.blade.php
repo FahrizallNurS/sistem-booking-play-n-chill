@@ -154,8 +154,7 @@
             <div class="row justify-content-center">
                 <div class="col-lg-7 col-md-9">
 
-                    <form action="{{ route('booking.store') }}" method="POST">
-                        @csrf
+                    <form action="{{ url('/booking/penawaran-fb') }}" method="GET">
 
                         <input type="hidden" name="id_penetapan_harga" :value="selectedPricing ? selectedPricing.id_penetapan_harga : ''">
                         <input type="hidden" name="tanggal" :value="tanggal">
@@ -332,7 +331,7 @@
 
                             <div class="row mt-4 g-3">
                                 <div class="col-6">
-                                    <a href="{{ url('/booking') }}" class="btn-action btn-secondary-action w-100">Kembali</a>
+                                    <a href="{{ url('/booking/penawaran-fb') }}" class="btn-action btn-secondary-action w-100">Kembali</a>
                                 </div>
                                 <div class="col-6">
                                     <button type="submit"
@@ -400,13 +399,13 @@
 
                 let bukaMenit, tutupMenit;
                 if (hari === 0 || hari === 6) {
-                    bukaMenit  = 10 * 60; // Sabtu-Minggu: 10:00 - 00:00 (24:00)
+                    bukaMenit  = 10 * 60; 
                     tutupMenit = 24 * 60;
                 } else if (hari === 5) {
-                    bukaMenit  = 13 * 60; // Jumat: 13:00 - 00:00 (24:00)
+                    bukaMenit  = 13 * 60; 
                     tutupMenit = 24 * 60;
                 } else {
-                    bukaMenit  = 14 * 60; // Senin-Kamis: 14:00 - 22:00
+                    bukaMenit  = 14 * 60; 
                     tutupMenit = 22 * 60;
                 }
 

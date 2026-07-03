@@ -27,6 +27,7 @@
                     <tr>
                         <th>#</th>
                         <th>Nama Paket</th>
+                        <th>Sub Kategori</th>
                         <th>Deskripsi</th>
                         <th>Maks. Orang</th>
                         <th>Status</th>
@@ -38,6 +39,13 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $paket->nama_paket }}</td>
+                            <td>
+                                @if($paket->subKategori)
+                                    <span class="badge badge-secondary">{{ $paket->subKategori->nama_sub_kategori }}</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td>{{ $paket->deskripsi_paket ?? '-' }}</td>
                             <td>{{ $paket->maksimal_orang ?? '-' }}</td>
                             <td>
@@ -147,7 +155,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">Belum ada data paket</td>
+                            <td colspan="7" class="text-center">Belum ada data paket</td>
                         </tr>
                     @endforelse
                 </tbody>

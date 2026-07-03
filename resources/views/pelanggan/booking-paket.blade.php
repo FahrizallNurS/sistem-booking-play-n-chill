@@ -103,18 +103,18 @@
                 @foreach($penetapanHarga as $paketId => $items)
                     @php
                         $paket = $items->first()->paket;
-                        $kategoriClass = strtolower($room->kategori); // regular, vip, vvip
+                        $kategoriClass = strtolower(str_replace(' ', '-', $room->kategori));
                     @endphp
                         <div class="paket-card paket-card-{{ $kategoriClass }}">
-                 
-                        {{-- Nama Paket --}}
+
+                        @if($paket->subKategori)
+                            <span class="badge badge-secondary paket-card-subkategori">{{ $paket->subKategori->nama_sub_kategori }}</span>
+                        @endif
+
                         <div class="paket-card-name">{{ $paket->nama_paket }}</div>
 
-                        {{-- Sub --}}
                         <p class="paket-card-sub">{{ $room->nama_ruangan }}</p>
 
-                        {{-- Harga per durasi --}}
-                        {{-- Harga --}}
                         @foreach($items as $ph)
                             <div class="paket-card-price">
                                 Rp {{ number_format($ph->harga, 0, ',', '.') }}

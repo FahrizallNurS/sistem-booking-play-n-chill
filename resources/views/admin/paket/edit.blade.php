@@ -14,10 +14,27 @@
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        {{-- FORM 1: Edit Info Paket --}}
         <form action="{{ route('admin.paket.update', $paket->id_paket) }}" method="POST">
             @csrf
             @method('PUT')
+
+            <div class="form-group">
+                <label>Sub Kategori Paket</label>
+                <select name="id_sub_kategori_paket" id="sub_kategori_select" class="form-control">
+                    <option value="">-- Pilih Sub Kategori --</option>
+                    @foreach($subKategoris as $sk)
+                        <option value="{{ $sk->id_sub_kategori_paket }}" {{ $paket->ms_sub_kategori_paket_id_sub_kategori_paket == $sk->id_sub_kategori_paket ? 'selected' : '' }}>
+                            {{ $sk->nama_sub_kategori }}
+                        </option>
+                    @endforeach
+                    <option value="__baru__">+ Tambah Sub Kategori Baru</option>
+                </select>
+
+                <input type="text" name="sub_kategori_baru" id="sub_kategori_baru"
+                    class="form-control mt-2"
+                    placeholder="Nama sub kategori baru, contoh: PS4 Reguler"
+                    style="display:none">
+            </div>
 
             <div class="form-group">
                 <label>Nama Paket</label>
@@ -52,8 +69,7 @@
                 <select id="kategori_select" class="form-control">
                     <option value="">-- Pilih Kategori --</option>
                     <option value="REGULAR">Regular</option>
-                    <option value="VIP">VIP</option>
-                    <option value="VVIP">VVIP</option>
+                    <option value="PRIVATE ROOM">Private Room</option>
                 </select>
             </div>
 
@@ -175,6 +191,22 @@
 
 @section('js')
 <script>
+    const subKategoriSelect = document.getElementById('sub_kategori_select');
+    const subKategoriBaruInput = document.getElementById('sub_kategori_baru');
+
+    function toggleSubKategoriBaru() {
+        if (subKategoriSelect.value === '__baru__') {
+            subKategoriBaruInput.style.display = 'block';
+            subKategoriSelect.name = '';
+        } else {
+            subKategoriBaruInput.style.display = 'none';
+            subKategoriBaruInput.value = '';
+            subKategoriSelect.name = 'id_sub_kategori_paket';
+        }
+    }
+
+    subKategoriSelect.addEventListener('change', toggleSubKategoriBaru);
+
     document.getElementById('kategori_select').addEventListener('change', function() {
         const kategori = this.value;
         const container = document.getElementById('ruangan_container');

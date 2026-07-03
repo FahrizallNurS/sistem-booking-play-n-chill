@@ -66,6 +66,11 @@ Route::get('/menu-fb', function () {
     return view('pelanggan.menu-fb');
 });
 
+// Route Penawaran F&B
+Route::get('/booking/penawaran-fb', function () {
+    return view('pelanggan.penawaran-fb');
+});
+
 Route::get('/aktivasi-akun', function () {
     return view('auth.verify-email');
 })->name('aktivasi.notice');
