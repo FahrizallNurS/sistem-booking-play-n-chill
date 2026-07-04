@@ -18,7 +18,7 @@
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
-            {{ session('error') }}
+            {{ session('error') }}  
         </div>
     @endif
 
@@ -62,16 +62,19 @@
                 <a href="{{ route('admin.booking.index') }}" class="btn btn-sm btn-secondary">
                     <i class="fas fa-sync"></i> Reset
                 </a>
+                <a href="{{ route('admin.booking.create') }}" class="btn btn-sm font-weight-bold" style="background-color: #6f42c1; color: white;">
+                    <i class="fas fa-plus"></i> Tambah Booking
+                </a>
             </form>
         </div>
-    </div>
+    </div>  
 
     <div class="card">
         <div class="card-body p-0">
             <table class="table table-bordered table-hover mb-0">
                 <thead class="thead-light">
                     <tr>
-                        <th>#</th>
+                        <th>NO</th>
                         <th>Pelanggan</th>
                         <th>Kode Sewa</th>
                         <th>Ruangan</th>
@@ -84,7 +87,7 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody> 
                     @forelse($bookings as $booking)
                         @php
                             $ph = $booking->penetapanHarga;
@@ -151,6 +154,15 @@
                                     <i class="fas fa-eye"></i> Detail
                                 </a>
 
+                                <button type="button" class="btn btn-sm p-0 border-0 bg-transparent ml-1" 
+                                    data-toggle="modal" 
+                                    data-target="#modalFB"
+                                    data-id="{{ $booking->id_transaksi }}"
+                                    data-kode="{{ $booking->kode_sewa }}"
+                                    title="Tambah Pesanan F&B">
+                                    <i class="fas fa-shopping-cart" style="color: #fd7e14; font-size: 1.1rem;"></i>
+                                </button>
+
                                 @if($booking->status_sewa === 'ditahan')
                                     {{-- Konfirmasi --}}
                                     <form action="{{ route('admin.booking.konfirmasi', $booking->id_transaksi) }}"
@@ -200,7 +212,6 @@
         @endif
     </div>
 
-    {{-- Modal Tolak --}}
     <div class="modal fade" id="modalTolak" tabindex="-1">
         <div class="modal-dialog">
             <form id="formTolak" method="POST">
@@ -227,10 +238,34 @@
         </div>
     </div>
 
+    @include('admin.bookings.partials.modal-fb')
+    @include('admin.bookings.partials.modal-rincian')
+
 @stop
 
 @section('js')
 <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+    const btnSimpanFnb = document.getElementById('btn-simpan-fnb');
+    if(btnSimpanFnb) {
+        btnSimpanFnb.addEventListener('click', function() {
+            let originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...';
+            this.disabled = true;
+            setTimeout(() => {
+                $('#modalFB').modal('hide');
+                $('#modalDetailPesanan').modal('show');
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+            }, 800); 
+        });
+    }
+
+});
+
+
     $('#modalTolak').on('show.bs.modal', function (e) {
         var btn  = $(e.relatedTarget);
         var id   = btn.data('id');
@@ -239,5 +274,13 @@
         $(this).find('#formTolak').attr('action', url);
         $(this).find('#modalKode').text(kode);
     });
+
+    $('#modalFB').on('show.bs.modal', function (e) {
+        var btn  = $(e.relatedTarget);
+        var id   = btn.data('id');
+        var kode = btn.data('kode');
+
+        $(this).find('#modalFBKodeSewa').text(kode);
+        });
 </script>
 @stop

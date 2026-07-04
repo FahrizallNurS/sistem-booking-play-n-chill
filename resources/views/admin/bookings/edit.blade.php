@@ -57,14 +57,14 @@
             </div>
 
             <div class="row">
-                <div class="col-md-6">
+            <div class="col-md-6">
                     <div class="form-group">
-                        <label>Status Booking</label>
-                        <select name="status_booking" class="form-control">
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="completed">Completed</option>
+                        <label>Status Booking (Sewa)</label>
+                        <select name="status_sewa" class="form-control">
+                            <option value="ditahan">Ditahan</option>
+                            <option value="dikonfirmasi">Dikonfirmasi</option>
+                            <option value="dibatalkan">Dibatalkan</option>
+                            <option value="selesai">Selesai</option>
                         </select>
                     </div>
                 </div>
@@ -72,9 +72,9 @@
                     <div class="form-group">
                         <label>Status Pembayaran</label>
                         <select name="status_pembayaran" class="form-control">
-                            <option value="unpaid">Unpaid</option>
-                            <option value="partial">Partial</option>
-                            <option value="paid">Paid</option>
+                            <option value="menunggu">Menunggu</option>
+                            <option value="dp">DP (Partial)</option>
+                            <option value="lunas">Lunas</option>
                         </select>
                     </div>
                 </div>
