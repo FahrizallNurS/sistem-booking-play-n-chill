@@ -214,6 +214,17 @@
         <div class="col-lg-5 col-xl-4">
             <div class="cart-box text-white" data-aos="fade-left" data-aos-delay="200">
                 <h5 class="fw-bold mb-4">Ringkasan Pesanan F&B</h5>
+
+                {{-- KODE PENDETEKSI ERROR LARAVEL --}}
+                    @if ($errors->any())
+                    <div class="alert alert-danger" style="border-radius: 10px; font-size: 0.85rem;">
+                        <ul class="mb-0 ps-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 
                 <div id="cartItemsArea" class="mb-4" style="min-height: 150px; display: flex; flex-direction: column; justify-content: center;">
                     <div class="text-center text-muted" id="emptyCartMessage">
@@ -233,7 +244,21 @@
                     </div>
                 </div>
 
-                <form action="{{ url('/checkout') }}" method="GET">
+                <!-- Form Checkout yang Menggabungkan Data Booking & F&B -->
+                <form action="{{ route('booking.store') }}" method="POST" id="checkoutForm">
+                    @csrf
+                    
+                    {{-- Menangkap data booking dari URL (operan halaman sebelumnya) --}}
+                    <input type="hidden" name="id_penetapan_harga" value="{{ request('id_penetapan_harga') }}">
+                    <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+                    <input type="hidden" name="waktu_mulai" value="{{ request('waktu_mulai') }}">
+                    <input type="hidden" name="opsi_pembayaran" value="{{ request('opsi_pembayaran') }}">
+                    <input type="hidden" name="jumlah_dp" value="{{ request('jumlah_dp') }}">
+                    <input type="hidden" name="no_hp" value="{{ request('no_hp') }}">
+                    
+                    {{-- Wadah rahasia untuk menampung data keranjang makanan (JSON) --}}
+                    <input type="hidden" name="keranjang_fb" id="cartDataInput" value="[]">
+
                     <button type="submit" id="checkoutBtn" class="btn btn-orange w-100 mt-2">
                         Nanti Saja & Lanjut Pembayaran
                     </button>

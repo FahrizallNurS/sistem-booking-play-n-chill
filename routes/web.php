@@ -22,7 +22,8 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ProfilController;
-
+use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\VideoController;
 
 // Auth & Superadmin Controllers...
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -230,16 +231,86 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
+
+        // Halaman Kelola Galeri
+        Route::get('/galeri', function () {
+            return view('admin.galeri.index');
+        });
+
+        // Halaman Tambah Galeri
+        Route::get('/galeri/create', function () {
+            return view('admin.galeri.tambah-foto'); // <-- Mengarah ke tambah-foto.blade.php
+        });
+
+        // Halaman Edit Galeri
+        Route::get('/galeri/edit', function () {
+            return view('admin.galeri.edit-foto');
+        });
+
+        // Tangkapan sementara untuk tombol simpan saat Edit (POST/PUT)
+        Route::post('/galeri/update', function () {
+            return redirect('/admin/galeri');
+        });
+
+        Route::get('/fb/produk', function () {
+            return view('admin.fb.produk.index');
+        });
+
+        // Halaman Tambah Produk F&B
+        Route::get('/fb/produk/create', function () {
+            return view('admin.fb.produk.tambah-produk');
+        });
+
+        // Tangkapan sementara untuk tombol simpan (POST)
+        Route::post('/fb/produk/store', function () {
+            return redirect('/admin/fb/produk');
+        });
+
+        // Halaman Edit Produk F&B
+        Route::get('/fb/produk/edit', function () {
+            return view('admin.fb.produk.edit-produk');
+        });
+
+        // Tangkapan sementara untuk tombol simpan (POST/PUT) saat Edit
+        Route::post('/fb/produk/update', function () {
+            return redirect('/admin/fb/produk');
+        });
+
+        // Halaman Kelola Transaksi F&B
+        Route::get('/fb/transaksi', function () {
+            return view('admin.fb.transaksi.index');
+        });
+
+        // Halaman Tambah Pesanan F&B
+        Route::get('/fb/transaksi/create', function () {
+            return view('admin.fb.transaksi.tambah-pesanan');
+        });
+
+        // Tangkapan sementara untuk form simpan pesanan (POST)
+        Route::post('/fb/transaksi/store', function () {
+            return redirect('/admin/fb/transaksi');
+        });
+
         Route::get('/logout', function() {
             auth()->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
             return redirect('/login');
         })->name('logout.get')->middleware('auth');
+
+        
+        //banner route
+         Route::get('/banner', [BannerController::class, 'index'])->name('banners.index');
+         Route::get('/logout', function() {
+
+        })->name('logout.get')->middleware('auth');
+
+        //video route
+        Route::get('/video', [VideoController::class, 'index'])->name('video.index');
     });
 
     // Pelanggan Khusus
     Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
         Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
     });
-});
+}); 

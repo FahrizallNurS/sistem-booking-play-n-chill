@@ -261,4 +261,9 @@ class BookingController extends Controller
 
         return back()->with('success', 'Booking berhasil dibatalkan.');
     }
+
+    public function create()
+    {
+        return view('admin.bookings.create');
+    }
 }

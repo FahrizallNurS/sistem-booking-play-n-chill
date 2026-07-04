@@ -7,7 +7,7 @@ config(['adminlte.menu' => array_merge(
         ['text' => 'Data Pelanggan', 'url' => 'admin/pelanggan', 'icon' => 'fas fa-fw fa-users'],
         ['text' => 'Kelola Booking', 'url' => 'admin/booking', 'icon' => 'fas fa-fw fa-calendar-check'],
         ['text' => 'Layanan & Ruangan', 'url' => 'admin/layanan', 'icon' => 'fas fa-fw fa-concierge-bell'],
-        ['text' => 'Produk', 'url' => 'admin/paket', 'icon' => 'fas fa-fw fa-box'],
+        ['text' => 'Paket', 'url' => 'admin/paket', 'icon' => 'fas fa-fw fa-box'],
         
         ['header' => 'MANAJEMEN F&B'],
         [
@@ -28,6 +28,9 @@ config(['adminlte.menu' => array_merge(
         
         ['header' => 'KONTEN'],
         ['text' => 'Katalog Game', 'url' => 'admin/game', 'icon' => 'fas fa-fw fa-gamepad'],
+        ['text' => 'Banner', 'url' => 'admin/banner', 'icon' => 'far fa-fw fa-flag'],
+        ['text' => 'Video', 'url' => 'admin/video', 'icon' => 'fas fa-fw fa-video'],
+        ['text' => 'Galeri', 'url' => 'admin/galeri', 'icon' => 'far fa-fw fa-image', 'active' => ['admin/galeri*']],
         
         ['header' => 'LAPORAN'],
         ['text' => 'Laporan Keuangan', 'url' => 'admin/laporan', 'icon' => 'fas fa-fw fa-file-alt'],
@@ -47,7 +50,6 @@ config(['adminlte.menu' => array_merge(
             logoutLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // Konfirmasi dengan confirm bawaan
                 if (confirm('Apakah Anda yakin ingin keluar?')) {
                     const form = document.createElement('form');
                     form.method = 'POST';
