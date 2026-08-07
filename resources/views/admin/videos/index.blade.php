@@ -11,18 +11,7 @@
 
     @include('admin.components.alert-session')
 
-    @php
-        $videos = [
-            [
-                'id' => 1,
-                'link_video' => 'https://youtube.com-sjifx...',
-                'thumbnail' => 'https://picsum.photos/seed/video1/200/120',
-                'status' => 'aktif',
-                'tanggal_upload' => '29/05/2026 20:30',
-            ],
-            // Tambahkan data dummy lainnya jika perlu
-        ];
-    @endphp
+    {{-- BLOK @php DATA DUMMY TELAH DIHAPUS DARI SINI --}}
 
     {{-- Filter --}}
     <div class="card card-outline card-secondary mb-3">
@@ -64,65 +53,77 @@
 
 @section('js')
 <script>
-$(document).ready(function () {
 
-    // ================= Tampilkan nama file yang dipilih =================
-    $('#input_thumbnail_video').on('change', function () {
-        var fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').html(fileName ? fileName : 'Pilih file...');
-    });
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 3000);
 
-    // ================= Buka modal mode TAMBAH =================
     $('#btnTambahVideo').on('click', function () {
         $('#formVideo')[0].reset();
+        $('#formVideo').attr('action', "{{ route('admin.video.store') }}");
+        $('#formVideo').find('input[name="_method"]').remove();
+        $('#input_thumbnail_video').attr('required', 'required');
         $('.custom-file-label').html('Pilih file...');
         $('#modalFormVideoLabel').text('Tambah Video');
-        $('#uploadPreview').addClass('d-none');
+        $('#uploadPreview').addClass('d-none').attr('src', '');
         $('#uploadPlaceholder').removeClass('d-none');
         $('#modalFormVideo').modal('show');
     });
 
-    // ================= Buka modal mode EDIT =================
     $('.btn-edit-video').on('click', function () {
+        var id = $(this).data('id');
         var link  = $(this).data('link');
-        var status = $(this).data('status');
+        var thumbnail = $(this).data('thumbnail');
 
         $('#modalFormVideoLabel').text('Edit Video');
         $('#input_link_video').val(link);
-        $('#input_status_video').val(status);
-        $('.custom-file-label').html('Pilih file...');
+
+        var updateUrl = "{{ url('admin/video') }}/" + id;
+        $('#formVideo').attr('action', updateUrl);
+
+        if ($('#formVideo').find('input[name="_method"]').length === 0) {
+            $('#formVideo').append('<input type="hidden" name="_method" value="PUT">');
+        }
+
+        $('#input_thumbnail_video').removeAttr('required');
+
+        if (thumbnail) {
+            $('#uploadPreview').attr('src', thumbnail).removeClass('d-none');
+            $('#uploadPlaceholder').addClass('d-none');
+        } else {
+            $('#uploadPreview').addClass('d-none');
+            $('#uploadPlaceholder').removeClass('d-none');
+        }
 
         $('#modalFormVideo').modal('show');
     });
 
-    // ================= Submit form =================
-    $('#formVideo').on('submit', function (e) {
+   
+    $('.btn-toggle-status').on('click', function (e) {
         e.preventDefault();
-        $('#modalFormVideo').modal('hide');
+        
+        var formId = $(this).data('form-id');
+        var sedangAktif = $(this).data('active') == 1; 
+        var linkUrl = $(this).data('link') || 'video';
+
+        if (typeof konfirmasiToggleStatusSubmit === "function") {
+            konfirmasiToggleStatusSubmit(formId, sedangAktif, 'Video');
+        } else {
+            document.getElementById(formId).submit();
+        }
+
     });
 
-    // ================= Konfirmasi Hapus Video (SweetAlert2) =================
-    $('.btn-hapus-video').on('click', function () {
-        Swal.fire({
-            title: 'Hapus Video?',
-            text: 'Video ini akan dihapus. Data yang dihapus tidak bisa dikembalikan.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, hapus',
-            cancelButtonText: 'Batal',
-            confirmButtonColor: '#6f42c1',
-        }).then(function (result) {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Terhapus!',
-                    text: 'Video berhasil dihapus.',
-                    icon: 'success',
-                    confirmButtonColor: '#6f42c1',
-                });
-            }
-        });
-    });
+    $('.btn-hapus-video').on('click', function (e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var formId = 'formDeleteVideo_' + id;
 
-});
+        if (typeof konfirmasiHapusSubmit === "function") {
+            konfirmasiHapusSubmit(formId, 'video ini');
+        } else {
+            document.getElementById(formId).submit();
+        }
+    });
 </script>
 @stop

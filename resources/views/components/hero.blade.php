@@ -1,42 +1,38 @@
+<section class="py-5" style="background-color: #020617;">
+    <div class="container-xl">
+        {{-- Menggunakan d-flex untuk layout sejajar dan rounded untuk sudut --}}
+        <div class="rounded-4 p-4 p-md-5 shadow-lg d-flex flex-column flex-md-row align-items-center justify-content-between gap-4"
+             style="background: linear-gradient(to right, #4c1d95, #3730a3, #1e1b4b);">
 
-<section class="px-4 py-8 bg-slate-950">
-    <div class="max-w-7xl mx-auto bg-slate-900 p-4 rounded-3xl shadow-xl">
-
-        <div class="rounded-3xl px-8 py-14 md:px-16 md:py-20
-            bg-gradient-to-r from-purple-900 via-purple-700 to-indigo-950
-            flex flex-col md:flex-row items-center justify-between gap-10">
-
-            <!-- Left -->
-            <div class="max-w-2xl text-center md:text-left">
-                <p class="uppercase tracking-[0.3em] text-purple-300 text-sm mb-4">
+            <div class="text-center text-md-start" style="max-width: 600px;">
+                <p class="text-uppercase text-info small mb-3" style="letter-spacing: 0.3em;">
                     Premium Gaming
                 </p>
 
-                <h1 class="text-white text-5xl md:text-7xl font-bold mb-4">
+                <h1 class="text-white display-4 fw-bold mb-3">
                     PlaynChill
                 </h1>
 
-                <p class="text-gray-200 text-lg md:text-2xl mb-8">
+                <p class="text-light fs-5 mb-4 opacity-75">
                     Rental PlayStation dengan suasana nyaman dan harga terjangkau
                 </p>
 
-                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <a href="#"
-                       class="px-8 py-4 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-semibold transition">
+                {{-- Menggunakan gap Bootstrap untuk jarak tombol --}}
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-md-start">
+                    <a href="#" class="btn btn-primary btn-lg rounded-3 fw-semibold px-4 py-3" style="background-color: #a855f7; border-color: #a855f7;">
                         Book Now
                     </a>
 
-                    <a href="#"
-                       class="px-8 py-4 rounded-xl border border-purple-400 text-purple-200 hover:bg-purple-500/10 transition">
+                    <a href="#" class="btn btn-outline-light btn-lg rounded-3 px-4 py-3">
                         Lihat Paket
                     </a>
                 </div>
             </div>
 
-            <!-- Right -->
-            <div class="text-purple-400 opacity-40">
+            <div class="text-white opacity-50">
                 <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-52 h-52 md:w-72 md:h-72"
+                     width="200" height="200"
+                     class="d-none d-md-block"
                      fill="none"
                      viewBox="0 0 24 24"
                      stroke="currentColor"

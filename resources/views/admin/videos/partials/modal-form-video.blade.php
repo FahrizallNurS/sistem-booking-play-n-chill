@@ -2,7 +2,10 @@
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 720px !important; width: 90vw !important;">
         <div class="modal-content" style="border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: none;">
             
-            <form id="formVideo">
+            {{-- Tambahkan action, method, dan enctype --}}
+            <form id="formVideo" action="{{ route('admin.video.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                
                 {{-- Header Modal --}}
                 <div class="modal-header bg-white" style="border-bottom: 1px solid #e5e7eb; padding: 1.1rem 1.5rem;">
                     <h5 class="modal-title font-weight-bold text-dark" id="modalFormVideoLabel" style="font-size: 1.1rem;">
@@ -17,15 +20,15 @@
                 <div class="modal-body" style="padding: 1.5rem;">
 
                     {{-- Upload Thumbnail --}}
-                    <div class="form-group">
+                    <div class="form-group mb-3">
                         <label class="font-weight-bold text-dark" style="font-size: 0.95rem; margin-bottom: 0.6rem;">Thumbnail Video</label>
                         <div id="uploadDropzone"
                              onclick="document.getElementById('input_thumbnail_video').click();"
                              onmouseover="this.style.borderColor='#6f42c1'; this.style.backgroundColor='#faf9ff';"
                              onmouseout="this.style.borderColor='#d1d5db'; this.style.backgroundColor='#ffffff';"
-                             style="position: relative; border: 2px dashed #d1d5db; border-radius: 10px; background-color: #fff; min-height: 280px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; margin-bottom: 1.25rem; overflow: hidden;">
+                             style="position: relative; border: 2px dashed #d1d5db; border-radius: 10px; background-color: #fff; min-height: 250px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; overflow: hidden;">
 
-                            <input type="file" name="thumbnail" id="input_thumbnail_video" accept="image/jpg,image/jpeg,image/png,image/webp" hidden>
+                            <input type="file" name="thumbnail" id="input_thumbnail_video" accept="image/jpg,image/jpeg,image/png,image/webp" hidden required>
 
                             <div id="uploadPlaceholder" class="text-center" style="color: #6b7280;">
                                 <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: #9ca3af; margin-bottom: 0.75rem; display: block;"></i>
@@ -33,17 +36,25 @@
                                 <p class="mb-0" style="font-size: 0.8rem; color: #9ca3af; margin-top: 0.15rem;">Format: JPG, JPEG, PNG, WEBP</p>
                             </div>
 
-                            <img id="uploadPreview" class="d-none" alt="Preview" style="width: 100%; height: 100%; max-height: 280px; object-fit: contain;">
+                            <img id="uploadPreview" class="d-none" alt="Preview" style="width: 100%; height: 100%; max-height: 250px; object-fit: contain;">
                         </div>
+                        @error('thumbnail')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
 
                     {{-- Input Link Video --}}
                     <div class="form-group mb-0">
                         <label class="font-weight-bold text-dark" style="font-size: 0.95rem; margin-bottom: 0.6rem;">Link Video</label>
-                        <input type="url" name="link_video" id="input_link_video" class="form-control"
-                            placeholder="Contoh: https://youtube.com/watch?v=..." required
+                        {{-- UBAH name="link_video" MENJADI name="link-video" --}}
+                        <input type="url" name="link-video" id="input_link_video" class="form-control @error('link-video') is-invalid @enderror"
+                            placeholder="Contoh: https://youtube.com/watch?v=..." value="{{ old('link-video') }}" required
                             style="border: 1px solid #d1d5db; border-radius: 8px; padding: 0.65rem 0.9rem; font-size: 0.9rem; color: #374151;">
+                        @error('link-video')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
                 </div>
 
                 {{-- Footer Modal --}}

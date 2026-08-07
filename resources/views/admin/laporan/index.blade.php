@@ -3,7 +3,7 @@
 @section('title', 'Laporan')
 
 @section('content_header')
-    <h1>Laporan Booking</h1>
+    <h1>Riwayat Transaksi</h1>
 @stop
 
 @section('content')
@@ -59,8 +59,6 @@
                             <label>Status Booking</label>
                             <select name="status_booking" class="form-control">
                                 <option value="">Semua</option>
-                                <option value="ditahan"      {{ request('status_booking') === 'ditahan'      ? 'selected' : '' }}>Ditahan</option>
-                                <option value="dikonfirmasi" {{ request('status_booking') === 'dikonfirmasi' ? 'selected' : '' }}>Dikonfirmasi</option>
                                 <option value="selesai"      {{ request('status_booking') === 'selesai'      ? 'selected' : '' }}>Selesai</option>
                                 <option value="dibatalkan"   {{ request('status_booking') === 'dibatalkan'   ? 'selected' : '' }}>Dibatalkan</option>
                             </select>
@@ -170,7 +168,7 @@
             <table class="table table-bordered table-hover mb-0">
                 <thead class="thead-light">
                     <tr>
-                        <th>#</th>
+                        <th>NO</th>
                         <th>Kode Booking</th>
                         <th>Pelanggan</th>
                         <th>Ruangan</th>

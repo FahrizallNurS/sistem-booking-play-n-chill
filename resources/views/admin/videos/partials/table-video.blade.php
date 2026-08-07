@@ -1,53 +1,110 @@
-<div class="card border-0 shadow-sm" style="border-radius: 8px;">
+<div class="card card-outline card-secondary">
     <div class="card-body p-0">
-        <div class="table-responsive custom-scrollbar">
-            <table class="table table-hover align-middle mb-0 table-nowrap">
-                <thead class="text-dark fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px; background-color: #f9fafb;">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 text-center">
+                <thead style="background-color: #f8f9fa;">
                     <tr>
-                        <th class="text-center py-3 border-0" style="width: 50px;">NO</th>
-                        <th class="text-center border-0" style="width: 150px;">THUMBNAIL</th>
-                        <th class="text-center border-0">LINK VIDEO</th>
-                        <th class="text-center border-0">TANGGAL UPLOAD</th>
-                        <th class="text-center border-0">STATUS</th>
-                        <th class="text-center border-0">AKSI</th>
+                        <th style="width: 5%;">NO</th>
+                        <th style="width: 25%;">THUMBNAIL</th>
+                        <th style="width: 30%;">LINK VIDEO</th>
+                        <th style="width: 20%;">TANGGAL UPLOAD</th>
+                        <th style="width: 10%;">STATUS</th>
+                        <th style="width: 10%;">AKSI</th>
                     </tr>
                 </thead>
-                <tbody style="font-size: 0.85rem; color: #4b5563;">
+                <tbody>
                     @forelse($videos as $index => $video)
                         <tr>
-                            <td class="text-center fw-bold">{{ $index + 1 }}</td>
-                            <td class="text-center">
-                                <img src="{{ $video['thumbnail'] }}" alt="Thumbnail Video" class="preview-img shadow-sm" style="width: 120px; height: 60px; object-fit: cover; border-radius: 6px;" onerror="this.onerror=null; this.src='{{ asset('images/logo_dumb.png') }}';">
-                            </td>
-                            <td class="text-center fw-bold text-primary">{{ $video['link_video'] }}</td>
-                            <td class="text-center">{{ $video['tanggal_upload'] }}</td>
-                            <td class="text-center">
-                                @if($video['status'] === 'aktif')
-                                    <span id="status-video-{{ $video['id'] }}" class="badge bg-success px-2 py-1 rounded">Aktif</span>
+                            <td class="align-middle">{{ $index + 1 }}</td>
+                            
+                            {{-- Menampilkan Gambar Asli --}}
+                            <td class="align-middle">
+                                @if($video->thumbnail)
+                                    <img src="{{ asset('uploads/videos/' . $video->thumbnail) }}" alt="Thumbnail" style="width: 120px; height: 70px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                                 @else
-                                    <span id="status-video-{{ $video['id'] }}" class="badge bg-danger px-2 py-1 rounded">Nonaktif</span>
+                                    <span class="text-muted">Tidak ada gambar</span>
                                 @endif
                             </td>
-                            <td>
-                                {{-- Tombol disamakan dengan tabel banner --}}
-                                <div class="d-flex justify-content-center" style="gap: 6px;">
-                                    <button type="button" class="btn btn-warning text-dark fw-bold btn-action btn-edit-video"
-                                        data-id="{{ $video['id'] }}"
-                                        data-link="{{ $video['link_video'] }}"
-                                        data-status="{{ $video['status'] }}">
-                                        <i class="fas fa-edit me-1"></i> Edit
+                            
+                            {{-- Menampilkan Link --}}
+                            <td class="align-middle text-left">
+                                <a href="{{ $video->{'link-video'} }}" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width: 250px;">
+                                    {{ $video->{'link-video'} }}
+                                </a>
+                            </td>
+                            
+                            {{-- Menampilkan Tanggal Asli dari Database --}}
+                            <td class="align-middle">
+                                {{ \Carbon\Carbon::parse($video->created_at)->format('d/m/Y H:i') }}
+                            </td>
+                            
+                            {{-- Menampilkan Status --}}
+                            <td class="align-middle">
+                                @if($video->is_active)
+                                    <span class="badge badge-success px-2 py-1">Aktif</span>
+                                @else
+                                    <span class="badge badge-danger px-2 py-1">Nonaktif</span>
+                                @endif
+                            </td>
+                            
+                           {{-- Tombol Aksi --}}
+                            
+                           {{-- Tombol Aksi (Ditambah text-nowrap agar tidak turun baris) --}}
+                            <td class="align-middle text-nowrap">
+                                <div class="d-flex justify-content-center align-items-center" style="gap: 5px;">
+                                    
+                                    {{-- Tombol Edit --}}
+                                    <button class="btn btn-sm btn-info btn-edit-video text-nowrap" 
+                                        data-id="{{ $video->id_video }}"
+                                        data-link="{{ $video->{'link-video'} }}" 
+                                        data-status="{{ $video->is_active }}"
+                                        data-thumbnail="{{ $video->thumbnail ? asset('uploads/videos/' . $video->thumbnail) : '' }}"
+                                        title="Edit">
+                                        <i class="fas fa-edit"></i> Edit
                                     </button>
-                                    <button type="button" class="btn btn-danger text-white fw-bold btn-action btn-hapus-video"
-                                        data-id="{{ $video['id'] }}">
-                                        <i class="fas fa-trash me-1"></i> Hapus
-                                    </button>
+
+                                    {{-- TOMBOL TOGGLE STATUS --}}
+                                    @if($video->is_active)
+                                        {{-- Tombol Nonaktifkan --}}
+                                        <button type="button" class="btn btn-sm btn-warning btn-toggle-status text-nowrap" 
+                                            data-form-id="formToggleStatus_{{ $video->id_video }}"
+                                            data-active="1"
+                                            data-link="{{ $video->{'link-video'} }}"
+                                            title="Nonaktifkan" style="color: #212529; font-weight: 500;">
+                                            <i class="fas fa-ban"></i> Nonaktifkan
+                                        </button>
+                                    @else
+                                        {{-- Tombol Aktifkan --}}
+                                        <button type="button" class="btn btn-sm btn-success btn-toggle-status text-nowrap" 
+                                            data-form-id="formToggleStatus_{{ $video->id_video }}"
+                                            data-active="0"
+                                            data-link="{{ $video->{'link-video'} }}"
+                                            title="Aktifkan">
+                                            <i class="fas fa-check"></i> Aktifkan
+                                        </button>
+                                    @endif
+                                    
+                                    {{-- Form Hapus Beneran --}}
+                                    <form action="{{ route('admin.video.destroy', $video->id_video) }}" method="POST" id="formDeleteVideo_{{ $video->id_video }}" class="m-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="btn btn-sm btn-danger btn-hapus-video text-nowrap" data-id="{{ $video->id_video }}" title="Hapus">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+
+                                    {{-- FORM HIDDEN UNTUK TOGGLE STATUS --}}
+                                    <form action="{{ route('admin.video.toggle-status', $video->id_video) }}" method="POST" id="formToggleStatus_{{ $video->id_video }}" style="display:none;">
+                                        @csrf
+                                        @method('PATCH')
+                                    </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-3">
-                                Tidak ada data video.
+                            <td colspan="6" class="text-center py-4 text-muted">
+                               Belum ada data video yang ditambahkan
                             </td>
                         </tr>
                     @endforelse
@@ -55,52 +112,4 @@
             </table>
         </div>
     </div>
- 
-    {{-- BAGIAN PAGINATION BAWAH --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center p-3 border-top bg-light">
-        <span class="text-muted" style="font-size: 0.85rem;">Menampilkan 1 hingga {{ count($videos) }} dari {{ count($videos) }} entri</span>
-        <nav class="mt-2 mt-md-0">
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link text-muted" href="#">Sebelumnya</a></li>
-                <li class="page-item active"><a class="page-link" href="#" style="background-color: #5b21b6; border-color: #5b21b6;">1</a></li>
-                <li class="page-item disabled"><a class="page-link text-muted" href="#">Selanjutnya</a></li>
-            </ul>
-        </nav>
-    </div>
 </div>
- 
-@push('css')
-<style>
-    .table-nowrap th, .table-nowrap td {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
- 
-    .custom-scrollbar::-webkit-scrollbar {
-        height: 8px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #9ca3af;
-    }
-
-    /* CSS tambahan agar lebar tombol sama persis dengan banner */
-    .btn-action {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        min-width: 90px;
-    }
- 
-    .table td {
-        border-bottom: 1px solid #f3f4f6;
-    }
-</style>
-@endpush

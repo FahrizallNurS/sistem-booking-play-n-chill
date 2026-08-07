@@ -21,45 +21,58 @@
         </div>
         
         <div class="card-body p-4 p-md-5">
-            <form action="{{ url('/admin/fb/produk/store') }}" method="POST" enctype="multipart/form-data">
+
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4" style="border-radius: 6px;">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('admin.fb.produk.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                
+                {{-- Menggunakan row g-5 buatanmu untuk jarak dan proporsi yang sempurna --}}
                 <div class="row g-5">
                     
-                    {{-- KOLOM KIRI --}}
+                    {{-- ================= KOLOM KIRI ================= --}}
                     <div class="col-12 col-lg-6 d-flex flex-column">
                         
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Nama Produk</label>
-                            <input type="text" class="form-control custom-input shadow-none" placeholder="Contoh: Indomie Goreng">
+                            <input type="text" name="nama_produk" class="form-control custom-input shadow-none" placeholder="Contoh: Indomie Goreng" value="{{ old('nama_produk') }}" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Harga Beli</label>
-                            <input type="text" class="form-control custom-input shadow-none" placeholder="Contoh: Rp. x.xxx">
+                            <input type="text" name="harga_beli" class="form-control custom-input shadow-none" placeholder="Contoh: 3000" value="{{ old('harga_beli') }}" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Harga Jual</label>
-                            <input type="text" class="form-control custom-input shadow-none" placeholder="Contoh: Rp. x.xxx">
+                            <input type="text" name="harga_jual" class="form-control custom-input shadow-none" placeholder="Contoh: 7000" value="{{ old('harga_jual') }}" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Stock</label>
-                            <input type="number" class="form-control custom-input shadow-none" placeholder="Contoh: 12">
+                            <input type="number" name="stock" class="form-control custom-input shadow-none" placeholder="Contoh: 12" value="{{ old('stock') }}" min="0" required>
                         </div>
 
                         <div class="mb-5 flex-grow-1">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">SKU</label>
-                            <input type="text" class="form-control custom-input shadow-none" placeholder="Contoh: PNC-221">
+                            <input type="text" name="sku" class="form-control custom-input shadow-none" placeholder="Contoh: PNC-221" value="{{ old('sku') }}" required>
                         </div>
 
                         {{-- Tombol Batal --}}
-                        <a href="{{ url('/admin/fb/produk') }}" class="btn w-100 py-2 fw-bold mt-auto" style="background-color: #d1d5db; color: #ffffff; border-radius: 6px;">
+                        <a href="{{ route('admin.fb.produk.index') }}" class="btn w-100 py-2 fw-bold mt-auto text-decoration-none text-center" style="background-color: #d1d5db; color: #ffffff; border-radius: 6px;">
                             Batal
                         </a>
                     </div>
 
-                    {{-- KOLOM KANAN --}}
+                    {{-- ================= KOLOM KANAN ================= --}}
                     <div class="col-12 col-lg-6 d-flex flex-column">
                         
                         {{-- Area Upload --}}
@@ -72,44 +85,38 @@
                                     <small style="color: #9ca3af; font-size: 0.75rem;">Format: JPG, JPEG, PNG, WEBP</small>
                                 </div>
                                 <img id="imagePreview" src="" alt="Preview Foto" style="display: none; width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; background-color: #fff; padding: 10px;">
-                                <input type="file" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this)">
+                                <input type="file" name="foto" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this)" required>
                             </div>
                         </div>
 
-                        {{-- CUSTOM DROPDOWN 1: KATEGORI PRODUK DENGAN FITUR TAMBAH --}}
+                        {{-- CUSTOM DROPDOWN 1: KATEGORI PRODUK --}}
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Kategori Produk</label>
                             
                             <div class="position-relative custom-dropdown-container" id="containerKategoriUtama">
-                                <input type="hidden" name="kategori_produk" id="kategoriProdukInput" value="">
+                                <input type="hidden" name="kategori_produk" id="kategoriProdukInput" value="{{ old('kategori_produk') }}" required>
                                 
-                                <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="kategoriProdukSelectBox" onclick="toggleKategoriProduk()" style="cursor: pointer; background-color: #ffffff; min-height: 48px;">
-                                    <span id="kategoriProdukSelectedText" style="color: #374151;"></span>
+                                <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="kategoriProdukSelectBox" onclick="toggleKategoriProduk()" style="cursor: pointer; background-color: #ffffff;">
+                                    <span id="kategoriProdukSelectedText" style="color: #374151;">{{ old('kategori_produk', '-- Pilih Kategori --') }}</span>
                                     <i class="fas fa-chevron-right text-muted" style="font-size: 0.85rem;" id="kategoriIcon"></i>
                                 </div>
                                 
                                 <div class="shadow-sm" id="kategoriProdukOptions" style="visibility: hidden; opacity: 0; transform: translateY(-10px); position: absolute; width: 100%; z-index: 1000; border: 1px solid #d1d5db; border-top: none; border-radius: 0 0 6px 6px; background-color: #ffffff; transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s; pointer-events: none;">
-                                    
-                                    {{-- HEADER DROPDOWN: Tombol Tambah --}}
                                     <div id="addKategoriDefault" class="p-2 border-bottom d-flex justify-content-end align-items-center" style="background-color: #faf5f9;">
                                         <button type="button" class="btn btn-purple btn-sm px-3" onclick="showAddKategoriForm(event)" style="border-radius: 4px; font-weight: 500;">
                                             <i class="fas fa-plus me-1"></i> Tambah
                                         </button>
                                     </div>
-
-                                    {{-- HEADER DROPDOWN: Form Input (Disembunyikan di awal) --}}
                                     <div id="addKategoriForm" class="p-2 border-bottom d-none justify-content-between align-items-center" style="background-color: #faf5f9; gap: 8px;">
-                                        <input type="text" id="newKategoriInput" class="form-control custom-input shadow-none" placeholder="Contoh: Eksternal" style="padding: 6px 12px; font-size: 0.9rem; flex-grow: 1;" onclick="event.stopPropagation()">
-                                        <button type="button" class="btn btn-blue btn-sm px-3" onclick="saveNewKategori(event)" style="border-radius: 4px; font-weight: 500; height: 33px;">
+                                        <input type="text" id="newKategoriInput" class="form-control custom-input shadow-none" placeholder="Contoh: Eksternal" style="padding: 6px 12px; font-size: 0.9rem; flex-grow: 1;" onclick="event.stopPropagation()" onkeydown="if(event.key === 'Enter') { event.preventDefault(); saveNewKategori(event); }">
+                                        <button type="button" class="btn btn-blue btn-sm px-3 text-white" onclick="saveNewKategori(event)" style="border-radius: 4px; font-weight: 500; height: 33px;">
                                             Simpan
                                         </button>
                                     </div>
-
-                                    {{-- Area Daftar Kategori --}}
                                     <div id="kategoriListWrapper">
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Internal')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Internal</div>
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Cowork')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Cowork</div>
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Seblak')" style="cursor: pointer; color: #374151; transition: 0.2s;">Seblak</div>
+                                        @foreach($kategoriList as $kat)
+                                            <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('{{ $kat }}')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">{{ $kat }}</div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -120,22 +127,22 @@
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Sub. Kategori Produk</label>
                             
                             <div class="position-relative custom-dropdown-container">
-                                <input type="hidden" name="sub_kategori_produk" id="subKategoriProdukInput" value="">
+                                <input type="hidden" name="sub_kategori_produk" id="subKategoriProdukInput" value="{{ old('sub_kategori_produk') }}" required>
                                 
-                                <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="subKategoriProdukSelectBox" onclick="toggleSubKategoriProduk()" style="cursor: pointer; background-color: #ffffff; min-height: 48px;">
-                                    <span id="subKategoriProdukSelectedText" style="color: #374151;"></span>
+                                <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="subKategoriProdukSelectBox" onclick="toggleSubKategoriProduk()" style="cursor: pointer; background-color: #ffffff;">
+                                    <span id="subKategoriProdukSelectedText" style="color: #374151;">{{ old('sub_kategori_produk', '-- Pilih Sub Kategori --') }}</span>
                                     <i class="fas fa-chevron-right text-muted" style="font-size: 0.85rem;" id="subKategoriIcon"></i>
                                 </div>
                                 
                                 <div class="shadow-sm" id="subKategoriProdukOptions" style="visibility: hidden; opacity: 0; transform: translateY(-10px); position: absolute; width: 100%; z-index: 1000; border: 1px solid #d1d5db; border-top: none; border-radius: 0 0 6px 6px; background-color: #ffffff; transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s; pointer-events: none;">
-                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan Ringan')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan Ringan</div>
-                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan</div>
+                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan ringan')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan ringan</div>
+                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan berat')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan berat</div>
                                     <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Minuman')" style="cursor: pointer; color: #374151; transition: 0.2s;">Minuman</div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Tombol Simpan Bawah --}}
+                        {{-- Tombol Simpan --}}
                         <button type="submit" class="btn btn-blue w-100 py-2 fw-bold text-white mt-auto" style="border-radius: 6px;">
                             Simpan
                         </button>
@@ -151,6 +158,7 @@
 
 @push('css')
 <style>
+    /* CSS Murni Buatanmu (Sempurna) */
     .custom-input {
         border: 1px solid #d1d5db;
         border-radius: 6px;
@@ -216,7 +224,6 @@
 
 @push('js')
 <script>
-
     function previewImage(input) {
         const preview = document.getElementById('imagePreview');
         const defaultContent = document.getElementById('defaultUploadContent');
@@ -227,15 +234,10 @@
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
-                defaultContent.style.display = 'none';
+                defaultContent.style.setProperty('display', 'none', 'important');
                 container.style.border = '1px solid #e5e7eb'; 
             }
             reader.readAsDataURL(input.files[0]);
-        } else {
-            preview.src = '';
-            preview.style.display = 'none';
-            defaultContent.style.display = 'flex';
-            container.style.border = '1px solid #d1d5db';
         }
     }
 
@@ -269,7 +271,7 @@
     function showAddKategoriForm(event) {
         event.stopPropagation(); 
         document.getElementById('addKategoriDefault').classList.remove('d-flex');
-        document.getElementById('addKategoriDefault').classList.add('d-none'); 
+        document.getElementById('addKategoriDefault').classList.add('d-none');
         document.getElementById('addKategoriForm').classList.remove('d-none');
         document.getElementById('addKategoriForm').classList.add('d-flex');
         document.getElementById('newKategoriInput').focus();
@@ -277,7 +279,6 @@
 
     function saveNewKategori(event) {
         event.stopPropagation(); 
-        
         const inputField = document.getElementById('newKategoriInput');
         const newValue = inputField.value.trim();
         
@@ -287,16 +288,15 @@
             newDiv.className = 'custom-option py-2 px-3';
             newDiv.style.cssText = 'border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;';
             newDiv.innerHTML = newValue;
-
+            
             newDiv.onclick = function() {
                 selectKategoriProduk(newValue);
             };
-
+            
             listWrapper.insertBefore(newDiv, listWrapper.firstChild);
-
             selectKategoriProduk(newValue);
         }
-
+        
         inputField.value = "";
         resetAddKategoriForm();
     }
@@ -304,7 +304,6 @@
     function resetAddKategoriForm() {
         document.getElementById('addKategoriDefault').classList.remove('d-none');
         document.getElementById('addKategoriDefault').classList.add('d-flex');
-        
         document.getElementById('addKategoriForm').classList.remove('d-flex');
         document.getElementById('addKategoriForm').classList.add('d-none');
     }
@@ -336,9 +335,7 @@
     }
 
     document.addEventListener('click', function(event) {
-        if (event.target.closest('#addKategoriForm')) {
-            return; 
-        }
+        if (event.target.closest('#addKategoriForm')) return; 
 
         const katContainer = document.getElementById('containerKategoriUtama');
         if (katContainer && !katContainer.contains(event.target)) {
@@ -356,7 +353,7 @@
             }
         }
 
-        const subContainer = document.getElementById('subKategoriProdukSelectBox').parentNode;
+        const subContainer = document.getElementById('subKategoriProdukSelectBox')?.parentNode;
         if (subContainer && !subContainer.contains(event.target)) {
             const optionsSub = document.getElementById('subKategoriProdukOptions');
             const boxSub = document.getElementById('subKategoriProdukSelectBox');

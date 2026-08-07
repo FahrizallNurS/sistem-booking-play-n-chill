@@ -11,8 +11,9 @@ class TrTransaksi extends Model
     protected $fillable = [
         'id_penetapan_harga', 'id_pengguna', 'kode_sewa',
         'waktu_mulai', 'waktu_selesai', 'total_harga',
-        'opsi_pembayaran', 'jumlah_dp', 'status_sewa',
-        'status_pembayaran', 'catatan_pembayaran', 'sisa_bayar'
+        'opsi_pembayaran', 'metode_pembayaran', 'jumlah_dp', 'status_sewa',
+        'status_pembayaran', 'catatan_pembayaran', 'sisa_bayar',
+        'sumber_booking','struk_created_at',
     ];
 
     public function penetapanHarga()

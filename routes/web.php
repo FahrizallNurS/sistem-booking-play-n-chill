@@ -12,6 +12,7 @@ use App\Http\Controllers\TentangKamiController;
 use App\Models\MsRuangan;
 use App\Models\MsPermainan;
 use App\Models\User;
+use App\Http\Controllers\HomeController;
 
 // Admin Controllers...
 use App\Http\Controllers\Admin\DashboardController;
@@ -24,6 +25,9 @@ use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ProfilController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\VideoController;
+use App\Http\Controllers\Admin\GaleriController;
+use App\Http\Controllers\Admin\Fb\ProdukController;
+use App\Http\Controllers\Admin\PengaturanController;
 
 // Auth & Superadmin Controllers...
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -32,26 +36,47 @@ use App\Http\Controllers\Superadmin\SABerandaController;
 use App\Http\Controllers\Superadmin\SAProfilController;
 use App\Http\Controllers\Superadmin\KelolaUserController;
 use App\Http\Controllers\Superadmin\SATinjauLaporanController;
+use App\Http\Controllers\Superadmin\AnalisisPendapatanController;
+use App\Http\Controllers\Superadmin\ProdukLayananController;
+use App\Http\Controllers\Superadmin\ProdukFnbController;
+use App\Http\Controllers\Superadmin\PenjualanKasirController;
+use App\Http\Controllers\Superadmin\MetodePembayaranController;
 
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => redirect()->route('pelanggan.home'));
+Route::get('/', function () {
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        return match (\Illuminate\Support\Facades\Auth::user()->role) {
+            'superadmin' => redirect()->route('superadmin.dashboard'),
+            'admin'      => redirect()->route('admin.dashboard'),
+            default      => redirect()->route('pelanggan.home'),
+        };
+    }
+    return redirect()->route('pelanggan.home');
+});
 
-// Perbaikan Rute Home (Hanya satu rute dengan pengiriman data)
 Route::get('/home', function () {
-    // 1. Ambil data perangkat unik (PS3, PS4, PS5)
-    $perangkats = MsRuangan::where('is_active', 1)
+    $perangkats = \App\Models\MsRuangan::where('is_active', 1)
         ->whereNotNull('perangkat')
         ->distinct()
         ->pluck('perangkat');
 
-    // 2. Ambil semua data permainan untuk grid
-    $permainans = MsPermainan::all(); 
+    $permainans = \App\Models\MsPermainan::all(); 
+    
+    $banners = \App\Models\Galeri::where('kategori', 'banner')
+        ->where('is_active', 1)
+        ->orderBy('id_galeri', 'DESC') 
+        ->get();
 
-    return view('pelanggan.home', compact('perangkats', 'permainans'));
+    $videos = \App\Models\Video::where('is_active', 1)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('pelanggan.home', compact('perangkats', 'permainans', 'banners', 'videos'));
+
 })->name('pelanggan.home');
 
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
@@ -59,17 +84,29 @@ Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
 // Route Galeri
 Route::get('/galeri', function () {
-    return view('pelanggan.galeri');
+    $galeris = \App\Models\Galeri::where('is_active', 1)
+                ->where('kategori', '!=', 'banner')
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+    return view('pelanggan.galeri', compact('galeris'));
 });
 
 // Route Menu F&B
 Route::get('/menu-fb', function () {
-    return view('pelanggan.menu-fb');
+    $produks = \App\Models\MsProduk::with('subKategori')->where('is_active', 1)->get();
+    return view('pelanggan.menu-fb', compact('produks'));
 });
+
+// Rute untuk Skenario 3: Pelanggan HANYA pesan Menu F&B
+Route::post('/checkout-fb', [App\Http\Controllers\BookingController::class, 'checkoutFb']);
+Route::get('/payment-fb/{id}', [App\Http\Controllers\BookingController::class, 'showPaymentFb'])->name('fb.payment.show');
+Route::get('/payment-fb/confirm/{id}', [App\Http\Controllers\BookingController::class, 'confirmPaymentFb'])->name('fb.payment.confirm');
 
 // Route Penawaran F&B
 Route::get('/booking/penawaran-fb', function () {
-    return view('pelanggan.penawaran-fb');
+    $produks = \App\Models\MsProduk::with('subKategori')->where('is_active', 1)->get();
+    return view('pelanggan.penawaran-fb', compact('produks'));
 });
 
 Route::get('/aktivasi-akun', function () {
@@ -174,9 +211,6 @@ Route::middleware(['auth'])->group(function () {
     // Profile & Booking Pelanggan
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::middleware([RoleMiddleware::class . ':pelanggan', 'verified'])->group(function () {
-        Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
-    });
 
     // Booking
     Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
@@ -199,12 +233,55 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [SAProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');
-    });
+
+        // Analisis Pendapatan
+        Route::get('/analisis-pendapatan', [AnalisisPendapatanController::class, 'pendapatan'])
+            ->name('analisis-pendapatan');
+        
+        // Halaman Produk Layanan
+        Route::get('/produk-layanan', [ProdukLayananController::class, 'index'])
+        ->name('produk-layanan');
+
+        // Halaman Produk F&B
+        Route::get('/produk-fnb', [ProdukFnbController::class, 'index'])
+        ->name('produk-fnb');
+
+        //halaman Penjualan per Kasir
+        Route::get('/penjualan-kasir', [PenjualanKasirController::class, 'index'])
+        ->name('penjualan-kasir');
+
+        // Metode Pembayaran
+        Route::get('/metode-pembayaran', [MetodePembayaranController::class, 'index'])
+        ->name('metode-pembayaran');
+
+        Route::get('/{slug}', function ($slug) {
+            $judulMap = [
+                'analisis-pendapatan' => 'Analisis Pendapatan',
+                'produk-layanan'      => 'Produk Layanan',
+                'produk-fb'           => 'Produk F&B',
+                'penjualan-kasir'     => 'Penjualan per Kasir',
+                'metode-pembayaran'   => 'Metode Pembayaran',
+            ];
+
+            abort_unless(array_key_exists($slug, $judulMap), 404);
+
+            return view('superadmin.analitik.segera-hadir', [
+                'judul' => $judulMap[$slug],
+            ]);
+            })->name('segera-hadir');
+        });
+
+        
 
    // Grouping Admin
         Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+        
+        // Pengaturan (Wifi, dll)
+        Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::patch('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
         
         Route::delete('/paket/penetapan/{id}', [PaketController::class, 'destroyPenetapan'])
             ->name('paket.penetapan.destroy');
@@ -219,12 +296,26 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/layanan/{id}/toggle-aktif', [LayananController::class, 'toggleAktif'])->name('layanan.toggle-aktif');    
         Route::post('/layanan/{id}/penetapan-harga', [LayananController::class, 'storePenetapanHarga'])->name('layanan.penetapan.store');
         Route::delete('/penetapan-harga/{id}', [LayananController::class, 'destroyPenetapanHarga'])->name('layanan.penetapan.destroy');
-        Route::resource('booking', AdminBookingController::class);
+
+        Route::get('/booking', [AdminBookingController::class, 'index'])->name('booking.index');
+ 
+        Route::get('/booking/create', [AdminBookingController::class, 'create'])->name('booking.create');
+        Route::get('/booking/penetapan-harga', [AdminBookingController::class, 'getPenetapanHarga'])
+            ->name('booking.penetapan-harga');
+        Route::post('/booking/manual', [AdminBookingController::class, 'storeManual'])
+            ->name('booking.manual.store');
+
+        Route::get('/booking/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
+        Route::delete('/booking/{id}', [AdminBookingController::class, 'destroy'])->name('booking.destroy');
         Route::patch('/booking/{id}/konfirmasi', [AdminBookingController::class, 'konfirmasi'])->name('booking.konfirmasi');
         Route::patch('/booking/{id}/tolak', [AdminBookingController::class, 'tolak'])->name('booking.tolak');
         Route::patch('/booking/{id}/pembayaran', [AdminBookingController::class, 'pembayaran'])->name('booking.pembayaran');
         Route::patch('/booking/{id}/selesai', [AdminBookingController::class, 'selesai'])->name('booking.selesai');
         Route::patch('/booking/{id}/batalkan', [AdminBookingController::class, 'batalkan'])->name('booking.batalkan');
+        Route::patch('/booking/{id}/ubah-jadwal', [AdminBookingController::class, 'ubahJadwal'])->name('booking.ubah-jadwal');
+        Route::post('/booking/{id}/cetak-struk', [AdminBookingController::class, 'cetakStruk'])->name('booking.cetak-struk');
+        Route::post('/booking/{id}/cetak-struk', [AdminBookingController::class, 'cetakStruk'])->name('booking.cetak-struk');
+
         Route::resource('game', GameController::class);
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export-pdf'); 
@@ -232,44 +323,30 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
 
-        // Halaman Kelola Galeri
-        Route::get('/galeri', function () {
-            return view('admin.galeri.index');
-        });
+        // HALAMAN KELOLA GALERI PANEL ADMIN
+        Route::resource('galeri', GaleriController::class)->names([
+            'index'   => 'galeri.index',
+            'create'  => 'galeri.create',
+            'store'   => 'galeri.store',
+            'edit'    => 'galeri.edit',
+            'update'  => 'galeri.update',
+            'destroy' => 'galeri.destroy',
+        ]);
 
-        // Halaman Tambah Galeri
-        Route::get('/galeri/create', function () {
-            return view('admin.galeri.tambah-foto'); // <-- Mengarah ke tambah-foto.blade.php
-        });
+        Route::patch('/galeri/{id}/toggle-status', [GaleriController::class, 'toggleStatus'])->name('galeri.toggle-status');
 
-        // Halaman Edit Galeri
-        Route::get('/galeri/edit', function () {
-            return view('admin.galeri.edit-foto');
-        });
+        // Halaman Kelola Produk F&B
 
-        // Tangkapan sementara untuk tombol simpan saat Edit (POST/PUT)
-        Route::post('/galeri/update', function () {
-            return redirect('/admin/galeri');
-        });
+        Route::get('/fb/produk', [ProdukController::class, 'index'])->name('fb.produk.index');
+        Route::patch('/fb/produk/{id}/toggle-status', [ProdukController::class, 'toggleStatus'])->name('fb.produk.toggle-status');
 
-        Route::get('/fb/produk', function () {
-            return view('admin.fb.produk.index');
-        });
+        // Rute untuk Tambah Produk F&B
+        Route::get('/fb/produk/create', [ProdukController::class, 'create'])->name('fb.produk.create');
+        Route::post('/fb/produk/store', [ProdukController::class, 'store'])->name('fb.produk.store');
 
-        // Halaman Tambah Produk F&B
-        Route::get('/fb/produk/create', function () {
-            return view('admin.fb.produk.tambah-produk');
-        });
-
-        // Tangkapan sementara untuk tombol simpan (POST)
-        Route::post('/fb/produk/store', function () {
-            return redirect('/admin/fb/produk');
-        });
-
-        // Halaman Edit Produk F&B
-        Route::get('/fb/produk/edit', function () {
-            return view('admin.fb.produk.edit-produk');
-        });
+        // Route untuk Edit Produk F&B
+        Route::get('/fb/produk/edit/{id}', [ProdukController::class, 'edit'])->name('fb.produk.edit');
+        Route::put('/fb/produk/update/{id}', [ProdukController::class, 'update'])->name('fb.produk.update');
 
         // Tangkapan sementara untuk tombol simpan (POST/PUT) saat Edit
         Route::post('/fb/produk/update', function () {
@@ -277,19 +354,16 @@ Route::middleware(['auth'])->group(function () {
         });
 
         // Halaman Kelola Transaksi F&B
-        Route::get('/fb/transaksi', function () {
-            return view('admin.fb.transaksi.index');
-        });
+        Route::get('/fb/transaksi', [\App\Http\Controllers\Admin\Fb\AdminFbController::class, 'index'])->name('fb.transaksi.index');
+        
+        // 🔹 PASTIKAN RUTE INI SUDAH ADA
+        Route::put('/fb/transaksi/{id}/status', [\App\Http\Controllers\Admin\Fb\AdminFbController::class, 'updateStatus'])->name('fb.transaksi.update-status');
 
-        // Halaman Tambah Pesanan F&B
-        Route::get('/fb/transaksi/create', function () {
-            return view('admin.fb.transaksi.tambah-pesanan');
-        });
+        // Halaman Tambah Pesanan F&B (Tampilan)
+        Route::get('/fb/transaksi/create', [\App\Http\Controllers\Admin\Fb\AdminFbController::class, 'create'])->name('fb.transaksi.create');
 
-        // Tangkapan sementara untuk form simpan pesanan (POST)
-        Route::post('/fb/transaksi/store', function () {
-            return redirect('/admin/fb/transaksi');
-        });
+        // 🔹 Rute untuk memproses form (Arahkan ke fungsi store di atas)
+        Route::post('/fb/transaksi/store', [\App\Http\Controllers\Admin\Fb\AdminFbController::class, 'store'])->name('fb.transaksi.store');
 
         Route::get('/logout', function() {
             auth()->logout();
@@ -297,20 +371,28 @@ Route::middleware(['auth'])->group(function () {
             request()->session()->regenerateToken();
             return redirect('/login');
         })->name('logout.get')->middleware('auth');
-
         
-        //banner route
-         Route::get('/banner', [BannerController::class, 'index'])->name('banners.index');
-         Route::get('/logout', function() {
+        //banner route (tidak perlu prefix('admin') lagi, group luar sudah prefix 'admin')
+        // Route untuk menampilkan halaman (GET)
+        Route::get('/banner', [BannerController::class, 'index'])->name('banners.index');
 
-        })->name('logout.get')->middleware('auth');
+        // Route untuk menyimpan data baru (POST)
+        Route::post('/banner', [BannerController::class, 'store'])->name('banners.store');
 
-        //video route
-        Route::get('/video', [VideoController::class, 'index'])->name('video.index');
+        // Route untuk update data (PUT/PATCH)
+        Route::put('/banner/{id}', [BannerController::class, 'update'])->name('banners.update');
+
+        // Route untuk hapus data (DELETE)
+        Route::delete('/banner/{id}', [BannerController::class, 'destroy'])->name('banners.destroy');
+        
+        // Route Kelola Video
+        Route::resource('video', VideoController::class);
+        Route::patch('/video/{id}/toggle-status', [VideoController::class, 'toggleStatus'])->name('video.toggle-status');
     });
 
     // Pelanggan Khusus
-    Route::middleware([RoleMiddleware::class . ':pelanggan'])->group(function () {
-        Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
+    Route::middleware([RoleMiddleware::class . ':pelanggan', 'verified'])->group(function () {
+    Route::get('/booking/payment/{id}', [BookingController::class, 'showPayment'])->name('booking.payment.show');
     });
-}); 
+
+});

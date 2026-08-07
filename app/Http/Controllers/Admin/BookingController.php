@@ -6,21 +6,32 @@ use App\Http\Controllers\Controller;
 use App\Models\TrTransaksi;
 use App\Models\MsRuangan;
 use App\Models\MsPaket;
+use App\Models\MsProduk;
 use App\Models\PenetapanHarga;
-use App\Models\User;
+use App\Services\BookingService;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
 {
+    public function __construct(private BookingService $bookingService) {}
+
     // ============================================================
-    // INDEX
-    //   ============================================================
+    // INDEX (Kelola Booking - semua sumber, bisa difilter)
+    // ============================================================
     public function index(Request $request)
     {
         $query = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna'])
+            ->whereNotIn('status_sewa', ['dibatalkan', 'selesai'])
             ->latest('created_at');
+
+        // Filter sumber booking (Online / Kasir). Kosong = tampilkan semua.
+        if ($request->filled('sumber_booking')) {
+            $query->where('sumber_booking', $request->sumber_booking);
+        }
 
         if ($request->filled('status_sewa')) {
             $query->where('status_sewa', $request->status_sewa);
@@ -51,97 +62,128 @@ class BookingController extends Controller
         $bookings = $query->paginate(15)->withQueryString();
         $ruangans = MsRuangan::where('is_active', 1)->get();
 
-        return view('admin.bookings.index', compact('bookings', 'ruangans'));
+        // Produk F&B untuk modal keranjang — di-load sekali di sini (bukan AJAX
+        // tiap modal dibuka), karena katalognya diperkirakan gak besar. Kalau
+        // nanti katalog membengkak jadi ratusan item, baru worth dipikirin
+        // AJAX + search per kategori.
+        $produks = MsProduk::with('subKategori')
+            ->where('is_active', 1)
+            ->orderBy('nama_produk')
+            ->get();
+
+        $kategoriFnb = $produks
+            ->pluck('subKategori.sub_kategori_produk')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return view('admin.bookings.index', compact('bookings', 'ruangans', 'produks', 'kategoriFnb'));
     }
 
+    // ============================================================
+    // CREATE (Form Tambah Booking Manual - data ruangan/paket asli)
+    // ============================================================
+    public function create()
+    {
+        $ruangans = MsRuangan::where('is_active', 1)->orderBy('nama_ruangan')->get();
+        $pakets   = MsPaket::where('is_active', 1)->orderBy('nama_paket')->get();
+
+        // Produk F&B untuk modal keranjang — sama seperti di index(), supaya
+        // admin bisa langsung tambah pesanan F&B saat bikin booking baru.
+        $produks = MsProduk::with('subKategori')
+            ->where('is_active', 1)
+            ->orderBy('nama_produk')
+            ->get();
+
+        $kategoriFnb = $produks
+            ->pluck('subKategori.sub_kategori_produk')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return view('admin.bookings.create', compact('ruangans', 'pakets', 'produks', 'kategoriFnb'));
+    }
 
     // ============================================================
-    // STORE
+    // AJAX: ambil kombinasi durasi + tipe_hari + harga
     // ============================================================
-    public function store(Request $request)
+    public function getPenetapanHarga(Request $request): JsonResponse
     {
         $request->validate([
-            'id_penetapan_harga' => 'required|exists:penetapan_harga,id_penetapan_harga',
-            'tanggal'            => 'required|date|after_or_equal:today',
-            'waktu_mulai'        => 'required',
-            'opsi_pembayaran'    => 'required|in:full,dp',
-            'jumlah_dp'          => 'required_if:opsi_pembayaran,dp|nullable|numeric|min:0',
-            'id_pengguna'        => 'nullable|exists:users,id_pengguna',
+            'ruangan' => 'required|exists:ms_ruangan,id_ruangan',
+            'paket'   => 'required|exists:ms_paket,id_paket',
         ]);
 
-        $ph = PenetapanHarga::findOrFail($request->id_penetapan_harga);
+        $options = PenetapanHarga::where('id_ruangan', $request->ruangan)
+            ->where('id_paket', $request->paket)
+            ->orderBy('durasi_jam')
+            ->get(['id_penetapan_harga', 'durasi_jam', 'tipe_hari', 'harga', 'sku']);
 
-        $waktuMulai   = Carbon::parse($request->tanggal . ' ' . str_replace('.', ':', $request->waktu_mulai));
-        $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
+        // Dibungkus {options: [...]} supaya cocok dengan JS di create.blade.php
+        // yang membaca res.options
+        return response()->json(['options' => $options]);
+    }
 
-        // Validasi jam operasional ─
-        $hari = $waktuMulai->dayOfWeek; 
-
-        $jamBuka = match(true) {
-            in_array($hari, [1, 2, 3, 4]) => '14:00', // Senin–Kamis
-            $hari === 5                    => '14:00', // Jumat
-            in_array($hari, [0, 6])        => '10:00', // Sabtu–Minggu
-        };
-
-        $jamTutup = match(true) {
-            in_array($hari, [1, 2, 3, 4]) => '22:00', // Senin–Kamis
-            $hari === 5                    => '23:00', // Jumat
-            in_array($hari, [0, 6])        => '23:00', // Sabtu–Minggu
-        };
-
-        $bukaDt  = Carbon::parse($request->tanggal . ' ' . $jamBuka);
-        $tutupDt = Carbon::parse($request->tanggal . ' ' . $jamTutup);
-
-        if ($waktuMulai->lt($bukaDt) || $waktuSelesai->gt($tutupDt)) {
-            $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
-            return back()->withInput()->withErrors([
-                'waktu_mulai' => "Hari {$namaHari} jam operasional {$jamBuka}–{$jamTutup}. Booking kamu ({$waktuMulai->format('H:i')}–{$waktuSelesai->format('H:i')}) di luar jam operasional."
-            ]);
-        }
-
-        if ($waktuSelesai->gt($tutupDt)) {
-            $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
-            return back()->withInput()->withErrors([
-                'waktu_mulai' => "Booking berakhir jam {$waktuSelesai->format('H:i')}, melebihi jam tutup {$jamTutup} hari {$namaHari}."
-            ]);
-        }
-
-        // Cek konflik jadwal
-        $konflik = TrTransaksi::where('id_penetapan_harga', $ph->id_penetapan_harga)
-            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
-            ->where(function ($q) use ($waktuMulai, $waktuSelesai) {
-                $q->whereBetween('waktu_mulai', [$waktuMulai, $waktuSelesai])
-                  ->orWhereBetween('waktu_selesai', [$waktuMulai, $waktuSelesai]);
-            })->exists();
-
-        if ($konflik) {
-            return back()->withInput()
-                ->withErrors(['waktu_mulai' => 'Ruangan sudah dibooking di jam tersebut.']);
-        }
-
-        $jumlahDp  = $request->opsi_pembayaran === 'dp' ? $request->jumlah_dp : null;
-        $sisaBayar = $request->opsi_pembayaran === 'dp' ? ($ph->harga - $request->jumlah_dp) : 0;
-
-        do {
-            $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-        } while (TrTransaksi::where('kode_sewa', $kode)->exists());
-
-        TrTransaksi::create([
-            'id_penetapan_harga' => $ph->id_penetapan_harga,
-            'id_pengguna'        => $request->id_pengguna ?? auth()->user()->id_pengguna,
-            'kode_sewa'          => $kode,
-            'waktu_mulai'        => $waktuMulai,
-            'waktu_selesai'      => $waktuSelesai,
-            'total_harga'        => $ph->harga,
-            'opsi_pembayaran'    => $request->opsi_pembayaran,
-            'jumlah_dp'          => $jumlahDp,
-            'status_sewa'        => 'ditahan',
-            'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
-            'sisa_bayar'         => $sisaBayar,
+    public function storeManual(Request $request): JsonResponse
+    {
+        // 1. Definisikan aturan validasi HANYA untuk data yang dikirim dari form
+        $validated = $request->validate([
+            'nama_pelanggan'     => 'required|string|max:100',
+            'no_telp'            => 'nullable|string|max:15',
+            'email'              => 'nullable|email|max:100',
+            'ruangan'            => 'required|integer|exists:ms_ruangan,id_ruangan',
+            'paket'              => 'required|integer|exists:ms_paket,id_paket',
+            'id_penetapan_harga' => 'required|integer|exists:penetapan_harga,id_penetapan_harga',
+            'waktu_mulai'        => 'required|date_format:Y-m-d\TH:i',
+            'metode_pembayaran'  => 'required|in:TUNAI,QRIS',
+            'catatan'            => 'nullable|string|max:100',
+            // Item F&B opsional — booking manual boleh dibuat dengan atau
+            // tanpa pesanan F&B sekaligus. Harga TIDAK divalidasi di sini,
+            // selalu diambil ulang dari ms_produk di BookingService supaya
+            // tidak bisa dimanipulasi dari sisi client.
+            'items'              => 'nullable|array',
+            'items.*.id_produk'  => [
+                'required_with:items',
+                'integer',
+                Rule::exists('ms_produk', 'id_produk')->where('is_active', 1),
+            ],
+            'items.*.jumlah'     => 'required_with:items|integer|min:1',
+            // Baris 'dicetak_oleh' yang bikin error 500 sudah dihapus dari sini
         ]);
 
-        return redirect()->route('admin.booking.index')
-            ->with('success', 'Booking berhasil ditambahkan.');
+        try {
+            $transaksi = $this->bookingService->createManualBooking([
+                'nama_pelanggan'     => $validated['nama_pelanggan'],
+                'no_telp'            => $validated['no_telp'] ?? null,
+                'email'              => $validated['email'] ?? null,
+                'id_ruangan'         => $validated['ruangan'],
+                'id_paket'           => $validated['paket'],
+                'id_penetapan_harga' => $validated['id_penetapan_harga'],
+                'waktu_mulai'        => $validated['waktu_mulai'],
+                'metode_pembayaran'  => $validated['metode_pembayaran'],
+                'catatan'            => $validated['catatan'] ?? null,
+                'items'              => $validated['items'] ?? [],
+                'dicetak_oleh'       => auth()->user()->nama_pengguna,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $e->errors(),
+            ], 422);
+        }
+
+        // 2. Kembalikan respon sukses beserta link URL PDF-nya ke frontend
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil dibuat.',
+            'data'    => [
+                'kode_sewa'    => $transaksi->kode_sewa,
+                'id_transaksi' => $transaksi->id_transaksi,
+                'dicetak_oleh' => auth()->user()->nama_pengguna, 
+                // UBAH BARIS INI: arahkan langsung ke aset public
+                'pdf_url'      => asset('assets/struk/' . $transaksi->kode_sewa . '.pdf'), 
+            ],
+        ]);
     }
 
     // ============================================================
@@ -153,7 +195,22 @@ class BookingController extends Controller
             ->where('id_transaksi', $id)
             ->firstOrFail();
 
-        return view('admin.bookings.show', compact('booking'));
+        $pos = \App\Models\TrPos::where('id_transaksi', $id)->first();
+        $posDetails = [];
+        
+        if ($pos) {
+            $details = \App\Models\TrPosDetail::where('id_pos', $pos->id_pos)->get();
+            foreach ($details as $d) {
+                $produk = DB::table('ms_produk')->where('id_produk', $d->id_produk)->first();
+                $posDetails[] = [
+                    'name'     => $produk ? $produk->nama_produk : 'Produk Dihapus',
+                    'qty'      => $d->jumlah,
+                    'subtotal' => $d->subtotal
+                ];
+            }
+        }
+
+        return view('admin.bookings.show', compact('booking', 'pos', 'posDetails'));
     }
 
     // ============================================================
@@ -169,8 +226,8 @@ class BookingController extends Controller
         }
 
         $booking->update([
-            'status_sewa'        => 'dikonfirmasi',
-            'status_pembayaran'  => $booking->opsi_pembayaran === 'full' ? 'lunas' : 'dp',
+            'status_sewa'       => 'dikonfirmasi',
+            'status_pembayaran' => $booking->opsi_pembayaran === 'full' ? 'lunas' : 'dp',
         ]);
 
         return redirect()->route('admin.booking.index')
@@ -194,8 +251,8 @@ class BookingController extends Controller
         }
 
         $booking->update([
-            'status_sewa'          => 'dibatalkan',
-            'catatan_pembayaran'   => $request->alasan_tolak,
+            'status_sewa'        => 'dibatalkan',
+            'catatan_pembayaran' => $request->alasan_tolak,
         ]);
 
         return redirect()->route('admin.booking.index')
@@ -220,6 +277,9 @@ class BookingController extends Controller
             ->with('success', 'Booking berhasil dihapus.');
     }
 
+    // ============================================================
+    // PEMBAYARAN
+    // ============================================================
     public function pembayaran(Request $request, $id)
     {
         $booking = TrTransaksi::findOrFail($id);
@@ -228,19 +288,27 @@ class BookingController extends Controller
             'catatan_pembayaran' => $request->catatan_pembayaran,
             'sisa_bayar'         => $request->status_pembayaran === 'lunas' ? 0 : $booking->sisa_bayar,
         ]);
+
         return redirect()->route('admin.booking.show', $id)
             ->with('success', 'Pembayaran berhasil diupdate.');
     }
 
+    // ============================================================
+    // SELESAI
+    // ============================================================
     public function selesai($id)
     {
         $booking = TrTransaksi::findOrFail($id);
         $booking->update(['status_sewa' => 'selesai']);
+
         return redirect()->route('admin.booking.show', $id)
             ->with('success', 'Booking ditandai selesai.');
     }
 
-    public function batalkan(Request $request, $id)
+    // ============================================================
+    // BATALKAN
+    // ============================================================
+   public function batalkan(Request $request, $id)
     {
         $request->validate([
             'catatan_pembatalan' => 'required|string|max:255',
@@ -251,19 +319,75 @@ class BookingController extends Controller
         $booking = TrTransaksi::findOrFail($id);
 
         if ($booking->status_sewa !== 'dikonfirmasi') {
-            return back()->withErrors(['error' => 'Booking ini tidak bisa dibatalkan.']);
+            return back()->withErrors(['error' => 'Booking ini tidak bisa di-refund.']);
         }
 
         $booking->update([
             'status_sewa'        => 'dibatalkan',
+            'status_pembayaran'  => 'refund',
+            'sisa_bayar'         => 0,
             'catatan_pembayaran' => $request->catatan_pembatalan,
         ]);
 
-        return back()->with('success', 'Booking berhasil dibatalkan.');
+        return back()->with('success', "Booking {$booking->kode_sewa} berhasil di-refund.");
     }
 
-    public function create()
+    // ============================================================
+    // UBAH JADWAL
+    // ============================================================
+    public function ubahJadwal(Request $request, $id)
     {
-        return view('admin.bookings.create');
+        $request->validate([
+            'waktu_mulai' => 'required|date_format:Y-m-d\TH:i',
+        ], [
+            'waktu_mulai.required' => 'Waktu mulai baru wajib diisi.',
+        ]);
+
+        $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
+
+        try {
+            $this->bookingService->ubahJadwal($booking, $request->waktu_mulai);
+        } catch (ValidationException $e) {
+            return back()->with('error', collect($e->errors())->flatten()->first());
+        }
+
+        return redirect()->route('admin.booking.show', $id)
+            ->with('success', 'Jadwal booking berhasil diubah.');
     }
+
+     // CETAK STRUK (finalisasi booking online: konfirmasi + lunas + PDF)
+     public function cetakStruk(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'metode_pembayaran'            => 'required|in:TUNAI,QRIS',
+            'items'                        => 'array',
+            'items.*.id_produk'            => 'required_with:items|integer|exists:ms_produk,id_produk',
+            'items.*.jumlah'               => 'required_with:items|integer|min:1',
+        ]);
+
+        $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
+
+        try {
+            $pdfRelativePath = $this->bookingService->finalisasiStruk(
+                $booking,
+                $validated['items'] ?? [],
+                $validated['metode_pembayaran'],
+                auth()->user()->nama_pengguna
+            );
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $e->errors(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Struk berhasil dicetak.',
+            'data'    => [
+                'pdf_url' => asset($pdfRelativePath),
+            ],
+        ]);
+    }
+
 }

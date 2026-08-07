@@ -21,53 +21,74 @@
         </div>
         
         <div class="card-body p-4 p-md-5">
-            {{-- Arahkan action ke rute store yang baru dibuat --}}
-            <form action="{{ url('/admin/galeri/store') }}" method="POST" enctype="multipart/form-data">
+            {{-- Form mengarah ke route store --}}
+            <form action="{{ route('admin.galeri.store') }}" method="POST" enctype="multipart/form-data">
                 
-                {{-- WAJIB ADA: Kunci keamanan dari Laravel agar form tidak ditolak --}}
+                {{-- Keamanan bawaan Laravel --}}
                 @csrf 
                 
                 <div class="row g-5">
                     
                     {{-- KOLOM KIRI --}}
                     <div class="col-12 col-lg-6 d-flex flex-column">
+                        
+                        {{-- Input Judul --}}
                         <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Judul Foto</label>
-                            <input type="text" class="form-control custom-input shadow-none" placeholder="Contoh : Gaming Private Room">
+                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Judul Foto <span class="text-danger">*</span></label>
+                            <input type="text" name="judul_foto" value="{{ old('judul_foto') }}" class="form-control custom-input shadow-none @error('judul_foto') is-invalid @enderror" placeholder="Contoh : Gaming Private Room" required>
+                            @error('judul_foto')
+                                <small class="text-danger mt-1">{{ $message }}</small>
+                            @enderror
                         </div>
 
-                        {{-- CUSTOM DROPDOWN KATEGORI (100% Sesuai Desain Stitch AI) --}}
+                        {{-- Input Kategori (Custom Dropdown) --}}
                         <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Kategori Foto</label>
+                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Kategori Foto <span class="text-danger">*</span></label>
                             
                             <div class="position-relative custom-dropdown-container">
-                                {{-- Input tersembunyi untuk menyimpan data saat form disubmit --}}
-                                <input type="hidden" name="kategori" id="kategoriInput">
+                                {{-- Input tersembunyi untuk backend --}}
+                                <input type="hidden" name="kategori" id="kategoriInput" value="{{ old('kategori') }}" required>
                                 
                                 {{-- Kotak yang terlihat --}}
-                                <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="kategoriSelectBox" onclick="toggleDropdown()" style="cursor: pointer; background-color: #ffffff; min-height: 46px;">
-                                    <span id="kategoriSelectedText" style="color: #374151;"></span> {{-- Kosong di awal --}}
+                                <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center @error('kategori') is-invalid @enderror" id="kategoriSelectBox" onclick="toggleDropdown()" style="cursor: pointer; background-color: #ffffff; min-height: 46px;">
+                                    <span id="kategoriSelectedText" style="color: #374151;">{{ old('kategori') ?? 'Pilih Kategori...' }}</span>
                                     <i class="fas fa-chevron-down text-muted" style="font-size: 0.8rem;"></i>
                                 </div>
                                 
-                                {{-- Daftar Pilihan (Dropdown Menu) --}}
+                                {{-- Daftar Pilihan --}}
                                 <div class="shadow-sm" id="kategoriOptions" style="display: none; position: absolute; width: 100%; z-index: 1000; border: 1px solid #d1d5db; border-top: none; border-radius: 0 0 6px 6px; background-color: #f9fafb; overflow: hidden;">
-                                    <div class="custom-option text-center py-3" onclick="selectOption('Private')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">
-                                        Private
+    
+                                    <div class="custom-option text-center py-3" onclick="selectOption('Reguler')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">
+                                        Reguler
                                     </div>
-                                    <div class="custom-option text-center py-3" onclick="selectOption('Regular')" style="cursor: pointer; color: #374151; transition: 0.2s;">
-                                        Regular
+                                    <div class="custom-option text-center py-3" onclick="selectOption('Private - Gaming')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">
+                                        Private - Gaming
                                     </div>
+                                    <div class="custom-option text-center py-3" onclick="selectOption('Private - Nonton')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">
+                                        Private - Nonton
+                                    </div>
+                                    <div class="custom-option text-center py-3" onclick="selectOption('Private - Karaoke')" style="cursor: pointer; color: #374151; transition: 0.2s;">
+                                        Private - Karaoke
+                                    </div>
+
                                 </div>
                             </div>
+                            @error('kategori')
+                                <small class="text-danger mt-1">{{ $message }}</small>
+                            @enderror
                         </div>
 
+                        {{-- Input Deskripsi --}}
                         <div class="mb-4 flex-grow-1 d-flex flex-column">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Deskripsi</label>
-                            <textarea class="form-control custom-input shadow-none flex-grow-1" placeholder="Contoh : Layanan paling asik untuk menemani me time kamu"></textarea>
+                            <textarea name="deskripsi_foto" class="form-control custom-input shadow-none flex-grow-1 @error('deskripsi_foto') is-invalid @enderror" placeholder="Contoh : Layanan paling asik untuk menemani me time kamu">{{ old('deskripsi_foto') }}</textarea>
+                            @error('deskripsi_foto')
+                                <small class="text-danger mt-1">{{ $message }}</small>
+                            @enderror
                         </div>
 
-                        <a href="{{ url('/admin/galeri') }}" class="btn w-100 py-2 fw-bold mt-auto" style="background-color: #d1d5db; color: #ffffff; border-radius: 6px;">
+                        {{-- Tombol Batal --}}
+                        <a href="{{ route('admin.galeri.index') }}" class="btn w-100 py-2 fw-bold mt-auto" style="background-color: #d1d5db; color: #ffffff; border-radius: 6px;">
                             Batal
                         </a>
                     </div>
@@ -75,31 +96,33 @@
                     {{-- KOLOM KANAN: Upload Area & Tombol Simpan --}}
                     <div class="col-12 col-lg-6 d-flex flex-column">
                         <div class="mb-4 flex-grow-1 d-flex flex-column">
-                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Foto Ruangan</label>
+                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Foto Ruangan <span class="text-danger">*</span></label>
                             
-                            {{-- Area Upload yang Diperbarui --}}
-                            <div class="upload-area flex-grow-1 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden" id="uploadContainer" onclick="document.getElementById('fileUpload').click()">
+                            {{-- Area Upload --}}
+                            <div class="upload-area flex-grow-1 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden @error('file_foto') border-danger @enderror" id="uploadContainer" onclick="document.getElementById('fileUpload').click()">
                                 
-                                {{-- Konten Default (Ikon & Teks) --}}
+                                {{-- Konten Default --}}
                                 <div id="defaultUploadContent" class="text-center d-flex flex-column align-items-center">
                                     <i class="fas fa-upload mb-3" style="font-size: 3rem; color: #9ca3af;"></i>
                                     <span class="fw-normal text-muted mb-1">Upload Foto Max 2MB</span>
-                                    <small style="color: #9ca3af; font-size: 0.75rem;">Format: JPG, JPEG, PNG, WEBP</small>
+                                    <small style="color: #9ca3af; font-size: 0.75rem;">Format: JPG, JPEG, PNG</small>
                                 </div>
                                 
-                                {{-- Elemen Img untuk Preview (Awalnya Disembunyikan) --}}
+                                {{-- Preview Image --}}
                                 <img id="imagePreview" src="" alt="Preview Foto" style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
 
-                                {{-- Input File (Pemicu fungsi previewImage saat ada file dipilih) --}}
-                                <input type="file" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this)">
+                                {{-- Input File Fisik (Tersembunyi) --}}
+                                <input type="file" name="file_foto" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/jpg" onchange="previewImage(this)" required>
                             </div>
+                            @error('file_foto')
+                                <small class="text-danger mt-2 text-center">{{ $message }}</small>
+                            @enderror
                         </div>
 
                         {{-- Tombol Simpan --}}
                         <button type="submit" class="btn btn-blue w-100 py-2 fw-bold text-white mt-auto" style="border-radius: 6px;">
                             Simpan
                         </button>
-                    </div>
                     </div>
 
                 </div>
@@ -145,6 +168,9 @@
     .upload-area:hover i {
         color: #0084ff !important;
     }
+    .border-danger {
+        border-color: #dc3545 !important;
+    }
 
     .btn-blue {
         background-color: #0084ff;
@@ -177,10 +203,12 @@
 
     function selectOption(value) {
         document.getElementById('kategoriSelectedText').innerHTML = value;
+        document.getElementById('kategoriSelectedText').style.color = '#374151';
         document.getElementById('kategoriInput').value = value;
         toggleDropdown();
     }
 
+    // Menutup dropdown jika di klik di luar area
     document.addEventListener('click', function(event) {
         const container = document.querySelector('.custom-dropdown-container');
         if (container && !container.contains(event.target)) {
@@ -190,6 +218,7 @@
         }
     });
 
+    // Preview File Gambar
     function previewImage(input) {
         const file = input.files[0];
         const preview = document.getElementById('imagePreview');

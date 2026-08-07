@@ -21,8 +21,23 @@
         </div>
         
         <div class="card-body p-4 p-md-5">
-            <form action="{{ url('/admin/fb/produk/update') }}" method="POST" enctype="multipart/form-data">
+
+            {{-- Menampilkan pesan error validasi jika ada --}}
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4" style="border-radius: 6px;">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            {{-- Form Action diubah ke route update dengan parameter ID --}}
+            <form action="{{ route('admin.fb.produk.update', $produk->id_produk) }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                @method('PUT') {{-- Wajib untuk proses update data di Laravel --}}
+                
                 <div class="row g-5">
                     
                     {{-- KOLOM KIRI --}}
@@ -30,31 +45,31 @@
                         
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Nama Produk</label>
-                            <input type="text" class="form-control custom-input shadow-none" value="Top Kopi Gula Aren">
+                            <input type="text" name="nama_produk" class="form-control custom-input shadow-none" value="{{ old('nama_produk', $produk->nama_produk) }}" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Harga Beli</label>
-                            <input type="text" class="form-control custom-input shadow-none" value="Rp. 3.000,00">
+                            <input type="text" name="harga_beli" class="form-control custom-input shadow-none" value="{{ old('harga_beli', $produk->harga_beli) }}" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Harga Jual</label>
-                            <input type="text" class="form-control custom-input shadow-none" value="Rp. 5.000,00">
+                            <input type="text" name="harga_jual" class="form-control custom-input shadow-none" value="{{ old('harga_jual', $produk->harga_jual) }}" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Stock</label>
-                            <input type="number" class="form-control custom-input shadow-none" value="16">
+                            <input type="number" name="stock" class="form-control custom-input shadow-none" value="{{ old('stock', $produk->stock) }}" min="0" required>
                         </div>
 
                         <div class="mb-5 flex-grow-1">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">SKU</label>
-                            <input type="text" class="form-control custom-input shadow-none" value="PNC-192">
+                            <input type="text" name="sku" class="form-control custom-input shadow-none" value="{{ old('sku', $produk->sku) }}" required>
                         </div>
 
-                        {{-- Tombol Batal --}}
-                        <a href="{{ url('/admin/fb/produk') }}" class="btn w-100 py-2 fw-bold mt-auto" style="background-color: #d1d5db; color: #ffffff; border-radius: 6px;">
+                        {{-- Tombol Batal diarahkan kembali ke index --}}
+                        <a href="{{ route('admin.fb.produk.index') }}" class="btn w-100 py-2 fw-bold mt-auto text-center text-decoration-none" style="background-color: #d1d5db; color: #ffffff; border-radius: 6px;">
                             Batal
                         </a>
                     </div>
@@ -62,7 +77,7 @@
                     {{-- KOLOM KANAN --}}
                     <div class="col-12 col-lg-6 d-flex flex-column">
                         
-                        {{-- Area Upload (Sudah terisi foto Kopi) --}}
+                        {{-- Area Upload --}}
                         <div class="mb-4 flex-grow-1 d-flex flex-column">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Foto Produk</label>
                             <div class="upload-area flex-grow-1 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden" id="uploadContainer" onclick="document.getElementById('fileUpload').click()" style="border: 1px solid #e5e7eb;">
@@ -73,11 +88,13 @@
                                     <small style="color: #9ca3af; font-size: 0.75rem;">Format: JPG, JPEG, PNG, WEBP</small>
                                 </div>
                                 
-                                {{-- Preview Dummy Aktif --}}
-                                <img id="imagePreview" src="{{ asset('images/kopi.jpg') }}" alt="Preview Foto" onerror="this.onerror=null; this.src='{{ asset('images/logo_dumb.png') }}';" style="display: block; width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; background-color: #fff; padding: 10px;">
+                                {{-- Preview Foto di-load dari database --}}
+                                <img id="imagePreview" src="{{ asset('uploads/fb/' . $produk->foto) }}" alt="Preview Foto" onerror="this.onerror=null; this.src='{{ asset('images/logo_dumb.png') }}';" style="display: block; width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; background-color: #fff; padding: 10px;">
                                 
-                                <input type="file" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this)">
+                                {{-- Input file (Tidak wajib diisi saat edit) --}}
+                                <input type="file" name="foto" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/webp" onchange="previewImage(this)">
                             </div>
+                            <small class="text-muted mt-2 d-block" style="font-size: 0.8rem;">*Biarkan kosong jika tidak ingin mengubah foto.</small>
                         </div>
 
                         {{-- CUSTOM DROPDOWN 1: KATEGORI PRODUK --}}
@@ -85,10 +102,11 @@
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Kategori Produk</label>
                             
                             <div class="position-relative custom-dropdown-container" id="containerKategoriUtama">
-                                <input type="hidden" name="kategori_produk" id="kategoriProdukInput" value="Eksternal">
+                                @php $currentKat = old('kategori_produk', $produk->subKategori->kategori_produk ?? ''); @endphp
+                                <input type="hidden" name="kategori_produk" id="kategoriProdukInput" value="{{ $currentKat }}" required>
                                 
                                 <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="kategoriProdukSelectBox" onclick="toggleKategoriProduk()" style="cursor: pointer; background-color: #ffffff; min-height: 48px;">
-                                    <span id="kategoriProdukSelectedText" style="color: #374151;">Eksternal</span>
+                                    <span id="kategoriProdukSelectedText" style="color: #374151;">{{ $currentKat ?: '-- Pilih Kategori --' }}</span>
                                     <i class="fas fa-chevron-right text-muted" style="font-size: 0.85rem;" id="kategoriIcon"></i>
                                 </div>
                                 
@@ -103,17 +121,17 @@
 
                                     {{-- HEADER DROPDOWN: Form Input --}}
                                     <div id="addKategoriForm" class="p-2 border-bottom d-none justify-content-between align-items-center" style="background-color: #faf5f9; gap: 8px;">
-                                        <input type="text" id="newKategoriInput" class="form-control custom-input shadow-none" placeholder="Contoh: Eksternal" style="padding: 6px 12px; font-size: 0.9rem; flex-grow: 1;" onclick="event.stopPropagation()">
+                                        <input type="text" id="newKategoriInput" class="form-control custom-input shadow-none" placeholder="Contoh: Eksternal" style="padding: 6px 12px; font-size: 0.9rem; flex-grow: 1;" onclick="event.stopPropagation()" onkeydown="if(event.key === 'Enter') { event.preventDefault(); saveNewKategori(event); }">
                                         <button type="button" class="btn btn-blue btn-sm px-3" onclick="saveNewKategori(event)" style="border-radius: 4px; font-weight: 500; height: 33px;">
                                             Simpan
                                         </button>
                                     </div>
 
+                                    {{-- Looping Data Kategori dari Controller --}}
                                     <div id="kategoriListWrapper">
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Eksternal')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Eksternal</div>
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Internal')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Internal</div>
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Cowork')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Cowork</div>
-                                        <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('Seblak')" style="cursor: pointer; color: #374151; transition: 0.2s;">Seblak</div>
+                                        @foreach($kategoriList as $kat)
+                                            <div class="custom-option py-2 px-3" onclick="selectKategoriProduk('{{ $kat }}')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">{{ $kat }}</div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -124,16 +142,17 @@
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Sub. Kategori Produk</label>
                             
                             <div class="position-relative custom-dropdown-container">
-                                <input type="hidden" name="sub_kategori_produk" id="subKategoriProdukInput" value="Minuman">
+                                @php $currentSub = old('sub_kategori_produk', $produk->subKategori->sub_kategori_produk ?? ''); @endphp
+                                <input type="hidden" name="sub_kategori_produk" id="subKategoriProdukInput" value="{{ $currentSub }}" required>
                                 
                                 <div class="form-control custom-input shadow-none d-flex justify-content-between align-items-center" id="subKategoriProdukSelectBox" onclick="toggleSubKategoriProduk()" style="cursor: pointer; background-color: #ffffff; min-height: 48px;">
-                                    <span id="subKategoriProdukSelectedText" style="color: #374151;">Minuman</span>
+                                    <span id="subKategoriProdukSelectedText" style="color: #374151;">{{ $currentSub ?: '-- Pilih Sub Kategori --' }}</span>
                                     <i class="fas fa-chevron-right text-muted" style="font-size: 0.85rem;" id="subKategoriIcon"></i>
                                 </div>
                                 
                                 <div class="shadow-sm" id="subKategoriProdukOptions" style="visibility: hidden; opacity: 0; transform: translateY(-10px); position: absolute; width: 100%; z-index: 1000; border: 1px solid #d1d5db; border-top: none; border-radius: 0 0 6px 6px; background-color: #ffffff; transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s; pointer-events: none;">
-                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan Ringan')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan Ringan</div>
-                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan</div>
+                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan ringan')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan ringan</div>
+                                    <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Makanan berat')" style="border-bottom: 1px solid #e5e7eb; cursor: pointer; color: #374151; transition: 0.2s;">Makanan berat</div>
                                     <div class="custom-option py-2 px-3" onclick="selectSubKategoriProduk('Minuman')" style="cursor: pointer; color: #374151; transition: 0.2s;">Minuman</div>
                                 </div>
                             </div>
@@ -141,7 +160,7 @@
 
                         {{-- Tombol Simpan --}}
                         <button type="submit" class="btn btn-blue w-100 py-2 fw-bold text-white mt-auto" style="border-radius: 6px;">
-                            Simpan
+                            Simpan Perubahan
                         </button>
                     </div>
 

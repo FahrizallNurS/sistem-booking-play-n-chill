@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use App\Models\TrPos;
+use App\Models\TrPosDetail;
 
 class BookingController extends Controller
 {
@@ -238,7 +240,7 @@ class BookingController extends Controller
 
             $transaksi = TrTransaksi::create([
                 'id_penetapan_harga' => $ph->id_penetapan_harga,
-                'id_pengguna'        => Auth::user()->id_pengguna, // FIX: pakai id_pengguna
+                'id_pengguna'        => Auth::user()->id_pengguna,
                 'kode_sewa'          => $kode,
                 'waktu_mulai'        => $waktuMulai,
                 'waktu_selesai'      => $waktuSelesai,
@@ -248,7 +250,35 @@ class BookingController extends Controller
                 'status_sewa'        => 'ditahan',
                 'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
                 'sisa_bayar'         => $sisaBayar,
+                'sumber_booking'      => 'Online',
             ]);
+
+            $keranjangFb = json_decode($request->keranjang_fb, true);
+            
+            if (is_array($keranjangFb) && count($keranjangFb) > 0) {
+                $totalFb = 0;
+                foreach ($keranjangFb as $item) {
+                    $totalFb += ($item['price'] * $item['qty']);
+                }
+
+                $pos = TrPos::create([
+                    'id_transaksi'   => $transaksi->id_transaksi,
+                    'id_pengguna'    => Auth::user()->id_pengguna, 
+                    'sumber_pesanan' => 'Online',                  
+                    'total_pos'      => $totalFb,
+                    'status_pesanan' => 'Menunggu', 
+                ]);
+
+                foreach ($keranjangFb as $item) {
+                    TrPosDetail::create([
+                        'id_pos'       => $pos->id_pos,
+                        'id_produk'    => $item['id'],
+                        'jumlah'       => $item['qty'],
+                        'harga_satuan' => $item['price'],
+                        'subtotal'     => $item['price'] * $item['qty'],
+                    ]);
+                }
+            }
 
             return redirect()->route('booking.payment.show', $transaksi->id_transaksi);
         });
@@ -259,7 +289,7 @@ class BookingController extends Controller
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
         $bookings = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
-            ->where('id_pengguna', Auth::user()->id_pengguna) // FIX
+            ->where('id_pengguna', Auth::user()->id_pengguna) 
             ->latest()
             ->get();
 
@@ -272,21 +302,116 @@ class BookingController extends Controller
         return redirect()->route('booking.payment.show');
     }
 
-    public function showPayment($id)
+   public function showPayment($id)
     {
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
+        
         $transaksi = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->where('id_transaksi', $id)
-            ->where('id_pengguna', Auth::user()->id_pengguna) // FIX
+            ->where('id_pengguna', Auth::user()->id_pengguna)
             ->firstOrFail();
 
-        return view('pelanggan.payment', compact('transaksi'));
+        $pos = TrPos::where('id_transaksi', $transaksi->id_transaksi)->first();
+        $keranjangFb = [];
+        
+        if ($pos) {
+            $details = TrPosDetail::where('id_pos', $pos->id_pos)->get();
+            foreach ($details as $d) {
+                $produk = DB::table('ms_produk')->where('id_produk', $d->id_produk)->first();
+                $keranjangFb[] = [
+                    'name'  => $produk ? $produk->nama_produk : 'Produk',
+                    'qty'   => $d->jumlah,
+                    'price' => $d->harga_satuan
+                ];
+            }
+        }
+        return view('pelanggan.payment', compact('transaksi', 'keranjangFb'));
+    }
+
+    // --- FUNGSI BARU UNTUK SKENARIO HANYA PESAN F&B (MANDIRI) ---
+    public function checkoutFb(Request $request)
+    {
+        $keranjangFb = json_decode($request->keranjang_fb, true);
+
+        if (empty($keranjangFb)) {
+            return redirect()->back();
+        }
+
+        $totalFb = 0;
+        foreach ($keranjangFb as $item) {
+            $totalFb += ($item['price'] * $item['qty']);
+        }
+
+        $pos = TrPos::create([
+            'id_transaksi'   => null,
+            'id_pengguna'    => Auth::user()?->id_pengguna, 
+            'total_pos'      => $totalFb,
+            'status_pesanan' => 'Menunggu',
+            'sumber_pesanan' => 'Online',
+            'catatan' => $request->catatan,
+        ]);
+
+        foreach ($keranjangFb as $item) {
+            TrPosDetail::create([
+                'id_pos'       => $pos->id_pos,
+                'id_produk'    => $item['id'],
+                'jumlah'       => $item['qty'],
+                'harga_satuan' => $item['price'],
+                'subtotal'     => $item['price'] * $item['qty'],
+            ]);
+        }
+        session(['metode_pembayaran_fb' => $request->metode_pembayaran]);
+
+        return redirect()->route('fb.payment.show', $pos->id_pos);
+    }
+
+    public function showPaymentFb($id)
+    {
+        $pos = TrPos::findOrFail($id);
+        $details = TrPosDetail::where('id_pos', $id)->get();
+        $this->cancelExpiredFbOrders();
+        $keranjangFb = [];
+        foreach ($details as $d) {
+            $produk = DB::table('ms_produk')->where('id_produk', $d->id_produk)->first();
+            $keranjangFb[] = [
+                'name'  => $produk ? $produk->nama_produk : 'Produk',
+                'qty'   => $d->jumlah,
+                'price' => $d->harga_satuan
+            ];
+        }
+        $metode = session('metode_pembayaran_fb', 'QRIS');
+
+        return view('pelanggan.payment-fb', compact('pos', 'keranjangFb', 'metode'));
+    }
+
+  public function confirmPaymentFb($id)
+    {
+        $this->cancelExpiredFbOrders(); 
+
+        $pos = TrPos::findOrFail($id);
+
+        if ($pos->status_pesanan === 'Dibatalkan' || $pos->status_pembayaran === 'kadaluarsa') {
+            return redirect()->route('profile')->with('error', 'Pembayaran gagal. Waktu pembayaran F&B Anda telah habis.');
+        }
+
+        $pos->update([
+            'status_pembayaran' => 'sudah-bayar'
+        ]);
+
+        $noWa = "6285735329227"; 
+        $noPesanan = "FNBPNC-" . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT);
+        $pesan = "Halo Admin Play N Chill, saya ingin konfirmasi pembayaran QRIS untuk F&B dengan Nomor Pesanan: *{$noPesanan}*.\n\nBerikut saya lampirkan bukti transfernya.";
+        
+        $waUrl = "https://wa.me/{$noWa}?text=" . urlencode($pesan);
+
+        return redirect()->away($waUrl);
     }
 
     private function cancelExpiredBookings()
     {
         TrTransaksi::where('status_sewa', 'ditahan')
+            ->where('sumber_booking', 'Online')
             ->where('created_at', '<', now()->subMinutes(30))
             ->update([
                 'status_sewa'        => 'dibatalkan',
@@ -302,4 +427,16 @@ class BookingController extends Controller
                 'status_sewa' => 'selesai',
             ]);
     }
+
+    private function cancelExpiredFbOrders()
+    {
+        TrPos::where('status_pesanan', 'Menunggu')
+            ->where('created_at', '<', now()->subMinutes(15))
+            ->update([
+                'status_pesanan'    => 'Dibatalkan',
+                'status_pembayaran' => 'kadaluarsa',
+            ]);
+    }
+
+    
 }

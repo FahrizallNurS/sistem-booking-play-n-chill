@@ -1,0 +1,51 @@
+{{-- Tombol Aksi (Ditambah text-nowrap agar tidak turun baris) --}}
+                            <td class="align-middle text-nowrap">
+                                <div class="d-flex justify-content-center align-items-center" style="gap: 5px;">
+                                    
+                                    {{-- Tombol Edit --}}
+                                    <button class="btn btn-sm btn-info btn-edit-video text-nowrap" 
+                                        data-id="{{ $video->id_video }}"
+                                        data-link="{{ $video->{'link-video'} }}" 
+                                        data-status="{{ $video->is_active }}"
+                                        data-thumbnail="{{ $video->thumbnail ? asset('uploads/videos/' . $video->thumbnail) : '' }}"
+                                        title="Edit">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+
+                                    {{-- TOMBOL TOGGLE STATUS --}}
+                                    @if($video->is_active)
+                                        {{-- Tombol Nonaktifkan --}}
+                                        <button type="button" class="btn btn-sm btn-warning btn-toggle-status text-nowrap" 
+                                            data-form-id="formToggleStatus_{{ $video->id_video }}"
+                                            data-active="1"
+                                            data-link="{{ $video->{'link-video'} }}"
+                                            title="Nonaktifkan" style="color: #212529; font-weight: 500;">
+                                            <i class="fas fa-ban"></i> Nonaktifkan
+                                        </button>
+                                    @else
+                                        {{-- Tombol Aktifkan --}}
+                                        <button type="button" class="btn btn-sm btn-success btn-toggle-status text-nowrap" 
+                                            data-form-id="formToggleStatus_{{ $video->id_video }}"
+                                            data-active="0"
+                                            data-link="{{ $video->{'link-video'} }}"
+                                            title="Aktifkan">
+                                            <i class="fas fa-check"></i> Aktifkan
+                                        </button>
+                                    @endif
+                                    
+                                    {{-- Form Hapus Beneran --}}
+                                    <form action="{{ route('admin.video.destroy', $video->id_video) }}" method="POST" id="formDeleteVideo_{{ $video->id_video }}" class="m-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="btn btn-sm btn-danger btn-hapus-video text-nowrap" data-id="{{ $video->id_video }}" title="Hapus">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+
+                                    {{-- FORM HIDDEN UNTUK TOGGLE STATUS --}}
+                                    <form action="{{ route('admin.video.toggle-status', $video->id_video) }}" method="POST" id="formToggleStatus_{{ $video->id_video }}" style="display:none;">
+                                        @csrf
+                                        @method('PATCH')
+                                    </form>
+                                </div>
+                            </td>

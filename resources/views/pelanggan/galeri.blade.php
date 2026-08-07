@@ -111,13 +111,11 @@
     </div>
 </nav>
 
-{{-- Tambahan CSS khusus Halaman Galeri --}}
 <style>
-    /* Filter Buttons */
     .filter-btn {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: #3a2377;
         color: #d8b8ff;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 50px;
         padding: 8px 24px;
         font-weight: 600;
@@ -130,16 +128,17 @@
         border-color: #ffd700;
     }
 
-    /* Gallery Cards */
     .gallery-card {
         position: relative;
         border-radius: 16px;
         overflow: hidden;
-        height: 380px;
+        aspect-ratio: 4 / 5; 
         cursor: pointer;
         transition: transform 0.3s ease;
         box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        background-color: #2b0054;
     }
+
     .gallery-card:hover {
         transform: translateY(-8px);
     }
@@ -179,7 +178,6 @@
         width: fit-content;
     }
 
-    /* CTA Section */
     .cta-gallery {
       background: linear-gradient(135deg, #2E1f6e 0%, #4a33a5 100%);
       border-radius: 20px;
@@ -203,6 +201,67 @@
         transform: scale(1.05);
         background-color: #ffea00;
     }
+
+    .gallery-slider-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .slider-indicators {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    .slider-dot {
+        width: 8px;
+        height: 8px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .slider-dot.active {
+        background-color: #ffd700;
+        width: 24px; 
+        border-radius: 10px;
+    }
+
+    @media (min-width: 992px) {
+        .slider-indicators {
+            display: none !important; 
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .gallery-slider-container {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            scroll-snap-type: x mandatory; 
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; 
+            margin-right: 0;
+            margin-left: 0;
+        }
+        
+        .gallery-slider-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gallery-slider-item {
+            flex: 0 0 100%; 
+            width: 100%; 
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
+            padding-right: 0;
+            padding-left: 0;
+        }
+    }
+
 </style>
 
 {{-- ═══ AREA KONTEN UTAMA ═══ --}}
@@ -213,9 +272,9 @@
             <span class="badge rounded-pill text-secondary px-4 py-2" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); letter-spacing: 2px; color: #a0a0a0 !important;">GALERI</span>
         </div>
         
-        <h1 class="mb-4 font-modak" style="font-size: 2.5rem; letter-spacing: 1px; line-height: 1.2;">Lihat Suasana Terbaik <br class="d-md-none"><span style="color: #ffd700; letter-spacing: 2px;">Play N Chill</span></h1>
+        <h1 class="mb-4 font-modak" style="font-size: 2.5rem; letter-spacing: 1px; line-height: 1.2;">Lihat Suasana Terbaik <br class="d-md-none"><span style="color: #ffffff; letter-spacing: 2px;">Play N Chill</span></h1>
         
-        <p class="mx-auto" style="max-width: 600px; color: #bca0e5; line-height: 1.6;">
+        <p class="mx-auto" style="max-width: 600px; color: #ffffff; line-height: 1.6;">
             Jelajahi berbagai ruangan premium Play N Chill dan rasakan sendiri pengalaman gaming, karaoke, hingga private cinema yang nyaman, modern, dan eksklusif.
         </p>
     </div>
@@ -228,47 +287,45 @@
         <button class="filter-btn">Private Karaoke</button>
     </div>
 
-    <div class="row g-4 mb-5 pb-4">
-        <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
-            <div class="gallery-card">
-                <img src="{{ asset('images/gaming.jpg') }}" alt="Area Bermain Reguler" class="gallery-img">
-                <div class="gallery-overlay">
-                    <span class="gallery-badge">REGULER</span>
-                    <h5 class="fw-bold mb-2" style="font-size: 1.25rem;">Area Bermain Reguler</h5>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #d8b8ff; line-height: 1.5;">Area gaming yang nyaman untuk bermain bersama teman dengan suasana santai dan nyaman.</p>
+    {{-- MENGGUNAKAN WRAPPER UNTUK SLIDER & BULLETS --}}
+    <div class="gallery-slider-wrapper mb-5">
+        
+        <div class="gallery-slider-container row g-4" id="galleryContainer">
+            @forelse($galeris as $index => $galeri)
+                <div class="col-12 col-md-6 col-lg-3 gallery-slider-item gallery-item" data-kategori="{{ $galeri->kategori }}" data-aos="fade-up" data-aos-delay="100">
+                    <div class="gallery-card">
+                        @if($galeri->file_foto)
+                            <img src="{{ asset('uploads/galeri/' . $galeri->file_foto) }}" alt="{{ $galeri->judul_foto }}" class="gallery-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
+                        @else
+                            <img src="{{ asset('images/gaming.jpg') }}" alt="Default" class="gallery-img">
+                        @endif
+                        
+                        <div class="gallery-overlay">
+                            <span class="gallery-badge">{{ Str::upper($galeri->kategori) }}</span>
+                            <h5 class="fw-bold mb-2" style="font-size: 1.25rem;">{{ $galeri->judul_foto }}</h5>
+                            <p class="mb-0" style="font-size: 0.85rem; color: #d8b8ff; line-height: 1.5;">
+                                {{ $galeri->deskripsi_foto }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
-            <div class="gallery-card">
-                <img src="{{ asset('images/gaming.jpg') }}" alt="Private Gaming Room" class="gallery-img">
-                <div class="gallery-overlay">
-                    <span class="gallery-badge">PRIVATE</span>
-                    <h5 class="fw-bold mb-2" style="font-size: 1.25rem;">Private Gaming Room</h5>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #d8b8ff; line-height: 1.5;">Nikmati pengalaman bermain PS5 secara private dengan ruangan eksklusif dan fasilitas premium.</p>
+            @empty
+                <div class="col-12 text-center py-5 w-100">
+                    <h4 class="text-white">Galeri sedang diperbarui.</h4>
+                    <p style="color: #bca0e5;">Nantikan foto-foto ruangan menarik dari Play N Chill segera!</p>
                 </div>
-            </div>
+            @endforelse
         </div>
-        <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
-            <div class="gallery-card">
-                <img src="{{ asset('images/cinema.jpg') }}" alt="Private Cinema Room" class="gallery-img">
-                <div class="gallery-overlay">
-                    <span class="gallery-badge">CINEMA</span>
-                    <h5 class="fw-bold mb-2" style="font-size: 1.25rem;">Private Cinema Room</h5>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #d8b8ff; line-height: 1.5;">Rasakan pengalaman menonton film dengan layar besar, audio berkualitas, dan suasana bioskop pribadi.</p>
-                </div>
-            </div>
+
+        {{-- BULLET INDICATORS (Hanya muncul jika ada foto) --}}
+        @if($galeris->count() > 0)
+        <div class="slider-indicators" id="sliderIndicators">
+            @foreach($galeris as $index => $galeri)
+                <div class="slider-dot {{ $index == 0 ? 'active' : '' }}"></div>
+            @endforeach
         </div>
-        <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="500">
-            <div class="gallery-card">
-                <img src="{{ asset('images/karaoke.jpg') }}" alt="Karaoke Room" class="gallery-img">
-                <div class="gallery-overlay">
-                    <span class="gallery-badge">KARAOKE</span>
-                    <h5 class="fw-bold mb-2" style="font-size: 1.25rem;">Karaoke Room</h5>
-                    <p class="mb-0" style="font-size: 0.85rem; color: #d8b8ff; line-height: 1.5;">Bernyanyi bersama keluarga maupun teman dalam ruangan karaoke private yang nyaman dan modern.</p>
-                </div>
-            </div>
-        </div>
+        @endif
+
     </div>
 
     <div class="cta-gallery text-center text-white mt-4" data-aos="zoom-in" data-aos-delay="200">
@@ -288,7 +345,22 @@
                 <div class="f-logo font-modak">Play N Chill</div>
                 <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
             </div>
-            <div class="col-6 col-sm-3 col-lg-3">
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="f-head">Jam Operasional</div>
+                <ul class="f-list">
+                    <li>
+                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
+                        <div>
+                            <div>Senin – Kamis: 14.00 – 22.00</div>
+                            <div>Jumat: 13.00 – 00.00</div>
+                            <div>Sabtu – Minggu: 10.00 – 00.00</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="f-head">Hubungi Kami</div>
                 <ul class="f-list">
                     <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
@@ -299,9 +371,10 @@
                     </li>
                 </ul>
             </div>
-            <div class="col-6 col-sm-3 col-lg-3">
+
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="f-head">Ikuti Kami</div>
-                <ul class="f-list">
+                <ul class="f-list f-soc-list">
                     <li>
                         <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
                             <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
@@ -319,19 +392,6 @@
                     </li>
                 </ul>
             </div>
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-head">Jam Operasional</div>
-                <ul class="f-list">
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
-                        <div>
-                            <div>Senin – Kamis: 14.00 – 22.00</div>
-                            <div>Jumat: 13.00 – 00.00</div>
-                            <div>Sabtu – Minggu: 10.00 – 00.00</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
         </div>
         <hr class="f-divider">
         <p class="f-copy">&copy; {{ date('Y') }} Play N Chill Madiun. All rights reserved.</p>
@@ -342,6 +402,157 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     AOS.init({ duration: 800, once: false, offset: 100 });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const container = document.getElementById('galleryContainer');
+        const dots = document.querySelectorAll('.slider-dot');
+        let autoSlideInterval;
+        const autoSlideDelay = 3500; 
+        function startAutoSlide() {
+            stopAutoSlide(); 
+            autoSlideInterval = setInterval(moveToNextSlide, autoSlideDelay);
+        }
+
+        function stopAutoSlide() {
+            clearInterval(autoSlideInterval);
+        }
+
+        function moveToNextSlide() {
+            let visibleItems = Array.from(galleryItems).filter(item => item.style.display !== 'none');
+            if (visibleItems.length <= 1) return; 
+
+            let centerViewport = window.innerWidth / 2;
+            let minDistance = Infinity;
+            let currentIndex = -1;
+
+            visibleItems.forEach((item, index) => {
+                let rect = item.getBoundingClientRect();
+                let itemCenter = rect.left + (rect.width / 2);
+                let distance = Math.abs(centerViewport - itemCenter);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    currentIndex = index;
+                }
+            });
+
+            let nextIndex = currentIndex + 1;
+            if (nextIndex >= visibleItems.length) {
+                nextIndex = 0;
+            }
+
+            let targetItem = visibleItems[nextIndex];
+            let scrollPos = targetItem.offsetLeft - (container.clientWidth / 2) + (targetItem.clientWidth / 2);
+            container.scrollTo({ left: scrollPos, behavior: 'smooth' });
+        }
+
+        if (container) {
+            container.addEventListener('mouseenter', stopAutoSlide);
+            container.addEventListener('mouseleave', startAutoSlide);
+            container.addEventListener('touchstart', stopAutoSlide, { passive: true });
+            container.addEventListener('touchend', startAutoSlide, { passive: true });
+
+            startAutoSlide();
+        }
+
+        if (container && dots.length > 0) {
+            container.addEventListener('scroll', () => {
+                let centerViewport = window.innerWidth / 2;
+                let minDistance = Infinity;
+                let activeIndex = -1;
+
+                galleryItems.forEach((item, index) => {
+                    if (item.style.display !== 'none') {
+                        let rect = item.getBoundingClientRect();
+                        let itemCenter = rect.left + (rect.width / 2);
+                        let distance = Math.abs(centerViewport - itemCenter);
+
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            activeIndex = index;
+                        }
+                    }
+                });
+
+                dots.forEach(dot => dot.classList.remove('active'));
+                if (activeIndex !== -1 && dots[activeIndex]) {
+                    dots[activeIndex].classList.add('active');
+                }
+            });
+
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', function() {
+                    let targetItem = galleryItems[index];
+                    if (targetItem) {
+                        let scrollPos = targetItem.offsetLeft - (container.clientWidth / 2) + (targetItem.clientWidth / 2);
+                        container.scrollTo({ left: scrollPos, behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterText = this.textContent.trim();
+                let firstVisibleItemIndex = -1;
+
+                galleryItems.forEach((item, index) => {
+                    const kategori = item.getAttribute('data-kategori');
+                    let isMatch = false;
+
+                    if (filterText === 'Semua') {
+                        isMatch = true;
+                    } else if (filterText === 'Galeri Reguler' && kategori === 'Reguler') {
+                        isMatch = true;
+                    } else if (filterText === 'Private Gaming' && kategori === 'Private - Gaming') {
+                        isMatch = true;
+                    } else if (filterText === 'Private Nonton' && kategori === 'Private - Nonton') {
+                        isMatch = true;
+                    } else if (filterText === 'Private Karaoke' && kategori === 'Private - Karaoke') {
+                        isMatch = true;
+                    }
+
+                    if (isMatch) {
+                        item.style.display = 'block';
+                        if (dots[index]) dots[index].style.display = 'block'; 
+                        
+                        if (firstVisibleItemIndex === -1) firstVisibleItemIndex = index;
+
+                        setTimeout(() => {
+                            item.style.opacity = '1';
+                            item.style.transform = 'scale(1)';
+                        }, 50);
+                    } else {
+                        item.style.opacity = '0';
+                        item.style.transform = 'scale(0.8)';
+                        if (dots[index]) dots[index].style.display = 'none'; 
+                        
+                        setTimeout(() => {
+                            item.style.display = 'none';
+                        }, 300);
+                    }
+                });
+
+                stopAutoSlide();
+                if (firstVisibleItemIndex !== -1) {
+                    setTimeout(() => {
+                        let targetItem = galleryItems[firstVisibleItemIndex];
+                        let scrollPos = targetItem.offsetLeft - (container.clientWidth / 2) + (targetItem.clientWidth / 2);
+                        container.scrollTo({ left: scrollPos, behavior: 'smooth' });
+                        
+                        startAutoSlide();
+                    }, 350);
+                }
+            });
+        });
+    });
 </script>
 
 </body>

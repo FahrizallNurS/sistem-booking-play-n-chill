@@ -13,7 +13,7 @@ config(['adminlte.menu' => array_merge(
         [
             'text' => 'Kasir POS',
             'icon' => 'fas fa-fw fa-utensils',
-            'active' => ['admin/fb*'], // Otomatis tetap terbuka saat sub-menu diakses
+            'active' => ['admin/fb*'], 
             'submenu' => [
                 [
                     'text' => 'Data Produk',
@@ -33,39 +33,38 @@ config(['adminlte.menu' => array_merge(
         ['text' => 'Galeri', 'url' => 'admin/galeri', 'icon' => 'far fa-fw fa-image', 'active' => ['admin/galeri*']],
         
         ['header' => 'LAPORAN'],
-        ['text' => 'Laporan Keuangan', 'url' => 'admin/laporan', 'icon' => 'fas fa-fw fa-file-alt'],
+        ['text' => 'Riwayat Transaksi', 'url' => 'admin/laporan', 'icon' => 'fas fa-fw fa-file-alt'],
+        
+        ['header' => 'PENGATURAN SISTEM'],
+        ['text' => 'Pengaturan', 'url' => 'admin/pengaturan', 'icon' => 'fas fa-fw fa-cogs', 'active' => ['admin/pengaturan']],
         
         ['header' => 'AKUN'],
         ['text' => 'Profil', 'url' => 'admin/profil', 'icon' => 'fas fa-fw fa-user-cog'],
         ['text' => 'Keluar', 'url' => '#', 'icon' => 'fas fa-fw fa-sign-out-alt', 'id' => 'logout-link'],
     ]
 )]);
-@endphp
-
-@push('js')
-<script>
+@endphp@push('js')<script>
     document.addEventListener('DOMContentLoaded', function() {
         const logoutLink = document.getElementById('logout-link');
         if (logoutLink) {
             logoutLink.addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                if (confirm('Apakah Anda yakin ingin keluar?')) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route('logout') }}';
-                    
-                    const csrfToken = document.createElement('input');
-                    csrfToken.type = 'hidden';
-                    csrfToken.name = '_token';
-                    csrfToken.value = '{{ csrf_token() }}';
-                    form.appendChild(csrfToken);
-                    
-                    document.body.appendChild(form);
-                    form.submit();
+
+                if (typeof konfirmasiAksi === 'function') {
+                    konfirmasiAksi({
+                        title: 'Keluar dari akun?',
+                        text: 'Anda perlu login kembali untuk mengakses dashboard.',
+                        icon: 'question',
+                        confirmText: 'Ya, keluar',
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            document.getElementById('logout-form').submit();
+                        }
+                    });
+                } else if (confirm('Yakin ingin logout?')) {
+                    document.getElementById('logout-form').submit();
                 }
             });
         }
     });
-</script>
-@endpush
+</script>@endpush

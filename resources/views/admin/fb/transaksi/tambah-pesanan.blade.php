@@ -29,18 +29,21 @@
                         <label class="form-label text-muted" style="font-size: 0.9rem;">
                             Nama Pelanggan <span class="text-danger">*</span>
                         </label>
-                        <input type="text" class="form-control custom-input shadow-none" placeholder="Masukkan nama....">
+                        {{-- 🔹 TAMBAHKAN name="nama_pelanggan" --}}
+                        <input type="text" name="nama_pelanggan" class="form-control custom-input shadow-none" placeholder="Masukkan nama...." required>
                     </div>
                     
                     <div class="col-12 col-md-6">
                         <label class="form-label text-muted" style="font-size: 0.9rem;">No Telp.</label>
-                        <input type="text" class="form-control custom-input shadow-none" placeholder="08...">
+                        {{-- 🔹 TAMBAHKAN name="no_telp" --}}
+                        <input type="text" name="no_telp" class="form-control custom-input shadow-none" placeholder="08...">
                     </div>
                 </div>
 
                 <div class="mb-2">
                     <label class="form-label text-muted" style="font-size: 0.9rem;">Catatan</label>
-                    <textarea class="form-control custom-input shadow-none" rows="10"></textarea>
+                    {{-- 🔹 TAMBAHKAN name="catatan" --}}
+                    <textarea name="catatan" class="form-control custom-input shadow-none" rows="10"></textarea>
                 </div>
 
             </div>
@@ -49,7 +52,7 @@
 {{-- AREA TOMBOL BAWAH --}}
         <div class="d-flex justify-content-end mt-4">
             <button type="button" data-toggle="modal" data-target="#modalFB" class="btn px-5 py-2 shadow-sm d-flex align-items-center justify-content-center" style="background-color: #f07b55; color: #ffffff; border-radius: 6px; font-weight: 600; font-size: 0.95rem; border: none;">
-                <i class="fas fa-shopping-cart me-2"></i> Buat Pesananan F&B
+                <i class="fas fa-shopping-cart me-2"></i> Pilih Menu F&B
             </button>
         </div>
 
@@ -58,8 +61,7 @@
 
 {{-- PANGGIL FILE MODAL DARI SINI (Harus di dalam @section('content')) --}}
 @include('admin.bookings.partials.modal-fb')
-@include('admin.bookings.partials.modal-rincian')
-
+@include('admin.bookings.partials.fnb.modal-rincian-fb')
 @stop
 
 @push('css')
@@ -129,36 +131,9 @@
     }
 </style>
 
-@@push('js')
+@push('js')
 <script>
-    $(document).ready(function() {
-        // Penanda (flag) untuk memastikan modal detail hanya terbuka jika tombol simpan diklik
-        let isSimpanClicked = false;
-
-        // 1. Tangkap klik pada tombol Simpan Pesanan (Pastikan id tombol di modal-fb adalah id="btnSimpanPesanan")
-        $(document).on('click', '#btnSimpanPesanan', function(e) {
-            e.preventDefault();
-            
-            // Set penanda menjadi true
-            isSimpanClicked = true;
-            
-            // Perintahkan modal keranjang untuk menutup
-            $('#modalFB').modal('hide');
-        });
-
-        // 2. Tunggu sampai #modalFB BENAR-BENAR selesai menutup
-        $('#modalFB').on('hidden.bs.modal', function () {
-            // Jika ditutup karena klik tombol Simpan
-            if (isSimpanClicked) {
-                
-                // BUKA MODAL KEDUA DENGAN ID YANG TEPAT (modalDetailPesanan)
-                $('#modalDetailPesanan').modal('show');
-                
-                // Kembalikan penanda ke false
-                isSimpanClicked = false;
-            }
-        });
-    });
+    window.isFnbManual = true;
 </script>
 
 <style>

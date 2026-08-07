@@ -1,4 +1,6 @@
-@extends('superadmin.layouts.app')
+@extends('adminlte::page')
+@include('partials.sidebar-superadmin')
+
 @section('title', 'Tambah User')
 
 @section('content_header', 'Tambah User')

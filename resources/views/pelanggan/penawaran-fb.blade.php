@@ -33,77 +33,232 @@
             position: fixed !important; top: 0 !important; width: 100% !important;
             z-index: 1030 !important; background: rgb(255, 255, 255);
         }
-        
-        .menu-container {
-            background-color: rgba(53, 34, 133, 0.6);
-            border-radius: 20px;
-            padding: 30px;
+
+        /* ═══ PERBAIKAN: Judul Responsif (Sama Persis Menu F&B) ═══ */
+        .hero-title {
+            font-size: 3.5rem;
+            letter-spacing: 1px;
+            line-height: 1.2;
         }
-        .cart-box {
-            background-color: #2E1F6E;
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: sticky;
-            top: 100px; 
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2rem; line-height: 1.1; }
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 1.65rem; line-height: 1.1; }
         }
 
-        .btn-orange {
-            background-color: #FF7A00;
-            color: white;
-            font-weight: 700;
-            border-radius: 50px;
-            padding: 12px 24px;
-            border: none;
-            transition: all 0.2s ease;
-        }
-        .btn-orange:hover {
-            background-color: #e66e00;
-            transform: scale(1.02);
-            color: white;
-        }
+        /* ═══ Card Menu F&B (Sama Persis 100% dengan Menu F&B) ═══ */
+       .fb-card {
+        background-color: #2b0054;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .fb-card:hover {
+        transform: translateY(-8px);
+    }
+    .fb-img-wrapper {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+    }
+    .fb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .fb-card:hover .fb-img {
+        transform: scale(1.05);
+    }
+    .fb-price {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background-color: #ffd700;
+        color: #2b0054;
+        font-weight: 800;
+        font-size: 0.8rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .fb-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    .fb-badge {
+        background-color: rgba(255, 215, 0, 0.1);
+        color: #ffd700;
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        width: fit-content;
+    }
+    .fb-title {
+        color: white;
+        font-weight: bold;
+        font-size: 1.15rem;
+        margin-bottom: 8px;
+    }
+    .fb-desc {
+        color: #bca0e5;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 20px;
+        flex-grow: 1;
+    }
+    .fb-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+    }
+    .fb-status {
+        color: #8a73ba;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .fb-add-btn {
+        background-color: #ffd700;
+        color: #2b0054;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .fb-add-btn:hover {
+        transform: scale(1.1);
+        background-color: #ffea00;
+    }
 
-        /* Card Menu F&B */
-        .fb-card {
-            background-color: #40288c; border-radius: 16px; overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.3s ease;
-            height: 100%; display: flex; flex-direction: column;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .fb-card:hover { transform: translateY(-5px); }
-        .fb-img-wrapper { position: relative; height: 240px; overflow: hidden; }
-        .fb-img { width: 100%; height: 100%; object-fit: cover; }
-        .fb-price {
-            position: absolute; top: 12px; right: 12px;
-            background-color: #ffd700; color: #2b0054;
-            font-weight: 800; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px;
-        }
-        .fb-body { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-        .fb-badge {
-            background-color: rgba(255, 215, 0, 0.1); color: #ffd700;
-            font-size: 0.6rem; padding: 4px 8px; border-radius: 4px;
-            display: inline-block; margin-bottom: 8px; font-weight: 700; width: fit-content;
-        }
-        .fb-title { color: white; font-weight: bold; font-size: 1.1rem; line-height: 1.3; }
-        .fb-add-btn {
-            background-color: #ffd700; color: #2b0054; border: none;
-            width: 32px; height: 32px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; font-weight: bold; transition: transform 0.2s; margin-left: auto;
-        }
-        .fb-add-btn:hover { transform: scale(1.1); background-color: #ffea00; }
-
-        /* Filter & Cart Item Style */
+        /* Filter Style (Tengah & Seragam) */
         .filter-btn {
-            background-color: transparent; color: #d8b8ff;
-            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px;
-            padding: 6px 16px; font-size: 0.85rem; transition: all 0.3s;
+            background-color: #3a2377; color: #d8b8ff;
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px;
+            padding: 8px 24px; font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease;
         }
-        .filter-btn.active, .filter-btn:hover { background-color: #ffd700; color: #2b0054; border-color: #ffd700; }
+        .filter-btn:hover, .filter-btn.active { background-color: #ffd700; color: #2b0054; border-color: #ffd700; }
+
+        /* ═══ POPUP KERANJANG MELAYANG (KAPSUL) ═══ */
+        .floating-cart-pill {
+            position: fixed; bottom: 30px; right: 30px; z-index: 1040;
+            background-color: #40288c; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; 
+            padding: 12px 24px 12px 18px; display: flex; align-items: center; gap: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+        }
+        .floating-cart-pill:hover { transform: translateY(-5px) scale(1.03); background-color: #4a2e9e; }
+        .cart-icon-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+        .cart-icon-wrapper svg { width: 32px; height: 32px; color: #ffd700; }
+        .cart-badge-new {
+            position: absolute; top: -4px; right: -8px; background-color: #ffd700; color: #2b0054;
+            font-weight: 800; font-size: 0.75rem; width: 22px; height: 22px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; border: 2px solid #40288c;
+        }
+        .cart-text-wrapper { display: flex; flex-direction: column; justify-content: center; }
+        .cart-item-count { color: #ffffff; font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
+        .cart-total-price { color: #ffd700; font-weight: 800; font-size: 1rem; line-height: 1.2; }
+
+        /* ═══ BOTTOM SHEET KERANJANG (OFFCANVAS) ═══ */
+        .custom-bottom-sheet {
+            background-color: #2b1b54 !important; border-top-left-radius: 24px; border-top-right-radius: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1); height: auto !important; max-height: 60vh; font-family: 'Nunito', sans-serif;
+        }
+        .custom-bottom-sheet .offcanvas-header { padding: 24px 24px 16px 24px; }
+        .custom-bottom-sheet .offcanvas-body { padding: 0 24px 24px 24px; }
+        .btn-close-custom { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.8; }
+        .btn-qty-control {
+            background-color: rgba(255, 255, 255, 0.1); color: #ffffff; border: none; width: 28px; height: 28px;
+            border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s;
+        }
+        .btn-qty-control:hover { background-color: rgba(255, 255, 255, 0.2); }
+        .btn-checkout-orange {
+            background-color: #ff7a00; color: #ffffff; font-weight: 800; border-radius: 50px;
+            padding: 14px; border: none; font-size: 1.05rem; transition: transform 0.2s;
+        }
+        .btn-checkout-orange:hover { background-color: #e06b00; transform: scale(1.02); color: #ffffff; }
+        .divider-custom { border-color: rgba(255, 255, 255, 0.1); margin: 20px 0; }
+
+        @media (max-width: 576px) {
+            .floating-cart-pill { bottom: 25px; right: 20px; padding: 10px 20px 10px 14px; gap: 12px; }
+            .cart-icon-wrapper svg { width: 28px; height: 28px; }
+            .cart-item-count { font-size: 0.85rem; }
+            .cart-total-price { font-size: 0.9rem; }
+            .cart-badge-new { width: 20px; height: 20px; font-size: 0.7rem; }
+        }
+
+        /* ═══ TOMBOL LEWATI (KAPSUL) ═══ */
+        .floating-skip-pill {
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            z-index: 1040;
+            background-color: transparent; 
+            color: #ffd700;
+            border: 2px solid #ffd700; 
+            border-radius: 50px; 
+            padding: 12px 24px; 
+            font-weight: 700;
+            font-size: 1rem;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+            display: flex; /* Aktif saat keranjang kosong */
+            align-items: center;
+            gap: 8px;
+        }
         
-        .cart-item-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-        .qty-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 24px; height: 24px; border-radius: 4px; font-size: 0.8rem; }
+        .floating-skip-pill:hover { 
+            transform: translateY(-5px); 
+            background-color: rgba(255, 255, 255, 0.1); 
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+
+        /* Menyembunyikan elemen secara default via class jika diperlukan */
+        .d-none-custom { display: none !important; }
+
+        /* ═══ TOMBOL HAPUS ITEM ═══ */
+        .btn-delete-item {
+            color: #ff6b6b; /* Warna merah pastel agar cocok di background gelap */
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-top: 8px;
+        }
+        .btn-delete-item:hover {
+            color: #ff4c4c;
+        }
+
     </style>
 </head>
 <body>
@@ -127,146 +282,218 @@
 </nav>
 
 {{-- AREA KONTEN UTAMA --}}
-<div class="container my-5 pb-5">
-    <div class="row g-4">
+<div class="container mt-2 mt-md-5 mb-5 pb-5">
+    
+    {{-- IMPLEMENTASI: Menggunakan class hero-title agar font size 100% sama dengan menu-fb --}}
+    <div class="text-center" data-aos="fade-down">
+        <h1 class="font-modak mb-3 hero-title" style="color: #ffd700;">
+            Menu<br class="d-block d-sm-none"> Favoritmu
+        </h1>
+    </div>
+
+    {{-- KODE PENDETEKSI ERROR LARAVEL --}}
+    @if ($errors->any())
+        <div class="alert alert-danger mx-auto mt-3" style="border-radius: 10px; font-size: 0.9rem; max-width: 600px;">
+            <ul class="mb-0 ps-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- ================= 1. REKOMENDASI (HANYA 2 MENU BEST SELLER) ================= --}}
+    <div class="mb-4 mt-5" data-aos="fade-up">
+        <h3 class="text-white fw-bold mb-1" style="font-family: 'Nunito', sans-serif; font-size: 1.15rem;">
+            Rekomendasi Food & Beverage
+        </h3>
+        <div style="width: 60px; height: 3px; background-color: #ffd700; border-radius: 2px;"></div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {{-- Card 1 (Ukuran col-lg-3 memastikan lebar card identik dengan Menu F&B) --}}
+        <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="fb-card">
+                <div class="fb-img-wrapper">
+                    <img src="{{ asset('images/menu/french-fries.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
+                    <span class="fb-price">Rp 35.000</span>
+                </div>
+                <div class="fb-body">
+                    <span class="fb-badge">BEST SELLER</span>
+                    <h5 class="fb-title">French Fries & Nuggets</h5>
+                    <div class="fb-footer">
+                        <span class="fb-status">In Stock</span>
+                        <button class="fb-add-btn add-to-cart-btn" data-id="1" data-name="French Fries & Nuggets" data-price="35000" data-img="{{ asset('images/menu/french-fries.jpg') }}">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        <div class="col-lg-7 col-xl-8">
-            <div class="menu-container text-white" data-aos="fade-right">
-                
-                <h2 class="fw-bold mb-1">Lengkapi Pengalaman Bermainmu</h2>
-                <h1 class="font-modak mb-3" style="color: #ffd700; font-size: 2.5rem; letter-spacing: 1px;">Menu Favoritmu</h1>
-                <p style="color: #bca0e5; font-size: 0.95rem; max-width: 90%;">
-                    Nikmati berbagai pilihan makanan ringan, hidangan utama, dan minuman segar yang disiapkan untuk menemani pengalaman bermain mu di Play N Chill.
-                </p>
-
-                <h5 class="fw-bold mt-5 mb-2">Rekomendasi Menu</h5>
-                <p style="color: #bca0e5; font-size: 0.85rem;" class="mb-4">Menu favorit pelanggan yang sering dipesan bersamaan dengan booking.</p>
-                
-                <div class="row g-4 mb-5">
-                    <div class="col-md-6">
-                        <div class="fb-card">
-                            <div class="fb-img-wrapper">
-                                <img src="{{ asset('images/menu/french-fries.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                                <span class="fb-price">Rp 35.000</span>
-                            </div>
-                            <div class="fb-body">
-                                <span class="fb-badge">MAKANAN RINGAN</span>
-                                <h5 class="fb-title">French Fries & Nuggets</h5>
-                                <button class="fb-add-btn add-to-cart-btn" data-id="1" data-name="French Fries & Nuggets" data-price="35000" data-img="{{ asset('images/menu/french-fries.jpg') }}">+</button>
-                            </div>
-                        </div>
+        {{-- Card 2 --}}
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="fb-card">
+                <div class="fb-img-wrapper">
+                    <img src="{{ asset('images/menu/katsu.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
+                    <span class="fb-price">Rp 48.000</span>
+                </div>
+                <div class="fb-body">
+                    <span class="fb-badge">BEST SELLER</span>
+                    <h5 class="fb-title">Chicken Katsu Rice</h5>
+                    <div class="fb-footer">
+                        <span class="fb-status">In Stock</span>
+                        <button class="fb-add-btn add-to-cart-btn" data-id="4" data-name="Chicken Katsu Rice" data-price="48000" data-img="{{ asset('images/menu/katsu.jpg') }}">+</button>
                     </div>
-                    <div class="col-md-6">
-                        <div class="fb-card">
-                            <div class="fb-img-wrapper">
-                                <img src="{{ asset('images/menu/lychee-tea.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                                <span class="fb-price">Rp 28.000</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   {{-- ================= 2. MENU LAINNYA & FILTER (SUDAH DINAMIS) ================= --}}
+    <div class="mb-4 mt-5" data-aos="fade-up">
+        <h3 class="text-white fw-bold mb-1" style="font-family: 'Nunito', sans-serif; font-size: 1.15rem;">
+            Menu Lainnya
+        </h3>
+        <div style="width: 60px; height: 3px; background-color: #ffd700; border-radius: 2px;"></div>
+    </div>
+
+    {{-- FILTER KATEGORI DINAMIS --}}
+    <div class="d-flex justify-content-center flex-wrap mb-5 gap-2 gap-md-3" data-aos="fade-up" data-aos-delay="100">
+        <button class="filter-btn active" data-filter="semua">Semua</button>
+        @php
+            // Mengambil daftar nama kategori unik dari data produk
+            $kategoriUnik = $produks->pluck('subKategori.kategori_produk')->filter()->unique();
+        @endphp
+        
+        @foreach($kategoriUnik as $kat)
+            <button class="filter-btn" data-filter="{{ $kat }}">{{ $kat }}</button>
+        @endforeach
+    </div>
+
+    {{-- DAFTAR PRODUK DINAMIS DARI DATABASE --}}
+    <div class="row g-4" id="dynamic-product-list">
+        @forelse($produks as $produk)
+            <div class="col-12 col-md-6 col-lg-3 product-item" data-kategori="{{ $produk->subKategori->kategori_produk ?? 'Lainnya' }}" data-aos="fade-up" data-aos-delay="100">
+                <div class="fb-card">
+                    <div class="fb-img-wrapper">
+                        @if($produk->foto)
+                            <img src="{{ asset('uploads/fb/' . $produk->foto) }}" alt="{{ $produk->nama_produk }}" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
+                        @else
+                            <div class="fb-img d-flex align-items-center justify-content-center" style="background-color: #f3f4f6;">
+                                <i class="fas fa-utensils text-muted" style="font-size: 2rem;"></i>
                             </div>
-                            <div class="fb-body">
-                                <span class="fb-badge">MINUMAN</span>
-                                <h5 class="fb-title">Lychee Tea & Matcha</h5>
-                                <button class="fb-add-btn add-to-cart-btn" data-id="2" data-name="Lychee Tea & Matcha" data-price="28000" data-img="{{ asset('images/menu/lychee-tea.jpg') }}">+</button>
-                            </div>
+                        @endif
+                        <span class="fb-price">Rp {{ number_format($produk->harga_jual, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="fb-body">
+                        <span class="fb-badge">{{ strtoupper($produk->subKategori->kategori_produk ?? 'LAINNYA') }}</span>
+                        <h5 class="fb-title">{{ $produk->nama_produk }}</h5>
+                        <div class="fb-footer">
+                            <span class="fb-status">{{ $produk->stock > 0 ? 'In Stock' : 'Out Stock' }}</span>
+                            @if($produk->stock > 0)
+                                <button class="fb-add-btn add-to-cart-btn" 
+                                    data-id="{{ $produk->id_produk }}" 
+                                    data-name="{{ $produk->nama_produk }}" 
+                                    data-price="{{ $produk->harga_jual }}" 
+                                    data-img="{{ $produk->foto ? asset('uploads/fb/' . $produk->foto) : asset('images/gaming.jpg') }}">+</button>
+                            @else
+                                <button class="fb-add-btn bg-secondary text-white" disabled style="cursor: not-allowed;">-</button>
+                            @endif
                         </div>
                     </div>
                 </div>
+            </div>
+        @empty
+            <div class="col-12 text-center text-white py-5">
+                <p>Mohon maaf, menu F&B sedang kosong saat ini.</p>
+            </div>
+        @endforelse
+    </div>
 
-                <h5 class="fw-bold mt-4 mb-4">Menu Lainnya</h5>
-                <div class="d-flex flex-wrap gap-2 mb-4">
-                    <button class="filter-btn active">Semua</button>
-                    <button class="filter-btn">Makanan Ringan</button>
-                    <button class="filter-btn">Makanan Berat</button>
-                    <button class="filter-btn">Minuman</button>
-                </div>
+</div>
 
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="fb-card">
-                            <div class="fb-img-wrapper">
-                                <img src="{{ asset('images/menu/snack-spread.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                                <span class="fb-price">Rp 65.000</span>
-                            </div>
-                            <div class="fb-body">
-                                <span class="fb-badge">MAKANAN RINGAN</span>
-                                <h5 class="fb-title">Premium Snack Spread</h5>
-                                <button class="fb-add-btn add-to-cart-btn" data-id="3" data-name="Premium Snack Spread" data-price="65000" data-img="{{ asset('images/menu/snack-spread.jpg') }}">+</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="fb-card">
-                            <div class="fb-img-wrapper">
-                                <img src="{{ asset('images/menu/katsu.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                                <span class="fb-price">Rp 48.000</span>
-                            </div>
-                            <div class="fb-body">
-                                <span class="fb-badge">MAKANAN BERAT</span>
-                                <h5 class="fb-title">Chicken Katsu Rice</h5>
-                                <button class="fb-add-btn add-to-cart-btn" data-id="4" data-name="Chicken Katsu Rice" data-price="48000" data-img="{{ asset('images/menu/katsu.jpg') }}">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- 1. Tombol Lewati (Tampil saat 0 item) -->
+<button type="button" id="floatingSkipBtn" class="floating-skip-pill" onclick="document.getElementById('skipForm').submit();" data-aos="zoom-in" data-aos-delay="400">
+    Nanti Saja
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+    </svg>
+</button>
 
+<!-- 2. Cart Pill Asli (Disembunyikan saat 0 item) -->
+<div id="floatingCartPill" class="floating-cart-pill d-none-custom" data-bs-toggle="offcanvas" data-bs-target="#cartBottomSheet" aria-controls="cartBottomSheet">
+    <div class="cart-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        </svg>
+        <span class="cart-badge-new" id="floatingCartBadge">0</span>
+    </div>
+    <div class="cart-text-wrapper">
+        <span class="cart-item-count" id="floatingCartCount">0 Items</span>
+        <span class="cart-total-price" id="floatingCartTotal">Rp 0</span>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-bottom custom-bottom-sheet shadow-lg" tabindex="-1" id="cartBottomSheet" aria-labelledby="cartBottomSheetLabel">
+    
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title text-white fw-bold" id="cartBottomSheetLabel" style="font-size: 1.25rem;">Ringkasan Pesanan F&B</h5>
+        <button type="button" class="btn-close btn-close-custom" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    
+   <div class="offcanvas-body d-flex flex-column">
+        
+        {{-- Area Daftar Pesanan Cart --}}
+        <div id="cartItemsArea" class="flex-grow-1 overflow-auto" style="scrollbar-width: none;">
+            <div class="text-center text-muted mt-4" id="emptyCartMessage">
+                <p style="font-size: 0.9rem; color: #bca0e5 !important;">Belum ada menu yang ditambahkan</p>
             </div>
         </div>
 
-        <div class="col-lg-5 col-xl-4">
-            <div class="cart-box text-white" data-aos="fade-left" data-aos-delay="200">
-                <h5 class="fw-bold mb-4">Ringkasan Pesanan F&B</h5>
-
-                {{-- KODE PENDETEKSI ERROR LARAVEL --}}
-                    @if ($errors->any())
-                    <div class="alert alert-danger" style="border-radius: 10px; font-size: 0.85rem;">
-                        <ul class="mb-0 ps-3">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-                
-                <div id="cartItemsArea" class="mb-4" style="min-height: 150px; display: flex; flex-direction: column; justify-content: center;">
-                    <div class="text-center text-muted" id="emptyCartMessage">
-                        <p style="font-size: 0.85rem; color: #bca0e5 !important;">Belum ada menu yang ditambahkan</p>
-                    </div>
-                </div>
-
-                <div id="cartTotalsArea" style="display: none;">
-                    <hr style="border-color: rgba(255,255,255,0.1);">
-                    <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem; color: #bca0e5;">
-                        <span>Subtotal F&B</span>
-                        <span id="subtotalValue">Rp 0</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-4 fw-bold" style="font-size: 1.1rem;">
-                        <span>Total Pembayaran</span>
-                        <span id="totalValue">Rp 0</span>
-                    </div>
-                </div>
-
-                <!-- Form Checkout yang Menggabungkan Data Booking & F&B -->
-                <form action="{{ route('booking.store') }}" method="POST" id="checkoutForm">
-                    @csrf
-                    
-                    {{-- Menangkap data booking dari URL (operan halaman sebelumnya) --}}
-                    <input type="hidden" name="id_penetapan_harga" value="{{ request('id_penetapan_harga') }}">
-                    <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
-                    <input type="hidden" name="waktu_mulai" value="{{ request('waktu_mulai') }}">
-                    <input type="hidden" name="opsi_pembayaran" value="{{ request('opsi_pembayaran') }}">
-                    <input type="hidden" name="jumlah_dp" value="{{ request('jumlah_dp') }}">
-                    <input type="hidden" name="no_hp" value="{{ request('no_hp') }}">
-                    
-                    {{-- Wadah rahasia untuk menampung data keranjang makanan (JSON) --}}
-                    <input type="hidden" name="keranjang_fb" id="cartDataInput" value="[]">
-
-                    <button type="submit" id="checkoutBtn" class="btn btn-orange w-100 mt-2">
-                        Nanti Saja & Lanjut Pembayaran
-                    </button>
-                </form>
-
+        {{-- Area Rincian Harga & Tombol Checkout JIKA ADA BARANG --}}
+        <div class="mt-auto pt-2" id="cartTotalsArea" style="display: none;">
+            <hr class="divider-custom">
+            <div class="d-flex justify-content-between mb-2">
+                <span style="color: #bca0e5; font-size: 0.95rem;">Total Item</span>
+                <span style="color: #ffffff; font-size: 0.95rem; font-weight: 700;" id="totalItemValue">0</span>
             </div>
+            <div class="d-flex justify-content-between mb-4">
+                <span class="text-white fw-bold" style="font-size: 1.15rem;">Subtotal F&B</span>
+                <span class="text-white fw-bold" style="font-size: 1.15rem;" id="totalValue">Rp 0</span>
+            </div>
+            
+            <form action="{{ route('booking.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="id_penetapan_harga" value="{{ request('id_penetapan_harga') }}">
+                <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+                <input type="hidden" name="waktu_mulai" value="{{ request('waktu_mulai') }}">
+                <input type="hidden" name="opsi_pembayaran" value="{{ request('opsi_pembayaran') }}">
+                <input type="hidden" name="jumlah_dp" value="{{ request('jumlah_dp') }}">
+                <input type="hidden" name="no_hp" value="{{ request('no_hp') }}">
+                <input type="hidden" name="keranjang_fb" id="cartDataInput" value="[]">
+                
+                <button type="submit" class="btn w-100 btn-checkout-orange">
+                    Lanjut Pembayaran
+                </button>
+            </form>
         </div>
 
+        {{-- Tombol Checkout JIKA KERANJANG KOSONG (Lewati F&B) --}}
+        <div class="mt-auto pt-2" id="emptyCartAction" style="display: block;">
+            <form id="skipForm" action="{{ route('booking.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="id_penetapan_harga" value="{{ request('id_penetapan_harga') }}">
+                <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+                <input type="hidden" name="waktu_mulai" value="{{ request('waktu_mulai') }}">
+                <input type="hidden" name="opsi_pembayaran" value="{{ request('opsi_pembayaran') }}">
+                <input type="hidden" name="jumlah_dp" value="{{ request('jumlah_dp') }}">
+                <input type="hidden" name="no_hp" value="{{ request('no_hp') }}">
+                <input type="hidden" name="keranjang_fb" value="[]">
+                
+                <button type="submit" class="btn w-100 btn-checkout-orange">
+                    Nanti Saja & Lanjut Pembayaran
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -275,64 +502,117 @@
 
 <script>
     AOS.init({ duration: 800, once: true });
+    
     let cart = [];
+    
     const formatRupiah = (angka) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
     };
 
     function updateCartUI() {
+        const pillBadge = document.getElementById('floatingCartBadge');
+        const pillCount = document.getElementById('floatingCartCount');
+        const pillTotal = document.getElementById('floatingCartTotal');
+        
         const cartItemsArea = document.getElementById('cartItemsArea');
-        const emptyMessage = document.getElementById('emptyCartMessage');
         const totalsArea = document.getElementById('cartTotalsArea');
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        const subtotalValue = document.getElementById('subtotalValue');
+        const emptyCartAction = document.getElementById('emptyCartAction');
+        const cartDataInput = document.getElementById('cartDataInput');
+        
+        const totalItemValue = document.getElementById('totalItemValue');
         const totalValue = document.getElementById('totalValue');
 
+        // Deklarasi ID untuk kedua tombol melayang
+        const floatingSkipBtn = document.getElementById('floatingSkipBtn');
+        const floatingCartPill = document.getElementById('floatingCartPill');
+
+        let totalQty = 0;
+        let totalPrice = 0;
+
         if (cart.length === 0) {
-            cartItemsArea.innerHTML = '';
-            cartItemsArea.appendChild(emptyMessage);
-            emptyMessage.style.display = 'block';
-            totalsArea.style.display = 'none';
-            cartItemsArea.style.justifyContent = 'center';
-            checkoutBtn.innerHTML = 'Nanti Saja & Lanjut Pembayaran'; 
-        } 
-     
-        else {
-            emptyMessage.style.display = 'none';
-            cartItemsArea.style.justifyContent = 'flex-start';
-            cartItemsArea.innerHTML = ''; 
+            if (cartItemsArea) {
+                cartItemsArea.innerHTML = `
+                    <div class="text-center text-muted mt-4" id="emptyCartMessage">
+                        <p style="font-size: 0.9rem; color: #bca0e5 !important;">Belum ada menu yang ditambahkan</p>
+                    </div>
+                `;
+            }
+            if (totalsArea) totalsArea.style.display = 'none';
+            if (emptyCartAction) emptyCartAction.style.display = 'block';
             
-            let total = 0;
+            if (pillBadge) pillBadge.innerText = '0';
+            if (pillCount) pillCount.innerText = '0 Items';
+            if (pillTotal) pillTotal.innerText = 'Rp 0';
+            if (cartDataInput) cartDataInput.value = '[]';
+
+            // Logika UI Floating Button (TAMPILKAN SKIP, SEMBUNYIKAN CART)
+            if (floatingSkipBtn) floatingSkipBtn.style.display = 'flex';
+            if (floatingCartPill) {
+                floatingCartPill.classList.add('d-none-custom');
+                floatingCartPill.style.display = 'none';
+            }
+            
+        } else {
+            // Tampilan jika keranjang ADA ISINYA
+            if (totalsArea) totalsArea.style.display = 'block';
+            if (emptyCartAction) emptyCartAction.style.display = 'none';
+            
+            let htmlContent = ''; 
 
             cart.forEach(item => {
-                total += item.price * item.qty;
+                totalQty += item.qty;
+                totalPrice += (item.price * item.qty);
+
                 const imgSrc = item.img ? item.img : '{{ asset("images/gaming.jpg") }}';
-                const itemHTML = `
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="${imgSrc}" class="cart-item-img me-3" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1" style="font-size: 0.9rem;">${item.name}</h6>
-                            <div class="d-flex align-items-center gap-2">
-                                <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
-                                <span style="font-size: 0.85rem;">${item.qty}</span>
-                                <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                htmlContent += `
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="${imgSrc}" alt="${item.name}" class="rounded" style="width: 56px; height: 56px; object-fit: cover;" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
+                        
+                        <div class="ms-3 flex-grow-1">
+                            <div class="text-white fw-semibold mb-1" style="font-size: 0.95rem;">${item.name}</div>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn-qty-control" onclick="changeQty(${item.id}, -1)">-</button>
+                                <span class="text-white mx-3 fw-bold" style="font-size: 0.95rem;">${item.qty}</span>
+                                <button type="button" class="btn-qty-control" onclick="changeQty(${item.id}, 1)">+</button>
                             </div>
                         </div>
-                        <div class="fw-bold" style="font-size: 0.9rem;">
-                            ${formatRupiah(item.price * item.qty)}
+                        
+                        <div class="text-end d-flex flex-column align-items-end">
+                            <div class="text-white fw-bold" style="font-size: 1rem;">
+                                ${formatRupiah(item.price * item.qty)}
+                            </div>
+                            <button type="button" class="btn-delete-item" onclick="removeItem(${item.id})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                </svg>
+                                Hapus
+                            </button>
                         </div>
                     </div>
                 `;
-                cartItemsArea.innerHTML += itemHTML;
             });
 
-            totalsArea.style.display = 'block';
-            subtotalValue.innerHTML = formatRupiah(total);
-            totalValue.innerHTML = formatRupiah(total);
-            checkoutBtn.innerHTML = 'Lanjut Pembayaran';
+            if (cartItemsArea) cartItemsArea.innerHTML = htmlContent;
+            if (totalItemValue) totalItemValue.innerText = totalQty;
+            if (totalValue) totalValue.innerText = formatRupiah(totalPrice);
+            
+            if (pillBadge) pillBadge.innerText = totalQty;
+            if (pillCount) pillCount.innerText = totalQty + ' Items';
+            if (pillTotal) pillTotal.innerText = formatRupiah(totalPrice);
+            
+            if (cartDataInput) cartDataInput.value = JSON.stringify(cart); 
+
+            // Logika UI Floating Button (SEMBUNYIKAN SKIP, TAMPILKAN CART)
+            if (floatingSkipBtn) floatingSkipBtn.style.display = 'none';
+            if (floatingCartPill) {
+                floatingCartPill.classList.remove('d-none-custom');
+                floatingCartPill.style.display = 'flex';
+            }
         }
     }
 
+    // Fungsi untuk menambah/mengurangi kuantitas
     window.changeQty = function(id, change) {
         const itemIndex = cart.findIndex(i => i.id == id);
         if (itemIndex > -1) {
@@ -344,8 +624,16 @@
         }
     };
 
+    // Fungsi baru untuk menghapus item langsung
+    window.removeItem = function(id) {
+        cart = cart.filter(item => item.id != id);
+        updateCartUI();
+    };
+
+    // Event listener untuk tombol add to cart
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); 
             const id = this.getAttribute('data-id');
             const name = this.getAttribute('data-name');
             const price = parseInt(this.getAttribute('data-price'));
@@ -363,6 +651,26 @@
         });
     });
 
+    // ═══ LOGIKA FILTER KATEGORI ═══
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Hapus status aktif dari semua tombol, berikan ke tombol yang diklik
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            const items = document.querySelectorAll('.product-item');
+            
+            items.forEach(item => {
+                // Tampilkan jika kategorinya cocok atau sedang memilih "semua"
+                if(filter === 'semua' || item.getAttribute('data-kategori') === filter) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
 </script>
 
 </body>
