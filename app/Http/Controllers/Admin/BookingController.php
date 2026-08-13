@@ -63,16 +63,7 @@ class BookingController extends Controller
         $bookings = $query->paginate(15)->withQueryString();
         $ruangans = MsRuangan::where('is_active', 1)->get();
 
-        $produks = MsProduk::with('subKategori')
-            ->where('is_active', 1)
-            ->orderBy('nama_produk')
-            ->get();
-
-        $kategoriFnb = $produks
-            ->pluck('subKategori.sub_kategori_produk')
-            ->filter()
-            ->unique()
-            ->values{{-- (); --}}}}
+        [$produks, $kategoriFnb] = $this->getProdukFnbData();
 
         return view('admin.bookings.index', compact('bookings', 'ruangans', 'produks', 'kategoriFnb'));
     }
@@ -87,16 +78,7 @@ class BookingController extends Controller
 
         // Produk F&B untuk modal keranjang — sama seperti di index(), supaya
         // admin bisa langsung tambah pesanan F&B saat bikin booking baru.
-        $produks = MsProduk::with('subKategori')
-            ->where('is_active', 1)
-            ->orderBy('nama_produk')
-            ->get();
-
-        $kategoriFnb = $produks
-            ->pluck('subKategori.sub_kategori_produk')
-            ->filter()
-            ->unique()
-            ->values();
+        [$produks, $kategoriFnb] = $this->getProdukFnbData();
 
         return view('admin.bookings.create', compact('ruangans', 'pakets', 'produks', 'kategoriFnb'));
     }
@@ -160,7 +142,7 @@ class BookingController extends Controller
                 'metode_pembayaran'  => $validated['metode_pembayaran'],
                 'catatan'            => $validated['catatan'] ?? null,
                 'items'              => $validated['items'] ?? [],
-                'id_admin'           => auth()->id(),          // <-- baru
+                'id_admin'           => auth()->id(),
                 'dicetak_oleh'       => auth()->user()->nama_pengguna,
             ]);
         } catch (ValidationException $e) {
@@ -177,9 +159,8 @@ class BookingController extends Controller
             'data'    => [
                 'kode_sewa'    => $transaksi->kode_sewa,
                 'id_transaksi' => $transaksi->id_transaksi,
-                'dicetak_oleh' => auth()->user()->nama_pengguna, 
-                // UBAH BARIS INI: arahkan langsung ke aset public
-                'pdf_url'      => asset('assets/struk/' . $transaksi->kode_sewa . '.pdf'), 
+                'dicetak_oleh' => auth()->user()->nama_pengguna,
+                'pdf_url'      => asset('assets/struk/' . $transaksi->kode_sewa . '.pdf'),
             ],
         ]);
     }
@@ -189,7 +170,7 @@ class BookingController extends Controller
     // ============================================================
     public function show($id)
     {
-        // [BARU] Pastikan juga ditaruh di fungsi show 
+        // [BARU] Pastikan juga ditaruh di fungsi show
         // Biar misal admin refresh halaman detail, statusnya ikut terupdate otomatis
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
@@ -200,7 +181,7 @@ class BookingController extends Controller
 
         $pos = \App\Models\TrPos::where('id_transaksi', $id)->first();
         $posDetails = [];
-        
+
         if ($pos) {
             $details = \App\Models\TrPosDetail::where('id_pos', $pos->id_pos)->get();
             foreach ($details as $d) {
@@ -208,7 +189,7 @@ class BookingController extends Controller
                 $posDetails[] = [
                     'name'     => $produk ? $produk->nama_produk : 'Produk Dihapus',
                     'qty'      => $d->jumlah,
-                    'subtotal' => $d->subtotal
+                    'subtotal' => $d->subtotal,
                 ];
             }
         }
@@ -231,7 +212,7 @@ class BookingController extends Controller
         $booking->update([
             'status_sewa'       => 'dikonfirmasi',
             'status_pembayaran' => $booking->opsi_pembayaran === 'full' ? 'lunas' : 'dp',
-            'id_admin'          => auth()->id(),   
+            'id_admin'          => auth()->id(),
         ]);
 
         return redirect()->route('admin.booking.index')
@@ -284,11 +265,17 @@ class BookingController extends Controller
     // ============================================================
     public function pembayaran(Request $request, $id)
     {
+        $validated = $request->validate([
+            'status_pembayaran'  => 'required|in:belum_bayar,dp,lunas,refund',
+            'catatan_pembayaran' => 'nullable|string|max:255',
+        ]);
+
         $booking = TrTransaksi::findOrFail($id);
+
         $booking->update([
-            'status_pembayaran'  => $request->status_pembayaran,
-            'catatan_pembayaran' => $request->catatan_pembayaran,
-            'sisa_bayar'         => $request->status_pembayaran === 'lunas' ? 0 : $booking->sisa_bayar,
+            'status_pembayaran'  => $validated['status_pembayaran'],
+            'catatan_pembayaran' => $validated['catatan_pembayaran'] ?? $booking->catatan_pembayaran,
+            'sisa_bayar'         => $validated['status_pembayaran'] === 'lunas' ? 0 : $booking->sisa_bayar,
             'id_admin'           => auth()->id(),
         ]);
 
@@ -302,6 +289,12 @@ class BookingController extends Controller
     public function selesai($id)
     {
         $booking = TrTransaksi::findOrFail($id);
+
+        if ($booking->status_sewa !== 'dikonfirmasi') {
+            return redirect()->route('admin.booking.show', $id)
+                ->with('error', 'Hanya booking berstatus dikonfirmasi yang bisa ditandai selesai.');
+        }
+
         $booking->update([
             'status_sewa' => 'selesai',
             'id_admin'    => auth()->id(),
@@ -361,15 +354,15 @@ class BookingController extends Controller
         return redirect()->route('admin.booking.show', $id)
             ->with('success', 'Jadwal booking berhasil diubah.');
     }
-    
+
     // CETAK STRUK (finalisasi booking online: konfirmasi + lunas + PDF)
     public function cetakStruk(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
-            'metode_pembayaran'            => 'required|in:TUNAI,QRIS',
-            'items'                        => 'array',
-            'items.*.id_produk'            => 'required_with:items|integer|exists:ms_produk,id_produk',
-            'items.*.jumlah'               => 'required_with:items|integer|min:1',
+            'metode_pembayaran' => 'required|in:TUNAI,QRIS',
+            'items'              => 'array',
+            'items.*.id_produk'  => 'required_with:items|integer|exists:ms_produk,id_produk',
+            'items.*.jumlah'     => 'required_with:items|integer|min:1',
         ]);
 
         $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
@@ -395,6 +388,25 @@ class BookingController extends Controller
                 'pdf_url' => asset($pdfRelativePath),
             ],
         ]);
+    }
+
+    // ============================================================
+    // HELPER: Produk F&B + daftar kategori (dipakai index() & create())
+    // ============================================================
+    private function getProdukFnbData(): array
+    {
+        $produks = MsProduk::with('subKategori')
+            ->where('is_active', 1)
+            ->orderBy('nama_produk')
+            ->get();
+
+        $kategoriFnb = $produks
+            ->pluck('subKategori.sub_kategori_produk')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return [$produks, $kategoriFnb];
     }
 
     private function cancelExpiredBookings()

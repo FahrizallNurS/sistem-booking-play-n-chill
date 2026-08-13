@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin\Fb;
 
 use App\Http\Controllers\Controller;
-use App\Models\MsProduk;
 use App\Models\TrPos;
 use App\Models\User;
 use App\Services\FbService;
@@ -112,21 +111,5 @@ class AdminFbController extends Controller
 
         return view('admin.fb.transaksi.tambah-pesanan', compact('produks', 'kategoriFnb'));
     }
-
-    // Fungsi untuk + Tambah Stock Produk
     
-public function tambahStok(Request $request, $id)
-    {
-        $request->validate([
-            'tambahan_stok' => 'required|integer|min:1'
-        ], [
-            'tambahan_stok.min' => 'Jumlah stok yang ditambahkan minimal 1.'
-        ]);
-
-        $produk = MsProduk::findOrFail($id);
-        $produk->stock = $produk->stock + $request->tambahan_stok;
-        $produk->save();
-
-        return redirect()->back()->with('success', "Stok {$produk->nama_produk} berhasil ditambah sebanyak {$request->tambahan_stok} item!");
-    }
 }
