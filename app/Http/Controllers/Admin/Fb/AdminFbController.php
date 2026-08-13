@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Fb;
 
 use App\Http\Controllers\Controller;
+use App\Models\MsProduk;
 use App\Models\TrPos;
 use App\Models\User;
 use App\Services\FbService;
@@ -46,24 +47,14 @@ class AdminFbController extends Controller
     {
         $pos = TrPos::findOrFail($id);
         $pos->update([
-            'status_pesanan' => $request->status_pesanan,
-            'status_pembayaran' => $request->status_pembayaran
+            'status_pesanan'    => $request->status_pesanan,
+            'status_pembayaran' => $request->status_pembayaran,
+            'id_admin'          => auth()->id(),
         ]);
 
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui!');
     }
 
-    /**
-     * Simpan pesanan F&B mandiri (tanpa booking) sekaligus finalisasi:
-     * potong stock + generate PDF struk, semua dalam satu kali jalan lewat
-     * FbService::createPos(). Berbeda dari flow booking manual (2 tahap:
-     * create lalu finalisasi terpisah), di sini cukup 1 tahap karena F&B
-     * mandiri cuma punya satu entry point -- tidak ada skenario reprint /
-     * re-finalize dari server yang butuh idempotency guard.
-     *
-     * Response berupa JSON (bukan redirect), karena front-end
-     * (modal-rincian-fb.blade.php) memanggil endpoint ini lewat AJAX.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -71,10 +62,6 @@ class AdminFbController extends Controller
             'no_telp'            => 'nullable|string|max:15',
             'catatan'            => 'nullable|string|max:50',
             'metode_pembayaran'  => 'required|in:TUNAI,QRIS',
-            // Beda dari items di booking manual (nullable): di sini WAJIB
-            // ada minimal 1 item, karena seluruh transaksi ini memang
-            // pesanan F&B -- kalau cart kosong, tidak ada alasan membuat
-            // baris tr_pos sama sekali.
             'items'              => 'required|array|min:1',
             'items.*.id_produk'  => [
                 'required',
@@ -91,6 +78,7 @@ class AdminFbController extends Controller
                 'catatan'           => $validated['catatan'] ?? null,
                 'metode_pembayaran' => $validated['metode_pembayaran'],
                 'items'             => $validated['items'],
+                'id_admin'          => auth()->id(),          // <-- baru
                 'dicetak_oleh'      => auth()->user()->nama_pengguna,
             ]);
         } catch (ValidationException $e) {
@@ -113,18 +101,32 @@ class AdminFbController extends Controller
 
     public function create()
     {
-        // 1. Ambil semua produk F&B yang statusnya aktif beserta relasi kategorinya
         $produks = \App\Models\MsProduk::with('subKategori')
                     ->where('is_active', 1)
                     ->get();
 
-        // 2. Ekstrak daftar nama kategori yang unik untuk tombol tab filter di Modal
         $kategoriFnb = $produks->pluck('subKategori.sub_kategori_produk')
                        ->filter()
                        ->unique()
                        ->values();
 
-        // 3. Lempar datanya ke halaman form tambah pesanan
         return view('admin.fb.transaksi.tambah-pesanan', compact('produks', 'kategoriFnb'));
+    }
+
+    // Fungsi untuk + Tambah Stock Produk
+    
+public function tambahStok(Request $request, $id)
+    {
+        $request->validate([
+            'tambahan_stok' => 'required|integer|min:1'
+        ], [
+            'tambahan_stok.min' => 'Jumlah stok yang ditambahkan minimal 1.'
+        ]);
+
+        $produk = MsProduk::findOrFail($id);
+        $produk->stock = $produk->stock + $request->tambahan_stok;
+        $produk->save();
+
+        return redirect()->back()->with('success', "Stok {$produk->nama_produk} berhasil ditambah sebanyak {$request->tambahan_stok} item!");
     }
 }

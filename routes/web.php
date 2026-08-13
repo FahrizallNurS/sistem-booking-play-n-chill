@@ -344,8 +344,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/fb/produk/create', [ProdukController::class, 'create'])->name('fb.produk.create');
         Route::post('/fb/produk/store', [ProdukController::class, 'store'])->name('fb.produk.store');
 
+        // Halaman Khusus Tambah Stok
+        Route::get('/fb/produk/tambah-stok', [\App\Http\Controllers\Admin\Fb\ProdukController::class, 'halamanTambahStok'])->name('fb.produk.halaman-tambah-stok');
+        
+        // Proses Menyimpan Stoknya
+        Route::post('/fb/produk/{id}/simpan-stok', [\App\Http\Controllers\Admin\Fb\ProdukController::class, 'simpanStok'])->name('fb.produk.simpan-stok');
         // Route untuk Edit Produk F&B
         Route::get('/fb/produk/edit/{id}', [ProdukController::class, 'edit'])->name('fb.produk.edit');
+        
         Route::put('/fb/produk/update/{id}', [ProdukController::class, 'update'])->name('fb.produk.update');
 
         // Tangkapan sementara untuk tombol simpan (POST/PUT) saat Edit

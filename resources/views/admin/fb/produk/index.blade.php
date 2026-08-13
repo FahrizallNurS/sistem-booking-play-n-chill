@@ -72,10 +72,16 @@
                         </div>
                     </div>
 
-                    {{-- Tombol Tambah Produk --}}
-                    <div class="col-12 col-lg-3 text-lg-end mt-3 mt-lg-0 ms-auto">
-                        <a href="{{ url('/admin/fb/produk/create') }}" class="btn btn-purple px-4 d-inline-block" style="border-radius: 6px; padding-top: 0.4rem; padding-bottom: 0.4rem; text-decoration: none;">
+                    {{-- Tombol Aksi (Tambah Produk & Tambah Stok) --}}
+                    <div class="col-12 col-lg-3 text-lg-end mt-3 mt-lg-0 ms-auto d-flex justify-content-lg-end" style="gap: 8px;">
+                        {{-- Tombol Tambah Produk --}}
+                        <a href="{{ url('/admin/fb/produk/create') }}" class="btn btn-purple shadow-sm" style="border-radius: 6px; padding-top: 0.4rem; padding-bottom: 0.4rem; text-decoration: none; font-size: 0.9rem;">
                             <i class="fas fa-plus me-1"></i> Tambah Produk
+                        </a>
+                        
+                        {{-- Tombol Tambah Stok (Mengarah ke Halaman Terpisah) --}}
+                        <a href="{{ route('admin.fb.produk.halaman-tambah-stok') }}" class="btn btn-success shadow-sm" style="border-radius: 6px; padding-top: 0.4rem; padding-bottom: 0.4rem; text-decoration: none; font-size: 0.9rem;">
+                            <i class="fas fa-box-open me-1"></i> Tambah Stok
                         </a>
                     </div>
 

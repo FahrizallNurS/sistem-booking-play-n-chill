@@ -1,18 +1,22 @@
-{{--
-    Komponen badge status transaksi.
-    Dipakai di tabel Laporan Transaksi maupun di dalam modal detail (Booking & F&B),
-    supaya warna & label status konsisten di semua tempat — cukup diubah di satu file ini.
-
-    Penggunaan:
-        <x-status-badge :status="$t->status_sewa" />
---}}
 @php
     $key = strtolower(trim($status ?? ''));
 
     $map = [
-        'selesai'    => ['bg' => '#2ecc71', 'label' => 'Selesai'],
-        'dibatalkan' => ['bg' => '#dc3545', 'label' => 'Dibatalkan'],
-        'refund'     => ['bg' => '#e08e0b', 'label' => 'Refund'],
+        // Status sewa / pesanan
+        'selesai'      => ['bg' => '#2ecc71', 'label' => 'Selesai'],
+        'dikonfirmasi' => ['bg' => '#0d6efd', 'label' => 'Dikonfirmasi'],
+        'ditahan'      => ['bg' => '#f0ad4e', 'label' => 'Ditahan'],
+        'dibatalkan'   => ['bg' => '#dc3545', 'label' => 'Dibatalkan'],
+
+        // Status pembayaran (booking & F&B, teks beda tapi makna sama
+        // sengaja disamakan warnanya biar konsisten)
+        'menunggu'     => ['bg' => '#f0ad4e', 'label' => 'Menunggu'],
+        'belum-bayar'  => ['bg' => '#f0ad4e', 'label' => 'Belum Bayar'],
+        'dp'           => ['bg' => '#17a2b8', 'label' => 'DP'],
+        'lunas'        => ['bg' => '#2ecc71', 'label' => 'Lunas'],
+        'sudah-bayar'  => ['bg' => '#2ecc71', 'label' => 'Sudah Bayar'],
+        'refund'       => ['bg' => '#e08e0b', 'label' => 'Refund'],
+        'kadaluarsa'   => ['bg' => '#6c757d', 'label' => 'Kadaluarsa'],
     ];
 
     $style = $map[$key] ?? ['bg' => '#6c757d', 'label' => $status ? ucfirst($status) : '-'];

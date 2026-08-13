@@ -14,8 +14,7 @@ class BannerController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $status = $request->input('status'); // 'aktif' | 'nonaktif' | null
-
+        $status = $request->input('status'); 
         $banners = Galeri::where('kategori', 'banner')
             ->when($search, function ($query) use ($search) {
                 $query->where('judul_foto', 'like', '%' . $search . '%');
@@ -30,7 +29,6 @@ class BannerController extends Controller
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 
-        // Request AJAX (filter/pagination) -> kirim partial HTML saja
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.banners.partials.table-banner', compact('banners'))->render(),

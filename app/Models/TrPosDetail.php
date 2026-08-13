@@ -12,7 +12,10 @@ class TrPosDetail extends Model
     protected $table = 'tr_pos_detail';
     protected $primaryKey = 'id_pos_detail';
     protected $guarded = [];
+    public $timestamps = false;
 
-    // --- MATIKAN TIMESTAMP HANYA UNTUK TABEL DETAIL INI ---
-    public $timestamps = false; 
+    public function produk()
+    {
+        return $this->belongsTo(MsProduk::class, 'id_produk', 'id_produk');
+    }
 }

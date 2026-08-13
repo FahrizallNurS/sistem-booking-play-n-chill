@@ -5,7 +5,7 @@
 
 <div class="card custom-card border-0 shadow-sm">
     <div class="card-body p-4">
-        <form action="{{ $action ?? url()->current() }}" method="{{ $method }}">
+        <form id="filter-form" action="{{ $action ?? url()->current() }}" method="{{ $method }}">
             <div class="row align-items-end">
 
                 {{ $slot }}
@@ -40,9 +40,7 @@
     .custom-input {
         border-radius: 6px !important;
         border: 1px solid #e1e4e6 !important;
-        height: 42px !important;
-        font-size: 14px;
-        color: #495057;
+        box-shadow: none !important;
     }
     .custom-input:focus {
         border-color: #6f42c1 !important;

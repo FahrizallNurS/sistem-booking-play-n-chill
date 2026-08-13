@@ -166,5 +166,32 @@ class ProdukController extends Controller
 
         return redirect()->route('admin.fb.produk.index')->with('success', 'Data Produk F&B berhasil diperbarui!');
     }
+
+ public function halamanTambahStok()
+    {
+        $produks = \App\Models\MsProduk::with('subKategori')->orderBy('nama_produk')->get();
+
+        $kategoriList = \App\Models\MsSubKategoriProduk::where('is_active', 1)
+                            ->select('kategori_produk')
+                            ->distinct()
+                            ->pluck('kategori_produk');
+
+        return view('admin.fb.produk.tambah-stok', compact('produks', 'kategoriList'));
+    }
+
+    public function simpanStok(\Illuminate\Http\Request $request, $id)
+    {
+        $request->validate([
+            'tambahan_stok' => 'required|integer|min:1'
+        ], [
+            'tambahan_stok.min' => 'Jumlah stok yang ditambahkan minimal 1.'
+        ]);
+
+        $produk = \App\Models\MsProduk::findOrFail($id);
+        $produk->stock = $produk->stock + $request->tambahan_stok;
+        $produk->save();
+
+        return redirect()->back()->with('success', "Stok {$produk->nama_produk} berhasil ditambah sebanyak {$request->tambahan_stok} item!");
+    }
     
 }

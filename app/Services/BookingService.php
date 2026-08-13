@@ -90,13 +90,10 @@ class BookingService
                 $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
             } while (TrTransaksi::where('kode_sewa', $kode)->exists());
 
-            // Booking manual disimpan dulu dalam status "belum final" (ditahan/menunggu),
-            // baru diubah jadi dikonfirmasi+lunas oleh finalisasiStruk() di bawah.
-            // Ini supaya satu-satunya jalur yang boleh mengubah status final adalah
-            // aksi cetak struk -- konsisten dengan booking online.
-            $transaksi = TrTransaksi::create([
+           $transaksi = TrTransaksi::create([
                 'id_penetapan_harga' => $ph->id_penetapan_harga,
                 'id_pengguna'        => $user->id_pengguna,
+                'id_admin'           => $data['id_admin'] ?? null,   // <-- baru
                 'kode_sewa'          => $kode,
                 'waktu_mulai'        => $waktuMulai,
                 'waktu_selesai'      => $waktuSelesai,
@@ -111,10 +108,6 @@ class BookingService
                 'catatan_pembayaran' => $data['catatan'] ?? null,
             ]);
 
-            // Booking manual bisa disertai item F&B (dari modal keranjang di
-            // halaman tambah booking) atau tanpa item sama sekali — dua-duanya
-            // lewat titik yang sama supaya logic-nya konsisten dengan flow
-            // "tambah F&B ke booking existing".
             $this->finalisasiStruk(
                 $transaksi,
                 $data['items'] ?? [],
@@ -126,24 +119,6 @@ class BookingService
         });
     }
 
-    /**
-     * Finalisasi struk: satu-satunya titik yang mengubah booking jadi
-     * dikonfirmasi + lunas, sekaligus opsional menyisipkan pesanan F&B.
-     * Dipakai oleh booking manual (otomatis) maupun booking online
-     * (dipicu manual lewat tombol "Cetak Struk").
-     *
-     * Idempotent: kalau struk_created_at sudah terisi, tidak mengulang
-     * proses (tidak potong stock lagi / tidak insert tr_pos lagi),
-     * cukup kembalikan path PDF yang sudah ada.
-     *
-     * @param  TrTransaksi $transaksi
-     * @param  array $itemsFnb  [['id_produk' => int, 'jumlah' => int], ...]
-     * @param  string $metodePembayaran  'TUNAI'|'QRIS'
-     * @param  string $dicetakOleh
-     * @return string  path PDF struk (relatif ke public/)
-     *
-     * @throws ValidationException jika stock produk F&B tidak cukup
-     */
     public function finalisasiStruk(
         TrTransaksi $transaksi,
         array $itemsFnb,
@@ -215,6 +190,7 @@ class BookingService
                 $trPos = TrPos::create([
                     'id_transaksi'      => $transaksi->id_transaksi,
                     'id_pengguna'       => $transaksi->id_pengguna,
+                    'id_admin'          => $transaksi->id_admin,   // <-- baru, warisan dari parent
                     'total_pos'         => $totalFnb,
                     'sumber_pesanan'    => $transaksi->sumber_booking ?? 'Kasir',
                     'status_pesanan'    => 'Menunggu',
@@ -232,8 +208,6 @@ class BookingService
                         'subtotal'     => $row['subtotal'],
                     ]);
 
-                    // Kurangi stock -- baru di titik ini (final), bukan saat item
-                    // ditambah ke keranjang di modal.
                     $row['produk']->decrement('stock', $row['jumlah']);
                 }
             }
@@ -339,9 +313,9 @@ class BookingService
         $this->simpanStrukPdf('admin.bookings.struk-pdf', $data, $transaksi->kode_sewa);
     }
 
-    public function ubahJadwal(TrTransaksi $booking, string $waktuMulaiBaru): TrTransaksi
+    public function ubahJadwal(TrTransaksi $booking, string $waktuMulaiBaru, ?int $idAdmin = null): TrTransaksi
     {
-        return DB::transaction(function () use ($booking, $waktuMulaiBaru) {
+        return DB::transaction(function () use ($booking, $waktuMulaiBaru, $idAdmin) {
 
             $booking = TrTransaksi::where('id_transaksi', $booking->id_transaksi)
                 ->lockForUpdate()
@@ -380,6 +354,7 @@ class BookingService
             $booking->update([
                 'waktu_mulai'   => $waktuMulaiBaruCarbon,
                 'waktu_selesai' => $waktuSelesaiBaru,
+                'id_admin'      => $idAdmin ?? $booking->id_admin,
             ]);
 
             return $booking->fresh();

@@ -34,10 +34,10 @@
                         <h6 class="mb-3" style="color: #718096; font-size: 1.1rem; font-weight: 500;">Catatan</h6>
                         <div class="border rounded" style="border-color: #cbd5e1;">
                             <div class="p-3 text-dark" style="min-height: 100px; font-size: 14px;">
-                                {{ $t->catatan ?? 'Tidak ada catatan khusus.' }}
+                                {{ $t->catatan_pembayaran ?? 'Tidak ada catatan khusus.' }}
                             </div>
                             <div class="border-top text-center p-2" style="background-color: #f8fafc; font-weight: 600; color: #475569; font-size: 14px;">
-                                 Di kelola oleh : {{ $t->admin->nama_pengguna ?? 'Sistem (Online)' }}
+                               Di kelola oleh : {{ $t->admin->nama_pengguna ?? 'Sistem (Online)' }}
                             </div>
                         </div>
                     </div>
