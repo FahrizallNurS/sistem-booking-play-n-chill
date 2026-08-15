@@ -269,7 +269,7 @@ class BookingController extends Controller
                     'status_pesanan' => 'Menunggu', 
                 ]);
 
-                foreach ($keranjangFb as $item) {
+               foreach ($keranjangFb as $item) {
                     TrPosDetail::create([
                         'id_pos'       => $pos->id_pos,
                         'id_produk'    => $item['id'],
@@ -277,6 +277,11 @@ class BookingController extends Controller
                         'harga_satuan' => $item['price'],
                         'subtotal'     => $item['price'] * $item['qty'],
                     ]);
+
+                    $produk = \App\Models\MsProduk::find($item['id']);
+                    if ($produk) {
+                        $produk->decrement('stock', $item['qty']);
+                    }
                 }
             }
 
@@ -332,6 +337,11 @@ class BookingController extends Controller
     // --- FUNGSI BARU UNTUK SKENARIO HANYA PESAN F&B (MANDIRI) ---
     public function checkoutFb(Request $request)
     {
+        // 🔹 TAMBAHKAN PENGECEKAN LOGIN DI SINI 🔹
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Silakan login terlebih dahulu untuk melanjutkan pesanan.');
+        }
+
         $keranjangFb = json_decode($request->keranjang_fb, true);
 
         if (empty($keranjangFb)) {
@@ -345,11 +355,11 @@ class BookingController extends Controller
 
         $pos = TrPos::create([
             'id_transaksi'   => null,
-            'id_pengguna'    => Auth::user()?->id_pengguna, 
+            'id_pengguna'    => Auth::user()->id_pengguna, // Karena sudah dicek di atas, ini pasti aman
             'total_pos'      => $totalFb,
             'status_pesanan' => 'Menunggu',
             'sumber_pesanan' => 'Online',
-            'catatan' => $request->catatan,
+            'catatan'        => $request->catatan,
         ]);
 
         foreach ($keranjangFb as $item) {
@@ -360,7 +370,14 @@ class BookingController extends Controller
                 'harga_satuan' => $item['price'],
                 'subtotal'     => $item['price'] * $item['qty'],
             ]);
+
+            // PENGURANGAN STOK OTOMATIS (yang baru saja kita tambahkan sebelumnya)
+            $produk = \App\Models\MsProduk::find($item['id']);
+            if ($produk) {
+                $produk->decrement('stock', $item['qty']);
+            }
         }
+        
         session(['metode_pembayaran_fb' => $request->metode_pembayaran]);
 
         return redirect()->route('fb.payment.show', $pos->id_pos);
