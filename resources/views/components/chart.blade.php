@@ -67,7 +67,6 @@
         const rawDatasets = JSON.parse(chartElement.getAttribute('data-datasets') || '[]');
         const isInteractive = chartElement.getAttribute('data-interactive') === '1';
 
-        // Fungsi cerdas mendeteksi skala format angka terbesar dari dataset yang masuk
         let maxVal = 0;
         rawDatasets.forEach(dataset => {
             if (Array.isArray(dataset.data)) {
@@ -101,9 +100,15 @@
                 labels: rawLabels,
                 datasets: formattedDatasets
             },
-            options: {
+           options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        right: 25, 
+                        left: 10   
+                    } 
+                },
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { display: false },
@@ -125,7 +130,14 @@
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { autoSkip: true, maxTicksLimit: 10, color: '#8a949f', font: { size: 11 } }
+                        offset: true,
+                        ticks: { 
+                            autoSkip: false, // 🔹 Matikan fitur lompat otomatis
+                            maxRotation: 45, // 🔹 (Opsional) Miringkan teks 45 derajat agar tidak bertabrakan kalau layarnya sempit
+                            minRotation: 0,
+                            color: '#8a949f', 
+                            font: { size: 11 } 
+                        }
                     },
                     y: {
                         beginAtZero: true,

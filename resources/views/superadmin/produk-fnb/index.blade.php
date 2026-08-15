@@ -4,81 +4,8 @@
 @section('title', 'Produk F&B - Play N Chill')
 @section('plugins.Daterangepicker', true)
 @section('plugins.Chartjs', true)
-
-@php
-    // ====================================================================
-    // DUMMY DATA (sementara, untuk keperluan frontend).
-    // Nanti SELURUH blok @php ini dihapus & diganti data asli dari Controller,
-    // dikirim lewat compact('chartLabels', 'chartDatasets', 'tableData').
-    // ====================================================================
-
-    // Label & warna kategori F&B ditarik dari config('category-colors.php') supaya
-    // sinkron dengan sumber yang sama dipakai di halaman lain (pola yang sama dengan
-    // beranda & analisis-pendapatan). Default value (parameter ke-2) dipasang supaya
-    // halaman ini tetap jalan meski key 'produk_fnb_kategori' belum ditambahkan ke
-    // config/category-colors.php -- begitu key itu ditambahkan, nilai asli otomatis
-    // dipakai tanpa perlu ubah file ini sama sekali.
-    $kategoriFnb = [
-        'makanan_ringan' => [
-            'label' => config('category-colors.produk_fnb_kategori.makanan_ringan.label', 'Makanan ringan'),
-            'color' => config('category-colors.produk_fnb_kategori.makanan_ringan.color', '#2ecc71'),
-        ],
-        'minuman' => [
-            'label' => config('category-colors.produk_fnb_kategori.minuman.label', 'Minuman'),
-            'color' => config('category-colors.produk_fnb_kategori.minuman.color', '#f39c12'),
-        ],
-        'makanan' => [
-            'label' => config('category-colors.produk_fnb_kategori.makanan.label', 'Makanan'),
-            'color' => config('category-colors.produk_fnb_kategori.makanan.color', '#3498db'),
-        ],
-        'snack' => [
-            'label' => config('category-colors.produk_fnb_kategori.snack.label', 'Snack'),
-            'color' => config('category-colors.produk_fnb_kategori.snack.color', '#8e44ad'),
-        ],
-    ];
-
-    // 1. DUMMY DATA GRAFIK (30 hari, 4 kategori)
-    $chartLabels = [];
-    $dataMakananRingan = [];
-    $dataMinuman = [];
-    $dataMakanan = [];
-    $dataSnack = [];
-
-    for ($i = 0; $i < 30; $i++) {
-        $chartLabels[] = \Carbon\Carbon::create(2026, 6, $i + 1)->translatedFormat('d M');
-        $dataMakananRingan[] = rand(500000, 8000000);
-        $dataMinuman[]       = rand(500000, 10000000);
-        $dataMakanan[]       = rand(500000, 9000000);
-        $dataSnack[]         = rand(500000, 3000000);
-    }
-
-    $chartDatasets = [
-        ['label' => $kategoriFnb['makanan_ringan']['label'], 'data' => $dataMakananRingan, 'color' => $kategoriFnb['makanan_ringan']['color']],
-        ['label' => $kategoriFnb['minuman']['label'],        'data' => $dataMinuman,       'color' => $kategoriFnb['minuman']['color']],
-        ['label' => $kategoriFnb['makanan']['label'],        'data' => $dataMakanan,       'color' => $kategoriFnb['makanan']['color']],
-        ['label' => $kategoriFnb['snack']['label'],          'data' => $dataSnack,         'color' => $kategoriFnb['snack']['color']],
-    ];
-
-    // 2. DUMMY DATA TABEL PRODUK
-    // 'foto' sengaja null di sebagian baris untuk mensimulasikan produk yang belum
-    // punya foto -- <x-table> di bawah akan otomatis pakai placeholder ikon.
-    $tableData = [
-        ['foto' => null, 'nama' => 'Indomie Goreng',   'kategori' => 'Internal', 'sub_kategori' => 'Makanan Ringan', 'harga_beli' => 3000, 'harga_jual' => 7000,  'sku' => 'PNC-211', 'stock' => 12, 'status' => 'Aktif'],
-        ['foto' => null, 'nama' => 'Soda Gembira',     'kategori' => 'Internal', 'sub_kategori' => 'Minuman',        'harga_beli' => 8000, 'harga_jual' => 12000, 'sku' => 'PNC-111', 'stock' => 6,  'status' => 'Nonaktif'],
-        ['foto' => null, 'nama' => 'Seblak',           'kategori' => 'Seblak',   'sub_kategori' => 'Makanan',        'harga_beli' => 8000, 'harga_jual' => 12000, 'sku' => 'PNC-311', 'stock' => 9,  'status' => 'Aktif'],
-        ['foto' => null, 'nama' => 'Roti Aoka',        'kategori' => 'Cowork',   'sub_kategori' => 'Makanan Ringan', 'harga_beli' => 2000, 'harga_jual' => 2500,  'sku' => 'PNC-212', 'stock' => 14, 'status' => 'Nonaktif'],
-        ['foto' => null, 'nama' => 'Top Kopi Gula Aren','kategori' => 'Cowork',  'sub_kategori' => 'Minuman',        'harga_beli' => 3000, 'harga_jual' => 5000,  'sku' => 'PNC-112', 'stock' => 24, 'status' => 'Aktif'],
-    ];
-
-    // Mapping status ke varian warna badge. Kalau nanti ada status lain
-    // (mis. "Habis"), cukup tambah baris di sini.
-    $statusBadgeVariant = [
-        'Aktif'    => 'success',
-        'Nonaktif' => 'danger',
-    ];
-@endphp
-
 @section('content_header')
+
 <div class="container-fluid py-2">
     <div class="row align-items-center">
         <div class="col-sm-6">
