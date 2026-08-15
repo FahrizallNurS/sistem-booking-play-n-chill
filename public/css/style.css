@@ -239,3 +239,115 @@ body {
     .hero-slide-img { height: 300px; }
 }
 
+/* =========================================
+   PENGATURAN LOGO & TEKS FOOTER
+   ========================================= */
+
+/* 1 & 2. Penataan Logo Bundar di Samping Teks Tagline */
+.f-brand-container {
+    display: flex;
+    align-items: center;    /* Menjaga logo & teks sejajar tengah secara vertikal */
+    gap: 15px;              /* Jarak horizontal konstan antara logo dan teks */
+    width: 100%;
+}
+
+.f-logo-round {
+    width: 60px;            /* Ukuran diameter logo bundar */
+    height: 60px;           /* Harus sama dengan width agar bulat sempurna */
+    border-radius: 50%;     /* Memotong gambar menjadi lingkaran */
+    object-fit: cover;      /* Menjaga gambar di dalam lingkaran tetap proporsional */
+    flex-shrink: 0;         /* Mencegah logo terdistorsi atau mengecil saat ruang menyempit */
+    border: 2px solid rgba(255, 255, 255, 0.2); /* Frame tipis agar logo terlihat bersih */
+}
+
+/* Reset spesifik untuk teks tagline di dalam container logo */
+.f-brand-container .f-tagline {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+    margin-top: 0 !important;   /* Menghapus margin atas bawaan agar sejajar dengan center logo */
+    max-width: 100% !important; /* Memaksimalkan pemanfaatan ruang sisa di sebelah logo */
+}
+
+/* 3. Sinkronisasi Jarak (Gap) Antara Header (.f-head) dengan Elemen di Bawahnya */
+footer .f-head {
+    margin-bottom: 12px !important; /* Memastikan gap bawah setiap judul f-head bernilai sama persis */
+}
+
+footer .f-list {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Penyesuaian Responsivitas Khusus Layar Mobile (HP) */
+@media (max-width: 767px) {
+    footer {
+        padding-top: 25px !important; /* Mengangkat seluruh isi konten lebih dekat ke batasan atas footer */
+    }
+
+    /* Mengunci jarak vertikal antar kolom yang menumpuk di HP agar presisi berjarak sama */
+    footer .row {
+        row-gap: 1.5rem !important;  /* Jarak vertikal seragam antar section di perangkat mobile */
+    }
+}
+/* ==========================================================================
+   BEST PRACTICE UI: LOGO + NAMA BRAND + TAGLINE (FOOTER)
+   ========================================================================== */
+
+/* Container Utama */
+.f-brand-container {
+    display: flex;
+    align-items: center;    /* Mengunci seluruh elemen agar sejajar tengah secara vertikal */
+    gap: 16px;              /* Jarak horizontal yang ideal antara logo dan blok teks */
+    width: 100%;
+}
+
+/* Penataan Logo Bundar */
+.f-logo-round {
+    width: 65px;            /* Diameter logo yang sangat proporsional dengan tinggi teks 2 baris */
+    height: 65px;           /* Harus sama agar bulat sempurna */
+    border-radius: 50%;     /* Memotong gambar menjadi lingkaran */
+    object-fit: cover;      /* Mencegah logo gepeng */
+    flex-shrink: 0;         /* Mengunci ukuran logo agar tidak mengecil di layar HP */
+    border: 2px solid rgba(255, 255, 255, 0.15); /* Frame halus agar logo terlihat kontras dan bersih */
+}
+
+/* Pembungkus Teks (Nama Brand + Tagline) */
+.f-brand-text {
+    display: flex;
+    flex-direction: column; /* Menyusun Nama Brand di atas dan Tagline di bawah */
+    justify-content: center;
+}
+
+/* Nama Brand "Play N Chill" */
+.f-brand-title {
+    font-family: 'Fredoka One', cursive; /* Font playful khas Play N Chill */
+    font-size: 1.3rem;       /* Ukuran pas berdampingan dengan logo 65px */
+    color: var(--yellow);    /* Menggunakan warna kuning khas web Anda */
+    margin: 0 0 3px 0 !important; /* Jarak tipis ke deskripsi di bawahnya */
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+}
+
+/* Deskripsi / Tagline */
+.f-brand-text .f-tagline {
+    font-size: 0.78rem;      /* Ukuran font lebih kecil agar kontras dengan nama brand */
+    color: rgba(255, 255, 255, 0.7); /* Warna abu-abu terang agar nyaman dibaca dan tidak merusak fokus */
+    line-height: 1.35;
+    margin: 0 !important;
+    max-width: 220px;        /* Membatasi lebar teks agar turun ke bawah secara estetik */
+}
+
+/* Responsivitas Layar Kecil (Mobile) */
+@media (max-width: 480px) {
+    .f-logo-round {
+        width: 58px;         /* Sedikit mengecilkan logo di layar HP agar menghemat ruang */
+        height: 58px;
+    }
+    .f-brand-title {
+        font-size: 1.15rem;  /* Menyesuaikan ukuran judul di layar kecil */
+    }
+    .f-brand-text .f-tagline {
+        font-size: 0.73rem;  /* Menyesuaikan ukuran deskripsi di layar kecil */
+    }
+}

@@ -1,0 +1,133 @@
+/* ==========================================================================
+   custom-pos.css
+   Global styling untuk modul POS Superadmin
+   ========================================================================== */
+
+/* -----------------------------------------
+   1. Struktur & Global Card Layout
+   ----------------------------------------- */
+.card-purple-top {
+    border-radius: 12px;
+    border-top: 3px solid #6f42c1;
+}
+
+.custom-card {
+    border-radius: 12px !important;
+    background-color: #ffffff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* -----------------------------------------
+   2. Metrik & KPI Cards (Small Boxes)
+   ----------------------------------------- */
+.custom-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8a949f;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.custom-card-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a202c;
+    margin-top: 5px;
+    letter-spacing: -0.5px;
+}
+
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+/* -----------------------------------------
+   3. Komponen Analisis & Progress Bar
+   ----------------------------------------- */
+.custom-analysis-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2d3748;
+    letter-spacing: -0.2px;
+}
+
+.analysis-label {
+    font-size: 13px;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.analysis-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.custom-progress {
+    height: 6px !important;
+    border-radius: 10px !important;
+    background-color: #edf2f7 !important;
+    overflow: hidden;
+}
+
+/* -----------------------------------------
+   4. Chart Legend (Kotak Interaktif)
+   ----------------------------------------- */
+.legend-box {
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.legend-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+}
+
+.legend-box.hidden-dataset {
+    opacity: 0.5;
+    background-color: #f8f9fa !important;
+}
+
+/* -----------------------------------------
+   5. Tipografi & Tombol
+   ----------------------------------------- */
+.btn-view-more {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6f42c1;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.btn-view-more:hover {
+    color: #492787;
+    text-decoration: none;
+}
+
+.text-purple { 
+    color: #6f42c1; 
+}
+
+/* -----------------------------------------
+   6. Palet Warna Background (Custom Utilities)
+   ----------------------------------------- */
+.bg-purple { background-color: #6f42c1 !important; }
+.bg-purple-light { background-color: #a88be6 !important; }
+
+.bg-info-light { background-color: #7dd3f5 !important; }
+.bg-success-light { background-color: #6ee7b7 !important; }
+.bg-warning-light { background-color: #ffe083 !important; }
+
+.bg-danger-medium { background-color: #e05c5c !important; }
+.bg-danger-light { background-color: #f59e9e !important; }
+
+/* Palet Background Transparan (untuk Ikon) */
+.bg-light-primary { background-color: rgba(0, 123, 255, 0.1); }
+.bg-light-warning { background-color: rgba(255, 193, 7, 0.15); }
+.bg-light-success { background-color: rgba(40, 167, 69, 0.1); }
+.bg-light-danger  { background-color: rgba(220, 53, 69, 0.1); }

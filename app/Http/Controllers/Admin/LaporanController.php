@@ -4,23 +4,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TrTransaksi;
+use App\Models\TrPos;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
-    public function index(Request $request)
+    // ============================================================
+    // Rentang tanggal berdasarkan periode (dipakai index & exportPdf,
+    // diekstrak biar gak duplikat)
+    // ============================================================
+    private function getDateRange(Request $request): array
     {
-        $periode       = $request->input('periode', 'harian');
-        $statusBooking = $request->input('status_booking', '');
-        $statusBayar   = $request->input('status_bayar', '');
-        $jenisBayar    = $request->input('jenis_bayar', '');
+        $periode = $request->input('periode', 'harian');
 
-        // Tentukan range tanggal berdasarkan periode
         switch ($periode) {
             case 'mingguan':
-                $minggu = $request->input('minggu', now()->format('Y-W'));
+                $minggu = $request->input('minggu', now()->format('Y-\WW'));
                 [$year, $week] = explode('-W', $minggu);
                 $start = Carbon::now()->setISODate($year, $week)->startOfWeek();
                 $end   = Carbon::now()->setISODate($year, $week)->endOfWeek();
@@ -32,124 +33,108 @@ class LaporanController extends Controller
                 $end   = Carbon::parse($bulan . '-01')->endOfMonth();
                 break;
 
-            default: // harian
+            default:
                 $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
                 $start   = Carbon::parse($tanggal)->startOfDay();
                 $end     = Carbon::parse($tanggal)->endOfDay();
                 break;
         }
 
-        $query = TrTransaksi::with(['pengguna', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
+        return [$start, $end, $periode];
+    }
+
+    // ============================================================
+    // Ambil & susun semua data laporan (dipakai index & exportPdf)
+    // ============================================================
+    private function getReportData(Request $request): array
+    {
+        [$start, $end, $periode] = $this->getDateRange($request);
+
+        $jenisTransaksi = $request->input('jenis_transaksi', 'semua'); // booking | fnb | semua
+        $sumber         = $request->input('sumber', '');               // Kasir | Online
+
+        // --- Booking: filter tanggal pakai waktu_mulai ---
+        $bookingQuery = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->whereBetween('waktu_mulai', [$start, $end]);
 
-        if ($statusBooking) {
-            $query->where('status_sewa', $statusBooking);
+        if ($sumber) {
+            $bookingQuery->where('sumber_booking', $sumber);
         }
 
-        if ($statusBayar) {
-            $query->where('status_pembayaran', $statusBayar);
+        $bookingData = $bookingQuery->latest('waktu_mulai')->get()
+            ->each(fn ($item) => $item->jenis_laporan = 'Booking');
+
+        // --- F&B: filter tanggal pakai created_at (tr_pos tidak punya waktu_mulai) ---
+        $fnbQuery = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
+            ->whereBetween('created_at', [$start, $end]);
+
+        if ($sumber) {
+            $fnbQuery->where('sumber_pesanan', $sumber);
         }
 
-        if ($jenisBayar) {
-            $query->where('opsi_pembayaran', $jenisBayar);
-        }
+        $fnbData = $fnbQuery->latest('created_at')->get()
+            ->each(fn ($item) => $item->jenis_laporan = 'F&B');
 
-        $transaksis = $query->latest('waktu_mulai')->get();
+        // --- Data untuk tabel: sesuai filter jenis_transaksi ---
+        $transaksis = match ($jenisTransaksi) {
+            'booking' => $bookingData,
+            'fnb'     => $fnbData,
+            default   => $bookingData->concat($fnbData)
+                ->sortByDesc(fn ($t) => $t->jenis_laporan === 'Booking' ? $t->waktu_mulai : $t->created_at)
+                ->values(),
+        };
 
-        // Summary
-        $totalBooking    = $transaksis->count();
-        $totalSelesai    = $transaksis->where('status_sewa', 'selesai')->count();
-        $totalDibatalkan = $transaksis->where('status_sewa', 'dibatalkan')->count();
-        $totalPendapatan = $transaksis->whereIn('status_sewa', ['selesai'])
-                            ->sum('total_harga');
+        // --- Summary per jenis (dihitung dari data mentah, bukan dari $transaksis,
+        //     supaya gak ikut kepotong walau tabel lagi difilter satu jenis) ---
+        $totalBooking      = $bookingData->count();
+        $totalFnb          = $fnbData->count();
+        $bookingSelesai    = $bookingData->where('status_sewa', 'selesai')->count();
+        $fnbSelesai        = $fnbData->where('status_pesanan', 'Selesai')->count();
+        $bookingDibatalkan = $bookingData->where('status_sewa', 'dibatalkan')->count();
+        $fnbDibatalkan     = $fnbData->where('status_pesanan', 'Dibatalkan')->count();
 
-        return view('admin.laporan.index', compact(
-            'transaksis',
-            'totalBooking',
-            'totalSelesai',
-            'totalDibatalkan',
-            'totalPendapatan',
-            'periode',
-            'start',
-            'end'
-        ));
+        // Pendapatan booking: HANYA yang statusnya benar-benar 'selesai'
+        $pendapatanBooking = $bookingData
+            ->where('status_sewa', 'selesai')
+            ->sum('total_harga');
+
+        $pendapatanFnb = $fnbData
+            ->whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
+            ->sum('total_pos');
+
+        return [
+            'transaksis'        => $transaksis,
+            'jenisTransaksi'    => $jenisTransaksi,
+            'sumber'            => $sumber,
+            'totalBooking'      => $totalBooking,
+            'totalFnb'          => $totalFnb,
+            'bookingSelesai'    => $bookingSelesai,
+            'fnbSelesai'        => $fnbSelesai,
+            'bookingDibatalkan' => $bookingDibatalkan,
+            'fnbDibatalkan'     => $fnbDibatalkan,
+            'pendapatanBooking' => $pendapatanBooking,
+            'pendapatanFnb'     => $pendapatanFnb,
+            'periode'           => $periode,
+            'start'             => $start,
+            'end'               => $end,
+        ];
+    }
+
+    public function index(Request $request)
+    {
+        $data = $this->getReportData($request);
+        return view('admin.laporan.index', $data);
     }
 
     public function exportPdf(Request $request)
     {
-        $periode       = $request->input('periode', 'harian');
-        $statusBooking = $request->input('status_booking', '');
-        $statusBayar   = $request->input('status_bayar', '');
-        $jenisBayar    = $request->input('jenis_bayar', '');
+        $data = $this->getReportData($request);
+        $data['tanggalCetak'] = now()->translatedFormat('d F Y H:i');
+        $data['admin']        = auth()->user()->nama_pengguna;
 
-        // Tentukan range tanggal berdasarkan periode (SAMA seperti method index)
-        switch ($periode) {
-            case 'mingguan':
-                $minggu = $request->input('minggu', now()->format('Y-W'));
-                [$year, $week] = explode('-W', $minggu);
-                $start = Carbon::now()->setISODate($year, $week)->startOfWeek();
-                $end   = Carbon::now()->setISODate($year, $week)->endOfWeek();
-                break;
+        $pdf      = Pdf::loadView('admin.laporan.pdf', $data)->setPaper('a4', 'portrait');
+        $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.pdf';
 
-            case 'bulanan':
-                $bulan = $request->input('bulan', now()->format('Y-m'));
-                $start = Carbon::parse($bulan . '-01')->startOfMonth();
-                $end   = Carbon::parse($bulan . '-01')->endOfMonth();
-                break;
-
-            default: // harian
-                $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
-                $start   = Carbon::parse($tanggal)->startOfDay();
-                $end     = Carbon::parse($tanggal)->endOfDay();
-                break;
-        }
-
-        $query = TrTransaksi::with(['pengguna', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
-            ->whereBetween('waktu_mulai', [$start, $end]);
-
-        if ($statusBooking) {
-            $query->where('status_sewa', $statusBooking);
-        }
-
-        if ($statusBayar) {
-            $query->where('status_pembayaran', $statusBayar);
-        }
-
-        if ($jenisBayar) {
-            $query->where('opsi_pembayaran', $jenisBayar);
-        }
-
-        $transaksis = $query->latest('waktu_mulai')->get();
-
-        // Summary
-        $totalBooking    = $transaksis->count();
-        $totalSelesai    = $transaksis->where('status_sewa', 'selesai')->count();
-        $totalDibatalkan = $transaksis->where('status_sewa', 'dibatalkan')->count();
-        $totalPendapatan = $transaksis->whereIn('status_sewa', ['selesai'])
-                            ->sum('total_harga');
-
-        // Data untuk PDF
-        $data = [
-            'transaksis'       => $transaksis,
-            'totalBooking'     => $totalBooking,
-            'totalSelesai'     => $totalSelesai,
-            'totalDibatalkan'  => $totalDibatalkan,
-            'totalPendapatan'  => $totalPendapatan,
-            'periode'          => $periode,
-            'start'            => $start,
-            'end'              => $end,
-            'tanggalCetak'     => now()->translatedFormat('d F Y H:i'),
-            'admin'            => auth()->user()->nama_pengguna,
-        ];
-
-        // Generate PDF
-        $pdf = Pdf::loadView('admin.laporan.pdf', $data)
-                  ->setPaper('a4', 'portrait');
-
-        // Nama file
-        $filename = 'Laporan_Booking_' . $start->format('Y-m-d') . '.pdf';
-
-        // Download PDF
         return $pdf->download($filename);
     }
 }

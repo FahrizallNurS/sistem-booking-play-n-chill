@@ -15,54 +15,55 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
-        body {
-            background-color: var(--    purple-dark); /* Warna dasar tetap di body */
-            position: relative;
-            min-height: 100vh;
-            margin: 0;
-            padding-top: 65px;
-        }
+    body {
+        /* PERBAIKAN: Spasi pada var(--purple-dark) sudah dirapatkan */
+        background-color: var(--purple-dark); 
+        position: relative;
+        min-height: 100vh;
+        margin: 0;
+        padding-top: 65px;
+    }
 
-        body::before {
-            content: "";
-            position: fixed; /* Agar background tetap diam saat scroll */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            
-            /* Pengaturan gambar background */
-            background-image: url('{{ asset("images/bg-segitiga.png") }}');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center;
+    body::before {
+        content: "";
+        position: fixed; /* Agar background tetap diam saat scroll */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        
+        /* Pengaturan gambar background */
+        background-image: url('{{ asset("images/bg-segitiga.png") }}');
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
 
-            /* ATUR TRANSPARANSI DI SINI */
-            opacity: 0.8; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
-            
-            z-index: -1; /* Memastikan background berada di belakang konten */
-        }
+        /* ATUR TRANSPARANSI DI SINI */
+        opacity: 0.8; /* Nilai 0.0 (hilang) sampai 1.0 (jelas) */
+        
+        z-index: -1; /* Memastikan background berada di belakang konten */
+    }
 
-        /* Hapus .foreground-char yang lama, ganti dengan ini */
-        .character-wrapper {
-            position: absolute;
-            bottom: 0;
-            left: 20px; /* Jarak dari kiri layar */
-            width: 350px; /* Ukuran desktop */
-            height: auto;
-            transition: all 0.3s ease;
-            z-index: 10;
-        }
+    /* Karakter Wrapper */
+    .character-wrapper {
+        position: absolute;
+        bottom: 0;
+        left: 20px; /* Jarak dari kiri layar */
+        width: 350px; /* Ukuran desktop */
+        height: auto;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
 
-        /* Gambar karakter di dalamnya harus mengikuti lebar wrapper */
-        .character-wrapper .foreground-char {
-            width: 100%;
-            height: auto;
-            position: relative; /* Bukan absolute lagi agar wrapper punya tinggi */
-            display: block;
-        }
+    /* Gambar karakter di dalamnya mengikuti lebar wrapper */
+    .character-wrapper .foreground-char {
+        width: 100%;
+        height: auto;
+        position: relative;
+        display: block;
+    }
 
-        /* Responsivitas untuk Tablet & HP */
+    /* Responsivitas untuk Tablet & HP */
     @media (max-width: 768px) {
         .cta-section {
             display: flex;
@@ -89,11 +90,11 @@
         .item-interaktif {
             width: 55px !important;
             top: -20px !important; 
-            left: 56px !important; /* Sesuaikan koordinat mahkota agar tetap di kepala */
+            left: 56px !important; /* Koordinat mahkota di kepala */
         }
     }
 
-        .navbar.fixed-top {
+    .navbar.fixed-top {
         position: fixed !important;
         top: 0 !important;
         width: 100% !important;
@@ -101,7 +102,131 @@
         background: rgb(255, 255, 255); /* Beri warna agar tidak transparan total */
         backdrop-filter: blur(10px); /* Efek blur estetik */
     }
-    </style>
+
+    /* ═══ HERO BANNER ═══ */
+    .banner-frame {
+        position: relative;
+        overflow: hidden; /* Biar backdrop blur & inner card ke-clip rapi */
+    }
+
+    /* Backdrop: salinan gambar yang sama, di-zoom + blur */
+    .banner-backdrop {
+        display: none; /* default nonaktif (mobile) */
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        filter: blur(28px) brightness(0.55);
+        transform: scale(1.15); /* Biar tepi hasil blur tidak kelihatan pudar */
+        z-index: 1;
+    }
+
+    .wadah-banner-owner {
+        width: 100%;
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+        position: relative;
+        z-index: 2; /* Selalu di atas backdrop */
+    }
+
+    /* Tampilan Desktop (Layar Lebar) */
+    @media (min-width: 993px) {
+        .wadah-banner-owner {
+            height: 450px;
+            max-width: 900px; 
+        }
+    }
+
+    /* Tampilan Tablet */
+    @media (max-width: 992px) and (min-width: 577px) {
+        .wadah-banner-owner {
+            height: 380px;
+            max-width: 640px;
+        }
+    }
+
+    /* Tampilan Mobile / HP */
+    @media (max-width: 576px) {
+        .wadah-banner-owner {
+            height: 270px !important;
+        }
+    }
+
+    /* Mulai dari tablet ke atas: aktifkan backdrop blur */
+    @media (min-width: 577px) {
+        .banner-backdrop {
+            display: block;
+        }
+
+        .wadah-banner-owner {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    /* ═══ CSS VIDEO SLIDER (Tunggal & Elegan) ═══ */
+    .video-slider-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 850px; /* Lebar maksimal di desktop agar proporsional */
+        margin: 0 auto;
+    }
+
+    .video-slider-container {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 1.5rem;
+        padding-bottom: 1rem;
+        scroll-snap-type: x mandatory; 
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; 
+    }
+    
+    .video-slider-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .video-slider-item {
+        /* Selalu tampil 100% (satu video per layar), baik di HP maupun Desktop */
+        flex: 0 0 100%; 
+        width: 100%;
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+    }
+
+    /* CSS Khusus Bullet Indicator */
+    .slider-indicators {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 15px;
+    }
+
+    .slider-dot {
+        width: 10px;
+        height: 10px;
+        background-color: rgba(216, 184, 255, 0.3);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .slider-dot.active {
+        background-color: #ffd700;
+        width: 30px; 
+        border-radius: 10px;
+    }
+
+    /* Efek Hover Mewah Tombol Play */
+    .btn-play-inline:hover .play-btn-circle {
+        transform: scale(1.15);
+        background-color: #ffea00 !important;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8) !important;
+    }
+</style>
 
     <script>
         // Script diletakkan di bawah agar terbaca setelah HTML dimuat
@@ -217,86 +342,47 @@
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
 
         {{-- Indicator --}}
-        <div class="carousel-indicators">
-            @for ($i = 0; $i < 4; $i++) {{-- Sesuaikan angka 5 dengan jumlah fotomu --}}
+       <div class="carousel-indicators">
+            @foreach ($banners as $index => $banner)
                 <button type="button"
                         data-bs-target="#heroCarousel"
-                        data-bs-slide-to="{{ $i }}"
-                        class="{{ $i == 0 ? 'active' : '' }}">
+                        data-bs-slide-to="{{ $index }}"
+                        class="{{ $index == 0 ? 'active' : '' }}">
                 </button>
-            @endfor
+            @endforeach
         </div>
 
         {{-- Slides --}}
         <div class="carousel-inner">
+            @forelse ($banners as $index => $banner)
+                <div class="carousel-item {{ $index == 0 ? 'active' : '' }}" data-bs-interval="4000">
+                    <div class="container-fluid py-2 py-sm-4">
+                        <div class="rounded-4 p-2 p-sm-3 banner-frame" style="background: rgb(25, 18, 52); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
 
-            @for ($i = 1; $i <= 4; $i++) {{-- Sesuaikan angka 5 dengan jumlah fotomu --}}
-                <div class="carousel-item {{ $i == 1 ? 'active' : '' }}" data-bs-interval="4000">
+                            {{-- Backdrop blur: salinan gambar yang sama, dizoom & diblur, ngisi ruang kosong kiri-kanan --}}
+                            <div class="banner-backdrop" style="background-image: url('{{ asset($banner->file_foto) }}');"></div>
 
-                    <div class="container-fluid py-4">
-                       
-                        
-                            @if ($i == 4)
-                                {{-- 🌟 SLIDE 1: Desain Lengkap (Ada Teks, Tombol, dan Gradasi) 🌟 --}}
-                                {{-- KOTAK LUAR (Dark Blue) - Dipertahankan di semua slide agar ukuran tinggi tetap stabil --}}
-                                <div class="rounded-4 p-3" style="background: rgb(14, 23, 0); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                            {{-- Card dalam: gambar tajam, di-center di atas backdrop --}}
+                            <div class="rounded-4 wadah-banner-owner"
+                                 style="background-image: url('{{ asset($banner->file_foto) }}');">
+                            </div>
 
-                                <div class="rounded-4 px-5 py-5 d-flex flex-column flex-lg-row align-items-center justify-content-between"
-                                     style="
-                                     min-height:420px;
-                                     background:
-                                     linear-gradient(rgba(60,0,110,.65),rgba(20,0,60,.65)),
-                                     url('{{ asset("images/banner/slide{$i}.jpg") }}');
-                                     background-size:cover;
-                                     background-position:center;
-                                     ">
-
-                                    {{-- Bagian Kiri --}}
-                                    <div class="text-white">
-                                        <p class="text-uppercase mb-3" style="letter-spacing:3px;color:#d8b8ff;">
-                                            Premium Gaming
-                                        </p>
-                                        <h1 class="fw-bold display-2 mb-3">
-                                            PlaynChill
-                                        </h1>
-                                        <p class="fs-4 mb-4" style="max-width: 600px;">
-                                            Rental PlayStation dengan suasana nyaman dan harga terjangkau
-                                        </p>
-                                        <div class="d-flex gap-3 flex-wrap">
-                                            <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="background:#a020f0; border-radius: 10px;">
-                                                Book Now
-                                            </a>
-                                            <a href="{{ url('/booking') }}" class="btn btn-lg text-white px-4 fw-bold" style="border:2px solid #c06cff; border-radius: 10px;">
-                                                Lihat Paket
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    {{-- Bagian Kanan --}}
-                                    <div class="text-white mt-5 mt-lg-0 d-none d-md-block">
-                                        <div style="font-size:170px; opacity:.15; transform: rotate(15deg);">🎮</div>
-                                    </div>
-
-                                </div>
-                            </div> 
-                            @else
-                            <div class="rounded-4 p-3" style="box-shadow: 0 10px 30px rgba(0, 0, 0, 0.085);">
-                                {{-- 🖼️ SLIDE 2 DAN SETERUSNYA: Gambar Polos (Tanpa Teks & Tombol) 🖼️ --}}
-                                <div class="rounded-4"
-                                     style="
-                                     min-height:420px;
-                                     background: url('{{ asset("images/banner/slide{$i}.jpg") }}');
-                                     background-size:cover;
-                                     background-position:center;
-                                     ">
-                                </div>
-                            </div>    
-                            @endif
-                        
+                        </div>
                     </div>
-
                 </div>
-            @endfor
+            @empty
+                {{-- Fallback jika admin belum upload banner sama sekali --}}
+                <div class="carousel-item active">
+                    <div class="container-fluid py-2 py-sm-4">
+                        <div class="rounded-4 p-2 p-sm-3" style="background: rgb(25, 18, 52); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div class="rounded-4 wadah-banner-owner bg-secondary d-flex justify-content-center align-items-center text-white">
+                                <h5>Belum ada banner promo</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforelse
+        </div>
 
         </div>
 
@@ -371,26 +457,81 @@
     </div>
 </div>
 
-{{-- ═══ ROOM TOUR ═══ --}}
-<section class="tour-section">
-    <h2 data-aos="fade-down " class="font-modak">Room Tour</h2>
-    <p class="tour-sub" data-aos="fade-down" data-aos-delay="100">Rasakan pengalaman seru di Play N Chill melalui video tour kami</p>
+{{-- ═══ VIDEO KESERUAN (DINAMIS DARI DATABASE) ═══ --}}
+<section class="tour-section" style="overflow: hidden; padding: 60px 0;">
+    <h2 data-aos="fade-down" class="font-modak text-center" style="color: #ffd700; margin-bottom: 10px; font-size: 2.5rem;">Keseruan Kami</h2>
+    <p class="tour-sub text-center" data-aos="fade-down" data-aos-delay="100" style="color: #d8b8ff; margin-bottom: 40px; padding: 0 15px;">
+        Tonton cuplikan aktivitas seru di Play N Chill
+    </p>
 
-    <div class="vid-wrap" id="vidWrap" onclick="startVideo()" data-aos="zoom-in" data-aos-duration="1000">
-        <div class="vid-thumb" 
-            style="background-image: url('https://img.youtube.com/vi/4iSpL_-hO8Y/maxresdefault.jpg'); 
-                    background-size: cover; 
-                    background-position: center; 
-                    background-repeat: no-repeat;">
-        </div>
-        <div class="vid-overlay">
-            <div class="vid-play">
-                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div class="container-fluid px-4 px-md-5">
+        <div class="video-slider-wrapper">
+            <div class="video-slider-container" id="videoSliderContainer">
+                @forelse($videos as $index => $video)
+                    @php
+                        // Logika untuk mengubah link YouTube biasa menjadi link Embed yang bisa diputar di web
+                        $url = $video->{'link-video'};
+                        $embedUrl = $url; 
+                        if (preg_match('/[\?\&]v=([^\?\&]+)/', $url, $matches)) {
+                            $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                        } elseif (preg_match('/youtu\.be\/([^\?\&]+)/', $url, $matches)) {
+                            $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                        }
+                    @endphp
+
+                    <div class="video-slider-item" data-aos="fade-up" data-aos-delay="100">
+                        <div class="video-card position-relative rounded-4 overflow-hidden" style="aspect-ratio: 16 / 9; box-shadow: 0 10px 30px rgba(0,0,0,0.4); background-color: #1e0a46;">
+                            
+                            {{-- THUMBNAIL & OVERLAY CUSTOM --}}
+                            <div class="video-cover w-100 h-100 position-absolute top-0 start-0" style="z-index: 2; transition: opacity 0.5s ease;">
+                                <img src="{{ asset('uploads/videos/' . $video->thumbnail) }}" alt="Thumbnail Video" class="w-100 h-100" style="object-fit: cover;">
+                                
+                                <div class="video-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background: rgba(30, 10, 70, 0.4);">
+                                    
+                                    {{-- Tombol 1: Putar Langsung di Web --}}
+                                    <button type="button" class="btn-play-inline border-0 p-0 mb-3" onclick="playVideoInline('videoFrame_{{ $index }}', '{{ $embedUrl }}')" style="background: transparent;">
+                                        <div class="play-btn-circle d-flex align-items-center justify-content-center" style="width: 75px; height: 75px; background-color: #ffd700; border-radius: 50%; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); transition: all 0.3s ease;">
+                                            <svg viewBox="0 0 24 24" style="width: 38px; height: 38px; fill: #2b0054; margin-left: 5px;">
+                                                <path d="M8 5v14l11-7z"/>
+                                            </svg>
+                                        </div>
+                                    </button>
+
+                                    {{-- Tombol 2: Redirect ke YouTube --}}
+                                    <a href="{{ $video->{'link-video'} }}" target="_blank" class="badge rounded-pill text-dark text-decoration-none px-3 py-2" style="background-color: #ffd700; font-weight: 700; font-size: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;">
+                                        Lihat di YouTube &rarr;
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- WADAH IFRAME YOUTUBE (Akan diisi otomatis oleh Javascript saat tombol putar diklik) --}}
+                            <div class="w-100 h-100 position-absolute top-0 start-0 bg-dark" id="videoFrame_{{ $index }}" style="z-index: 1;">
+                            </div>
+
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-12 text-center py-4 w-100">
+                        <p class="mb-0" style="color: #bca0e5; font-size: 1.1rem;">Belum ada video keseruan yang dibagikan.</p>
+                    </div>
+                @endforelse
             </div>
+
+            {{-- BULLET INDICATORS UNTUK SLIDER --}}
+            @if($videos->count() > 0)
+            <div class="slider-indicators" id="videoIndicators">
+                @foreach($videos as $index => $video)
+                    <div class="slider-dot {{ $index == 0 ? 'active' : '' }}"></div>
+                @endforeach
+            </div>
+            @endif
+
         </div>
     </div>
 </section>
+    
 
+</section>
 
 <section class="game-section">
     <div class="container-fluid px-4">
@@ -469,50 +610,18 @@
 
 <footer>
     <div class="container">
-        <div class="row g-4 pb-2">
+        <div class="row gy-4 pb-2">
 
-            {{-- Brand --}}
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-logo font-modak">Play N Chill</div>
-                <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
+           <div class="col-12 col-sm-6 col-lg-3">
+                <div class="f-brand-container">
+                    <img src="{{ asset('logo/PNCLOGO.jpg') }}" alt="Logo Play N Chill" class="f-logo-round">                   
+                    <div class="f-brand-text">
+                        <h3 class="f-brand-title">Play N Chill</h3>
+                        <p class="f-tagline mb-0">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
+                    </div>
+                </div>
             </div>
 
-            {{-- Hubungi Kami --}}
-            <div class="col-6 col-sm-3 col-lg-3">
-                <div class="f-head">Hubungi Kami</div>
-                <ul class="f-list">
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span>playnchillmadiun@gmail.com</span></li>
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
-                        <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
-                    </li>
-                </ul>
-            </div>
-
-            {{-- Ikuti Kami --}}
-            <div class="col-6 col-sm-3 col-lg-3">
-                <div class="f-head">Ikuti Kami</div>
-                <ul class="f-list">
-                    <li>
-                        <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
-                            <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
-                        </a>
-                    </li>
-                    <li>
-                        <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
-                            <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
-                        </a>
-                    </li>
-                    <li>
-                        <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
-                            <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            {{-- Jam Operasional --}}
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="f-head">Jam Operasional</div>
                 <ul class="f-list">
@@ -525,6 +634,41 @@
                         </div>
                     </li>
                 </ul>
+            </div>
+
+            <div class="col-6 col-sm-3 col-lg-3 pe-2">
+                <div class="f-head">Hubungi Kami</div>
+                <ul class="f-list">
+                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
+                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span style="word-break: break-word;">playnchillmadiun@gmail.com</span></li>
+                    <li>
+                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
+                        <span style="line-height: 1.5;">Jl. Margobawero No.46,<br>Mojorejo, Kec. Taman,<br>Kota Madiun,<br>Jawa Timur 63139</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-sm-3 col-lg-3 d-flex justify-content-end justify-content-sm-start">
+                <div class="w-100" style="max-width: max-content;">
+                    <div class="f-head">Ikuti Kami</div>
+                    <ul class="f-list f-soc-list">
+                        <li>
+                            <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
+                                <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
+                            </a>
+                        </li>
+                        <li>
+                            <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
+                                <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
+                            </a>
+                        </li>
+                        <li>
+                            <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
+                                <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
         </div>
@@ -573,5 +717,136 @@ function filterGames(platform, btn) {
     });
 </script>
 
+<script>
+    // ==========================================
+    // 1. FUNGSI MEMUTAR VIDEO LANGSUNG DI WEB
+    // ==========================================
+    function playVideoInline(frameId, embedUrl) {
+        const frameContainer = document.getElementById(frameId);
+        const coverOverlay = frameContainer.previousElementSibling;
+        
+        // HENTIKAN SLIDER OTOMATIS SAAT VIDEO DIPUTAR
+        // Agar video tidak lari ke samping saat pengunjung sedang menonton
+        stopVideoAutoSlide();
+        const videoContainer = document.getElementById('videoSliderContainer');
+        if (videoContainer) {
+            videoContainer.removeEventListener('mouseleave', startVideoAutoSlide);
+            videoContainer.removeEventListener('touchend', startVideoAutoSlide);
+        }
+
+        // Sembunyikan cover thumbnail buatan kita
+        coverOverlay.style.opacity = '0';
+        setTimeout(() => { coverOverlay.style.display = 'none'; }, 500);
+
+        // Cek apakah URL sudah memiliki tanda tanya (?) untuk parameter
+        let autoPlayUrl = embedUrl.includes('?') ? `${embedUrl}&autoplay=1` : `${embedUrl}?autoplay=1`;
+
+        // Sisipkan Iframe YouTube dengan mode Autoplay yang diperbaiki
+        frameContainer.innerHTML = `<iframe width="100%" height="100%" src="${autoPlayUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; border-radius: 16px;"></iframe>`;
+        
+        // Naikkan layer iframe ke depan
+        frameContainer.style.zIndex = '3';
+    }
+
+    // ==========================================
+    // 2. LOGIKA AUTO-SLIDE & BULLET INDICATOR
+    // ==========================================
+    let videoAutoSlideInterval;
+    const videoAutoSlideDelay = 4000; // Bergeser otomatis setiap 4 detik
+
+    function startVideoAutoSlide() {
+        stopVideoAutoSlide();
+        videoAutoSlideInterval = setInterval(moveNextVideoSlide, videoAutoSlideDelay);
+    }
+
+    function stopVideoAutoSlide() {
+        clearInterval(videoAutoSlideInterval);
+    }
+
+    function moveNextVideoSlide() {
+        const videoContainer = document.getElementById('videoSliderContainer');
+        const videoItems = document.querySelectorAll('.video-slider-item');
+        if (!videoContainer || videoItems.length <= 1) return;
+
+        let centerViewport = videoContainer.clientWidth / 2;
+        let minDistance = Infinity;
+        let currentIndex = -1;
+
+        videoItems.forEach((item, index) => {
+            let rect = item.getBoundingClientRect();
+            let containerRect = videoContainer.getBoundingClientRect();
+            let itemCenter = (rect.left - containerRect.left) + (rect.width / 2);
+            let distance = Math.abs(centerViewport - itemCenter);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                currentIndex = index;
+            }
+        });
+
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= videoItems.length) {
+            nextIndex = 0;
+        }
+
+        let targetItem = videoItems[nextIndex];
+        let scrollPos = targetItem.offsetLeft - videoContainer.offsetLeft;
+        videoContainer.scrollTo({ left: scrollPos, behavior: 'smooth' });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const videoContainer = document.getElementById('videoSliderContainer');
+        const videoDots = document.querySelectorAll('#videoIndicators .slider-dot');
+        const videoItems = document.querySelectorAll('.video-slider-item');
+
+        if (videoContainer && videoDots.length > 0) {
+            
+            // Mulai Auto-Slide saat halaman dimuat
+            startVideoAutoSlide();
+
+            // Smart Pause: Berhenti bergeser saat di-hover/disentuh
+            videoContainer.addEventListener('mouseenter', stopVideoAutoSlide);
+            videoContainer.addEventListener('mouseleave', startVideoAutoSlide);
+            videoContainer.addEventListener('touchstart', stopVideoAutoSlide, { passive: true });
+            videoContainer.addEventListener('touchend', startVideoAutoSlide, { passive: true });
+
+            // Sinkronisasi saat digeser manual
+            videoContainer.addEventListener('scroll', () => {
+                let centerViewport = videoContainer.clientWidth / 2;
+                let minDistance = Infinity;
+                let activeIndex = -1;
+
+                videoItems.forEach((item, index) => {
+                    let rect = item.getBoundingClientRect();
+                    let containerRect = videoContainer.getBoundingClientRect();
+                    let itemCenter = (rect.left - containerRect.left) + (rect.width / 2);
+                    let distance = Math.abs(centerViewport - itemCenter);
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        activeIndex = index;
+                    }
+                });
+
+                // Nyalakan dot yang aktif
+                videoDots.forEach(dot => dot.classList.remove('active'));
+                if (activeIndex !== -1 && videoDots[activeIndex]) {
+                    videoDots[activeIndex].classList.add('active');
+                }
+            });
+
+            // Navigasi saat dot diklik
+            videoDots.forEach((dot, index) => {
+                dot.addEventListener('click', function() {
+                    let targetItem = videoItems[index];
+                    if (targetItem) {
+                        let scrollPos = targetItem.offsetLeft - videoContainer.offsetLeft;
+                        videoContainer.scrollTo({ left: scrollPos, behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+    });
+</script>
 </body>
 </html>

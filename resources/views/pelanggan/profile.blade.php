@@ -324,63 +324,138 @@
 
 
     <div class="section-title mb-3">
-        <i class="fas fa-history me-2"></i> Riwayat Booking
+        <i class="fas fa-history me-2"></i> Riwayat Transaksi
     </div>
 
-    @forelse($riwayat as $booking)
+    {{-- LOGIKA PENGGABUNGAN DATA BOOKING & F&B --}}
     @php
-        $ph = $booking->penetapanHarga;
+        $mergedRiwayat = collect();
+        
+        // Memasukkan data Booking
+        if(isset($riwayat)) {
+            foreach($riwayat as $b) {
+                $b->tipe_kartu = 'booking';
+                $b->waktu_urut = $b->created_at;
+                $mergedRiwayat->push($b);
+            }
+        }
+        
+        // Memasukkan data F&B Mandiri
+        if(isset($riwayatFb)) {
+            foreach($riwayatFb as $fb) {
+                $fb->tipe_kartu = 'fb';
+                $fb->waktu_urut = $fb->created_at;
+                $mergedRiwayat->push($fb);
+            }
+        }
+        
+        // Urutkan semua data dari yang paling baru
+        $mergedRiwayat = $mergedRiwayat->sortByDesc('waktu_urut');
     @endphp
-    <div class="riwayat-card mb-3">
-        <div class="riwayat-main">
-            <div class="riwayat-info">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <h5 class="mb-0">{{ $ph->ruangan->nama_ruangan ?? '-' }}</h5>
-                    @if($booking->status_sewa === 'selesai')
-                        <span class="badge bg-primary">Selesai</span>
-                    @else
-                        <span class="badge bg-danger">Dibatalkan</span>
-                    @endif
-                </div>
-                <p class="text-muted mb-2" style="font-size:0.85rem">Kode: {{ $booking->kode_sewa }}</p>
 
-                <div class="riwayat-detail-grid">
-                    <div><i class="fas fa-calendar me-1 text-muted"></i> {{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('d/m/Y') }}</div>
-                    <div><i class="fas fa-clock me-1 text-muted"></i> {{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->waktu_selesai)->format('H:i') }}</div>
-                    <div><i class="fas fa-money-bill me-1 text-muted"></i> Rp {{ number_format($booking->total_harga, 0, ',', '.') }}</div>
-                    <div>
-                        @if($booking->status_pembayaran === 'lunas')
-                            <span class="badge bg-success">Lunas</span>
-                        @elseif($booking->status_pembayaran === 'dp')
-                            <span class="badge bg-warning text-dark">DP</span>
-                        @else
-                            <span class="badge bg-secondary">Belum Bayar</span>
+    @forelse($mergedRiwayat as $item)
+        
+        @if($item->tipe_kartu === 'booking')
+            {{-- ================= KARTU RIWAYAT BOOKING (DESAIN ASLI) ================= --}}
+            @php $ph = $item->penetapanHarga; @endphp
+            <div class="riwayat-card mb-3">
+                <div class="riwayat-main">
+                    <div class="riwayat-info">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h5 class="mb-0">{{ $ph->ruangan->nama_ruangan ?? '-' }}</h5>
+                            @if($item->status_sewa === 'selesai')
+                                <span class="badge bg-primary">Selesai</span>
+                            @else
+                                <span class="badge bg-danger">Dibatalkan</span>
+                            @endif
+                        </div>
+                        <p class="text-muted mb-2" style="font-size:0.85rem">Kode: {{ $item->kode_sewa }}</p>
+
+                        <div class="riwayat-detail-grid">
+                            <div><i class="fas fa-calendar me-1 text-muted"></i> {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('d/m/Y') }}</div>
+                            <div><i class="fas fa-clock me-1 text-muted"></i> {{ \Carbon\Carbon::parse($item->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($item->waktu_selesai)->format('H:i') }}</div>
+                            <div><i class="fas fa-money-bill me-1 text-muted"></i> Rp {{ number_format($item->total_harga, 0, ',', '.') }}</div>
+                            <div>
+                                @if($item->status_pembayaran === 'lunas')
+                                    <span class="badge bg-success">Lunas</span>
+                                @elseif($item->status_pembayaran === 'dp')
+                                    <span class="badge bg-warning text-dark">DP</span>
+                                @else
+                                    <span class="badge bg-secondary">Belum Bayar</span>
+                                @endif
+                            </div>
+                        </div>
+                        @if($item->status_sewa === 'dibatalkan' && $item->catatan_pembayaran)
+                        <div style="margin-top:8px;background:#fff3cd;border:1px solid #ffc107; border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#856404;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Alasan:</strong> {{ $item->catatan_pembayaran }}
+                        </div>
                         @endif
                     </div>
+
+                    <div class="riwayat-actions">
+                        <a href="{{ url('/booking/paket?room='.($ph->id_ruangan ?? '').'&tipe='.strtolower($ph->ruangan->kategori ?? 'reguler')) }}"
+                            class="btn-booking-lagi">
+                            <i class="fas fa-redo me-1"></i> Booking Lagi
+                        </a>
+                    </div>
                 </div>
-                @if($booking->status_sewa === 'dibatalkan' && $booking->catatan_pembayaran)
-                <div style="margin-top:8px;background:#fff3cd;border:1px solid #ffc107;
-                            border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#856404;">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Alasan:</strong> {{ $booking->catatan_pembayaran }}
-                </div>
-                @endif
             </div>
 
-            <div class="riwayat-actions">
-                <a href="{{ url('/booking/paket?room='.$ph->id_ruangan.'&tipe='.strtolower($ph->ruangan->kategori ?? 'reguler')) }}"
-                    class="btn-booking-lagi">
-                    <i class="fas fa-redo me-1"></i> Booking Lagi
-                </a>
+        @else
+            {{-- ================= KARTU RIWAYAT F&B MANDIRI (DESAIN BARU) ================= --}}
+        <div class="riwayat-card mb-3" style="border-left: 5px solid #ff7a00;">
+            <div class="riwayat-main">
+                <div class="riwayat-info">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h5 class="mb-0">
+                            <i class="fas fa-hamburger" style="color:#ff7a00;"></i> Pesanan F&B
+                        </h5>
+                        @if($item->status_pesanan === 'Selesai')
+                            <span class="badge bg-success">Selesai</span>
+                        @else
+                            <span class="badge text-dark" style="background-color: #ffd700;">Menunggu</span>
+                        @endif
+                    </div>
+                    <p class="text-muted mb-2" style="font-size:0.85rem">Nomor Pesanan: FNBPNC-{{ str_pad($item->id_pos, 3, '0', STR_PAD_LEFT) }}</p>
+
+                    <div class="riwayat-detail-grid">
+                        <div><i class="fas fa-calendar me-1 text-muted"></i> {{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y') }}</div>
+                        <div><i class="fas fa-clock me-1 text-muted"></i> {{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}</div>
+                        <div><i class="fas fa-money-bill me-1 text-muted"></i> Rp {{ number_format($item->total_pos, 0, ',', '.') }}</div>
+                       <div>
+                            {{-- LOGIKA LENCANA STATUS MENGGUNAKAN status_pembayaran --}}
+                            @if($item->status_pembayaran === 'lunas')
+                                <span class="badge bg-success">Lunas</span>
+                            @elseif($item->status_pembayaran === 'sudah-bayar')
+                                <span class="badge bg-info text-dark">Sudah Bayar</span>
+                            @else
+                                <span class="badge bg-secondary">Belum Bayar</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="riwayat-actions d-flex flex-column gap-2 justify-content-center">
+                        {{-- TOMBOL BAYAR HILANG JIKA STATUSNYA sudah-bayar ATAU lunas --}}
+                        @if($item->status_pembayaran !== 'lunas' && $item->status_pembayaran !== 'sudah-bayar')
+                            <a href="{{ route('fb.payment.show', $item->id_pos) }}" 
+                               class="btn-booking-lagi text-center w-100" 
+                               style="background-color: #ff7a00; color: white; border: none;">
+                                <i class="fas fa-qrcode me-1"></i> Bayar
+                            </a>
+                        @endif
+                    </div>
             </div>
         </div>
-    </div>
+        @endif
+
     @empty
-    <div class="empty-state">
-        <i class="fas fa-calendar-times"></i>
-        <p>Belum ada riwayat booking.</p>
-        <a href="{{ url('/booking') }}" class="btn-booking-lagi">Booking Sekarang</a>
-    </div>
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <p>Belum ada riwayat transaksi.</p>
+            <a href="{{ url('/booking') }}" class="btn-booking-lagi">Booking Sekarang</a>
+        </div>
     @endforelse
 
 </div>
@@ -478,6 +553,7 @@
             toggleEditModal();
         });
     @endif
+
 </script>
 <script>
     let sisaDetik = {{ $sisaDetik }};

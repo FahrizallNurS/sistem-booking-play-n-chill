@@ -129,6 +129,9 @@
     {{-- Extra Configured Plugins Scripts --}}
     @include('adminlte::plugins', ['type' => 'js'])
 
+    {{-- Confirm Helper (SweetAlert2 generic) --}}
+    <script src="{{ asset('js/confirm-helper.js') }}"></script>
+
     {{-- Livewire Script --}}
     @if(config('adminlte.livewire'))
         @if(intval(app()->version()) >= 7)

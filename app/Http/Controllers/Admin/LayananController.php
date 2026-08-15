@@ -34,8 +34,8 @@ class LayananController extends Controller
     {
         $request->validate([
             'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan',
-            'kategori'     => 'required|in:REGULAR,PRIVATE ROOM',
-            'perangkat' => 'nullable|in:PS3,PS4,PS5,Nintendo Switch',
+            'kategori'     => 'required|in:REGULAR,PRIVATE-ROOM',
+            'perangkat'    => 'nullable|in:PS3,PS4,PS5,Nintendo Switch',
             'is_active'    => 'required|in:0,1',
             'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
@@ -74,7 +74,7 @@ class LayananController extends Controller
     {
         $request->validate([
             'nama_ruangan' => 'required|string|max:20|unique:ms_ruangan,nama_ruangan,' . $id . ',id_ruangan',
-            'kategori'     => 'required|in:REGULAR,VIP,VVIP',
+            'kategori'     => 'required|in:REGULAR,PRIVATE-ROOM',
             'perangkat'    => 'nullable|in:PS3,PS4,PS5,Nintendo Switch',
             'is_active'    => 'required|in:0,1',
             'galeri'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',

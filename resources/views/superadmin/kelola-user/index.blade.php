@@ -1,4 +1,5 @@
-@extends('superadmin.layouts.app')
+@extends('adminlte::page')
+@include('partials.sidebar-superadmin')
 
 @section('title', 'Kelola User')
 

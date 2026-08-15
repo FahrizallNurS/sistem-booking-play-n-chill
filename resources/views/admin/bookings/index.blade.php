@@ -1,9 +1,11 @@
 @extends('adminlte::page')
 @include('partials.sidebar-admin')
+
 @section('title', 'Kelola Booking')
 
 @section('content_header')
     <h1>Kelola Booking</h1>
+
 @stop
 
 @section('content')
@@ -18,7 +20,7 @@
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
-            {{ session('error') }}
+            {{ session('error') }}  
         </div>
     @endif
 
@@ -29,12 +31,17 @@
                 <input type="text" name="search" value="{{ request('search') }}"
                     class="form-control form-control-sm" placeholder="Cari kode / nama...">
 
+                {{-- Filter Sumber Booking --}}
+                <select name="sumber_booking" class="form-control form-control-sm">
+                    <option value="">-- Semua Sumber --</option>
+                    <option value="Online" {{ request('sumber_booking') === 'Online' ? 'selected' : '' }}>Online</option>
+                    <option value="Kasir"  {{ request('sumber_booking') === 'Kasir'  ? 'selected' : '' }}>Kasir</option>
+                </select>
+
                 <select name="status_sewa" class="form-control form-control-sm">
                     <option value="">-- Status Sewa --</option>
                     <option value="ditahan"     {{ request('status_sewa') === 'ditahan'     ? 'selected' : '' }}>Ditahan</option>
                     <option value="dikonfirmasi"{{ request('status_sewa') === 'dikonfirmasi'? 'selected' : '' }}>Dikonfirmasi</option>
-                    <option value="dibatalkan"  {{ request('status_sewa') === 'dibatalkan'  ? 'selected' : '' }}>Dibatalkan</option>
-                    <option value="selesai"     {{ request('status_sewa') === 'selesai'     ? 'selected' : '' }}>Selesai</option>
                 </select>
 
                 <select name="status_pembayaran" class="form-control form-control-sm">
@@ -62,136 +69,162 @@
                 <a href="{{ route('admin.booking.index') }}" class="btn btn-sm btn-secondary">
                     <i class="fas fa-sync"></i> Reset
                 </a>
+                <a href="{{ route('admin.booking.create') }}" class="btn btn-sm font-weight-bold" style="background-color: #6f42c1; color: white;">
+                    <i class="fas fa-plus"></i> Tambah Booking
+                </a>
             </form>
         </div>
-    </div>
+    </div>  
 
     <div class="card">
         <div class="card-body p-0">
-            <table class="table table-bordered table-hover mb-0">
-                <thead class="thead-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Pelanggan</th>
-                        <th>Kode Sewa</th>
-                        <th>Ruangan</th>
-                        <th>Paket</th>
-                        <th>Waktu Mulai</th>
-                        <th>Durasi</th>
-                        <th>Total</th>
-                        <th>Status Pembayaran</th>
-                        <th>Status Sewa</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($bookings as $booking)
-                        @php
-                            $ph = $booking->penetapanHarga;
-                        @endphp
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mb-0 text-center align-middle">
+                    <thead class="thead-light">
                         <tr>
-                            <td>{{ $bookings->firstItem() + $loop->index }}</td>
-
-                            <td>
-                                {{ $booking->pengguna->nama_pengguna ?? '-' }}
-                            </td>
-
-                            <td><code>{{ $booking->kode_sewa }}</code></td>
-
-                            <td>{{ $ph->ruangan->nama_ruangan ?? '-' }}</td>
-
-                            <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
-
-                            <td>{{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('d/m/Y H:i') }}</td>
-
-                            <td>{{ $ph->durasi_jam ?? '-' }} Jam</td>
-
-                            <td>Rp {{ number_format($booking->total_harga, 0, ',', '.') }}</td>
-
-                            {{-- Status Pembayaran --}}
-                            <td>
-                                @php
-                                    $badgePembayaran = match($booking->status_pembayaran) {
-                                        'lunas'    => 'success',
-                                        'dp'       => 'info',
-                                        default    => 'warning',
-                                    };
-                                    $labelPembayaran = match($booking->status_pembayaran) {
-                                        'lunas'    => 'Lunas',
-                                        'dp'       => 'DP',
-                                        default    => 'Menunggu',
-                                    };
-                                @endphp
-                                <span class="badge badge-{{ $badgePembayaran }}">{{ $labelPembayaran }}</span>
-                            </td>
-
-                            {{-- Status Sewa --}}
-                            <td>
-                                @php
-                                    $badgeSewa = match($booking->status_sewa) {
-                                        'dikonfirmasi' => 'success',
-                                        'dibatalkan'   => 'danger',
-                                        'selesai'      => 'primary',
-                                        default        => 'secondary',
-                                    };
-                                    $labelSewa = match($booking->status_sewa) {
-                                        'dikonfirmasi' => 'Dikonfirmasi',
-                                        'dibatalkan'   => 'Dibatalkan',
-                                        'selesai'      => 'Selesai',
-                                        default        => 'Ditahan',
-                                    };
-                                @endphp
-                                <span class="badge badge-{{ $badgeSewa }}">{{ $labelSewa }}</span>
-                            </td>
-
-                            {{-- Aksi --}}
-                            <td>
-                                <a href="{{ route('admin.booking.show', $booking->id_transaksi) }}"
-                                    class="btn btn-info btn-xs">
-                                    <i class="fas fa-eye"></i> Detail
-                                </a>
-
-                                @if($booking->status_sewa === 'ditahan')
-                                    {{-- Konfirmasi --}}
-                                    <form action="{{ route('admin.booking.konfirmasi', $booking->id_transaksi) }}"
-                                        method="POST" class="d-inline"
-                                        onsubmit="return confirm('Konfirmasi booking {{ $booking->kode_sewa }}?')">
-                                        @csrf @method('PATCH')
-                                        <button type="submit" class="btn btn-success btn-xs">
-                                            <i class="fas fa-check"></i> Konfirmasi
-                                        </button>
-                                    </form>
-
-                                    {{-- Tolak --}}
-                                    <button type="button" class="btn btn-warning btn-xs"
-                                        data-toggle="modal"
-                                        data-target="#modalTolak"
-                                        data-id="{{ $booking->id_transaksi }}"
-                                        data-kode="{{ $booking->kode_sewa }}">
-                                        <i class="fas fa-times"></i> Tolak
-                                    </button>
-
-                                    {{-- Hapus --}}
-                                    <form action="{{ route('admin.booking.destroy', $booking->id_transaksi) }}"
-                                        method="POST" class="d-inline"
-                                        onsubmit="return confirm('Hapus booking {{ $booking->kode_sewa }}?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-xs">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
+                            <th>NO</th>
+                            <th>Pelanggan</th>
+                            <th>Kode Sewa</th>
+                            <th>Ruangan</th>
+                            <th>Paket</th>
+                            <th>Waktu Mulai</th>
+                            <th>Durasi</th>
+                            <th>Total</th>
+                            <th>Sumber</th>
+                            <th>Status Pembayaran</th>
+                            <th>Status Sewa</th>
+                            <th>Aksi</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="11" class="text-center text-muted py-3">
-                                Tidak ada data booking.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody> 
+                        @forelse($bookings as $booking)
+                            @php
+                                $ph = $booking->penetapanHarga;
+                                $strukSudahDicetak = !empty($booking->struk_created_at);
+                            @endphp
+                            <tr>
+                                <td>{{ $bookings->firstItem() + $loop->index }}</td>
+
+                                <td>
+                                    {{ $booking->pengguna->nama_pengguna ?? '-' }}
+                                </td>
+
+                                <td><code>{{ $booking->kode_sewa }}</code></td>
+
+                                <td>{{ $ph->ruangan->nama_ruangan ?? '-' }}</td>
+
+                                <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
+
+                                <td>{{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('d/m/Y H:i') }}</td>
+
+                                <td>{{ $ph->durasi_jam ?? '-' }} Jam</td>
+
+                                <td>Rp {{ number_format($booking->total_harga, 0, ',', '.') }}</td>
+
+                                <td>
+                                    @if($booking->sumber_booking === 'Online')
+                                        <span class="badge text-white py-1 px-3" style="background-color: #0084ff; border-radius: 4px; font-weight: 600; font-size: 0.725rem;">
+                                            <i class="fas fa-globe mr-1"></i> ONLINE
+                                        </span>
+                                    @elseif($booking->sumber_booking === 'Kasir')
+                                        <span class="badge text-dark py-1 px-3 border" style="background-color: #f3f4f6; border-color: #d1d5db !important; border-radius: 4px; font-weight: 600; font-size: 0.725rem;">
+                                            <i class="fas fa-desktop mr-1 text-muted"></i> KASIR
+                                        </span>
+                                    @else
+                                        <span class="badge text-muted py-1 px-3 border" style="background-color: #ffffff; border-color: #e5e7eb !important; border-radius: 4px; font-weight: 600; font-size: 0.725rem;">
+                                            <i class="fas fa-question-circle mr-1"></i> TIDAK DIKETAHUI
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @php
+                                        $badgePembayaran = match($booking->status_pembayaran) {
+                                            'lunas'    => 'success',
+                                            'dp'       => 'info',
+                                            default    => 'warning',
+                                        };
+                                        $labelPembayaran = match($booking->status_pembayaran) {
+                                            'lunas'    => 'Lunas',
+                                            'dp'       => 'DP',
+                                            default    => 'Menunggu',
+                                        };
+                                    @endphp
+                                    <span class="badge badge-{{ $badgePembayaran }}">{{ $labelPembayaran }}</span>
+                                </td>
+
+                                {{-- Status Sewa --}}
+                                <td>
+                                    @php
+                                        $badgeSewa = $booking->status_sewa === 'dikonfirmasi' ? 'success' : 'secondary';
+                                        $labelSewa = $booking->status_sewa === 'dikonfirmasi' ? 'Dikonfirmasi' : 'Ditahan';
+                                    @endphp
+                                    <span class="badge badge-{{ $badgeSewa }}">{{ $labelSewa }}</span>
+                                </td>
+                                
+                                <td class="align-middle text-center">
+                                    <div class="d-flex justify-content-center align-items-center" style="gap: 8px;">
+
+                                        {{-- Tombol Detail — disamakan gaya dengan badge di kolom lain --}}
+                                        <a href="{{ route('admin.booking.show', $booking->id_transaksi) }}"
+                                            class="badge text-white text-nowrap"
+                                            style="background-color: #17a2b8; padding: .35rem .75rem; border-radius: 4px; font-weight: 600; font-size: 0.725rem;">
+                                            <i class="fas fa-eye mr-1"></i>Detail
+                                        </a>
+
+                                        {{-- Tombol Keranjang F&B — disabled kalau struk udah dicetak
+                                             (transaksi dianggap selesai). data-* di bawah dipakai
+                                             modal-fb.blade.php buat ngisi modal-rincian, karena di
+                                             halaman ini datanya sudah ada di server (bukan dari form). --}}
+                                        @php
+                                            $labelTipeHariBaris = match($ph->tipe_hari ?? null) {
+                                                'harian' => 'Senin - Kamis',
+                                                'akhir_pekan' => 'Jumat - Minggu',
+                                                'liburan' => 'Hari Libur',
+                                                default => '-',
+                                            };
+                                        @endphp
+                                        <button type="button"
+                                            class="btn p-0 border-0 bg-transparent flex-shrink-0"
+                                            @if(!$strukSudahDicetak)
+                                                data-toggle="modal"
+                                                data-target="#modalFB"
+                                                data-id="{{ $booking->id_transaksi }}"
+                                                data-kode="{{ $booking->kode_sewa }}"
+                                                data-nama="{{ $booking->pengguna->nama_pengguna ?? '-' }}"
+                                                data-email="{{ $booking->pengguna->email ?? '-' }}"
+                                                data-telp="{{ $booking->pengguna->no_hp ?? '-' }}"
+                                                data-ruangan="{{ $ph->ruangan->nama_ruangan ?? '-' }}"
+                                                data-paket="{{ $ph->paket->nama_paket ?? '-' }}"
+                                                data-waktu-mulai="{{ \Carbon\Carbon::parse($booking->waktu_mulai)->format('d/m/Y H:i') }}"
+                                                data-waktu-selesai="{{ \Carbon\Carbon::parse($booking->waktu_selesai)->format('d/m/Y H:i') }}"
+                                                data-durasi="{{ $ph->durasi_jam ?? '-' }}"
+                                                data-tipe-hari="{{ $labelTipeHariBaris }}"
+                                                data-total-harga="{{ $booking->total_harga ?? 0 }}"
+                                                data-sisa-bayar="{{ $booking->sisa_bayar ?? 0 }}"
+                                                data-metode-bayar="{{ $booking->metode_pembayaran ?? '-' }}"
+                                            @else
+                                                disabled
+                                            @endif
+                                            title="{{ $strukSudahDicetak ? 'Transaksi sudah selesai (struk sudah dicetak)' : 'Tambah Pesanan F&B' }}"
+                                            style="line-height: 1; {{ $strukSudahDicetak ? 'cursor: not-allowed;' : '' }}">
+                                            <i class="fas fa-shopping-cart"
+                                                style="color: {{ $strukSudahDicetak ? '#adb5bd' : '#fd7e14' }}; font-size: 1.1rem;"></i>
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="12" class="text-center text-muted py-3">
+                                    Tidak ada data booking.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
         @if($bookings->hasPages())
             <div class="card-footer">
@@ -227,10 +260,46 @@
         </div>
     </div>
 
+    {{-- 🔹 KARANTINA DIMULAI DI SINI 🔹 --}}
+    {{-- $produks & $kategoriFnb dikirim dari controller (data ASLI, dipakai di dalam modal-fb) --}}
+     @include('admin.bookings.partials.modal-fb')
+    @include('admin.bookings.partials.modal-rincian')
+
 @stop
 
 @section('js')
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ================= Konfirmasi Booking (SweetAlert2) =================
+        document.querySelectorAll('.btn-konfirmasi-booking').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var formId = this.dataset.formId;
+                var kode = this.dataset.kode;
+                konfirmasiAksi({
+                    title: 'Konfirmasi booking ' + kode + '?',
+                    text: 'Booking ini akan diubah statusnya menjadi dikonfirmasi.',
+                    icon: 'question',
+                    confirmText: 'Ya, konfirmasi',
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        document.getElementById(formId).submit();
+                    }
+                });
+            });
+        });
+
+        // ================= Hapus Booking (SweetAlert2) =================
+        document.querySelectorAll('.btn-hapus-booking').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var formId = this.dataset.formId;
+                var kode = this.dataset.kode;
+                konfirmasiHapusSubmit(formId, 'booking ' + kode);
+            });
+        });
+
+    });
+
     $('#modalTolak').on('show.bs.modal', function (e) {
         var btn  = $(e.relatedTarget);
         var id   = btn.data('id');

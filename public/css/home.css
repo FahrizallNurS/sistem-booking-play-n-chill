@@ -645,9 +645,19 @@ footer {
     gap: 9px;
 }
 
-.soc-btn {
+.f-soc-list {
     display: inline-flex;
+    flex-direction: column;
+    align-items: stretch; /* semua item ditarik selebar item terlebar */
+    width: max-content;   /* container ngikut lebar konten terpanjang (Instagram) */
+    max-width: 100%;      /* jaga-jaga biar tetap muat di HP sangat sempit */
+    gap: 9px;
+}
+
+.soc-btn {
+    display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
     height: 36px;
     padding: 0 12px;
@@ -658,12 +668,15 @@ footer {
     text-decoration: none;
     transition: background .2s;
     white-space: nowrap;
+    box-sizing: border-box;
+    width: 100%; /* mengisi lebar li, yang sudah di-stretch ke lebar terpanjang */
 }
 
 .soc-btn img {
     width: 18px;
     height: 18px;
     object-fit: contain;
+    flex-shrink: 0;
 }
 
 .soc-btn:hover {
@@ -706,15 +719,6 @@ footer {
         min-height: auto !important;
         height: auto !important;
     }
-    .carousel-inner .rounded-4 {
-        height: auto !important;
-        aspect-ratio: 1600 / 600 !important; 
-        background-size: cover !important; 
-        background-position: center center !important;
-        padding: 15px !important; 
-        width: 100% !important;
-        margin: 0 auto !important;
-    }
 
     /* 🌟 PENGATURAN TEKS SLIDE 1 (DESAIN LENGKAP) AGAR RESPONSIF 🌟 */
     .carousel-item .text-white h1 {
@@ -740,12 +744,6 @@ footer {
     .carousel-item .d-flex.gap-3.flex-wrap {
         display: flex !important;
         gap: 8px !important;
-    }
-
-    /* 🌟 SEMBUNYIKAN TEKS HTML PADA SLIDE BROSUR (SLIDE 2, 3, 4) 🌟 */
-    .carousel-item .rounded-4:not([style*="linear-gradient"]) {
-        background-size: contain !important; 
-        padding: 0 !important; 
     }
 
     /* 🌟 PAKSA 3 KARTU ROOM GRID BERJEJER HORIZONTAL & KOTAK DI HP 🌟 */

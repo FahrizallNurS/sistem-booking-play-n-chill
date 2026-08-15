@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Models\TrPos;
 
 class ProfileController extends Controller
 {
@@ -28,8 +29,13 @@ class ProfileController extends Controller
                 'status_sewa' => 'selesai',
             ]);
 
+        TrPos::where('status_pesanan', 'Menunggu')
+            ->where('created_at', '<', now()->subMinutes(15))
+            ->update([
+                'status_pesanan'    => 'Dibatalkan',
+                'status_pembayaran' => 'kadaluarsa',
+            ]);
 
-        // FIX: id_pengguna bukan id
         $bookingAktif = \App\Models\TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket'])
             ->where('id_pengguna', $user->id_pengguna)
             ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
@@ -46,6 +52,11 @@ class ProfileController extends Controller
             ->latest('waktu_mulai')
             ->get();
 
+        $riwayatFb = TrPos::where('id_pengguna', $user->id_pengguna)
+            ->whereNull('id_transaksi')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         $totalJam = \App\Models\TrTransaksi::join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
             ->where('tr_transaksi.id_pengguna', $user->id_pengguna)
             ->whereIn('tr_transaksi.status_sewa', ['dikonfirmasi', 'selesai'])
@@ -57,7 +68,7 @@ class ProfileController extends Controller
             $sisaDetik = max(0, now()->diffInSeconds($expiredAt, false));
         }
 
-        return view('pelanggan.profile', compact('user', 'bookingAktif', 'riwayat', 'totalJam', 'sisaDetik'));
+        return view('pelanggan.profile', compact('user', 'bookingAktif', 'riwayat', 'riwayatFb', 'totalJam', 'sisaDetik'));
     }
 
     public function update(Request $request)
@@ -66,7 +77,7 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            // FIX: name → nama_pengguna
+
             'nama_pengguna'    => ['required', 'string', 'max:45'],
             'email'            => ['required', 'email', 'max:30', Rule::unique('users', 'email')->ignore($user->id_pengguna, 'id_pengguna')],
             'no_hp'            => ['nullable', 'string', 'max:15'],
@@ -96,7 +107,6 @@ class ProfileController extends Controller
             }
         }
 
-        // FIX: name → nama_pengguna
         $user->nama_pengguna = $validated['nama_pengguna'];
         $user->email         = $validated['email'];
         $user->no_hp         = $validated['no_hp'] ?? null;
