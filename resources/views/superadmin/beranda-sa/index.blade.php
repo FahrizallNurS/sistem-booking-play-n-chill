@@ -11,38 +11,6 @@
         ['id' => 'val-fnb', 'title' => 'Transaksi F&B', 'value' => $metricsData['total_fnb'], 'unit' => 'Struk', 'icon' => 'fa-utensils', 'color' => 'success'],
         ['id' => 'val-rata-rata', 'title' => 'Rata-rata Transaksi', 'value' => $metricsData['rata_rata'], 'unit' => null, 'icon' => 'fa-calculator', 'color' => 'danger'],
     ];
-
-    // Dummy Cards Analitikal Pendukung
-    $analisisPendapatan = [
-        ['label' => config('category-colors.analisis_pendapatan.booking.label', 'Booking'), 'value' => 'Rp 12.450.000 (64%)', 'percent' => 64, 'color' => config('category-colors.analisis_pendapatan.booking.color', 'primary')],
-        ['label' => config('category-colors.analisis_pendapatan.fnb.label', 'F&B'), 'value' => 'Rp 6.800.000 (36%)', 'percent' => 36, 'color' => config('category-colors.analisis_pendapatan.fnb.color', 'success')],
-    ];
-
-    $produkLayanan = [
-        ['label' => config('category-colors.produk_layanan.vip.label', 'Private Room'), 'value' => '60%', 'percent' => 60, 'color' => config('category-colors.produk_layanan.vip.color', 'info')],
-        ['label' => config('category-colors.produk_layanan.regular.label', 'Regular'), 'value' => '40%', 'percent' => 40, 'color' => config('category-colors.produk_layanan.regular.color', 'secondary')],
-    ];
-
-    $produkFnb = [
-        ['label' => config('category-colors.produk_fnb.best_seller.label', 'Makanan'), 'value' => '56%', 'percent' => 56, 'color' => config('category-colors.produk_fnb.best_seller.color', 'warning')],
-        ['label' => config('category-colors.produk_fnb.runner_up.label', 'Minuman'), 'value' => '44%', 'percent' => 44, 'color' => config('category-colors.produk_fnb.runner_up.color', 'danger')],
-    ];
-
-    $metodePembayaran = [
-        ['label' => config('category-colors.metode_pembayaran.qris.label', 'QRIS'), 'value' => '70%', 'percent' => 70, 'color' => config('category-colors.metode_pembayaran.qris.color', 'purple')],
-        ['label' => config('category-colors.metode_pembayaran.cash.label', 'Cash/Tunai'), 'value' => '30%', 'percent' => 30, 'color' => config('category-colors.metode_pembayaran.cash.color', 'teal')],
-    ];
-
-    $performaKasir = [
-        ['label' => 'Andi Wijaya', 'value' => '(184)', 'percent' => 100, 'color' => 'danger'],
-        ['label' => 'Siti Rahma', 'value' => '(114)', 'percent' => 62, 'color' => 'danger-light'],
-    ];
-
-    $laporanTransaksi = [
-        ['label' => config('category-colors.laporan_transaksi.selesai.label', 'Selesai'), 'value' => '256 (86%)', 'percent' => 86, 'color' => config('category-colors.laporan_transaksi.selesai.color', 'success')],
-        ['label' => config('category-colors.laporan_transaksi.dibatalkan.label', 'Dibatalkan'), 'value' => '30 (10%)', 'percent' => 10, 'color' => config('category-colors.laporan_transaksi.dibatalkan.color', 'danger')],
-        ['label' => config('category-colors.laporan_transaksi.refund.label', 'Refund'), 'value' => '12 (4%)', 'percent' => 4, 'color' => config('category-colors.laporan_transaksi.refund.color', 'warning')],
-    ];
 @endphp
 
 @section('content_header')
@@ -68,6 +36,7 @@
                     label="Periode"
                     :options="['harian' => 'Harian', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan']"
                     width="col-md-3 col-sm-6"
+                    default="bulanan"
                 />
                 <x-filter-dynamic-date width="col-md-4 col-sm-6" />
             </x-filter-card>
@@ -105,14 +74,56 @@
         </div>
     </div>
 
-    {{-- BARIS 4: 6 CARD ANALITIK --}}
+    {{-- BARIS 4: 6 CARD ANALITIK (data asli dari $analysisCardsData) --}}
     <div class="row">
-        <div class="col-xl-4 col-md-6 mb-4"><x-analysis-card title="Analisis Pendapatan" :items="$analisisPendapatan" /></div>
-        <div class="col-xl-4 col-md-6 mb-4"><x-analysis-card title="Produk Layanan / Sewa" :items="$produkLayanan" /></div>
-        <div class="col-xl-4 col-md-6 mb-4"><x-analysis-card title="Produk F&B" :items="$produkFnb" /></div>
-        <div class="col-xl-4 col-md-6 mb-4"><x-analysis-card title="Metode Pembayaran" :items="$metodePembayaran" /></div>
-        <div class="col-xl-4 col-md-6 mb-4"><x-analysis-card title="Performa Kasir" :items="$performaKasir" /></div>
-        <div class="col-xl-4 col-md-6 mb-4"><x-analysis-card title="Laporan Transaksi" :items="$laporanTransaksi" /></div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <x-analysis-card
+                title="Analisis Pendapatan"
+                :items="$analysisCardsData['analisisPendapatan']"
+                containerId="items-analisis-pendapatan"
+                :link="route('superadmin.analisis-pendapatan')"
+            />
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <x-analysis-card
+                title="Produk Layanan / Sewa"
+                :items="$analysisCardsData['produkLayanan']"
+                containerId="items-produk-layanan"
+                :link="route('superadmin.produk-layanan')"
+            />
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <x-analysis-card
+                title="Produk F&B"
+                :items="$analysisCardsData['produkFnb']"
+                containerId="items-produk-fnb"
+                :link="route('superadmin.produk-fnb')"
+            />
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <x-analysis-card
+                title="Metode Pembayaran"
+                :items="$analysisCardsData['metodePembayaran']"
+                containerId="items-metode-pembayaran"
+                :link="route('superadmin.metode-pembayaran')"
+            />
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <x-analysis-card
+                title="Performa Kasir"
+                :items="$analysisCardsData['performaKasir']"
+                containerId="items-performa-kasir"
+                :link="route('superadmin.penjualan-kasir')"
+            />
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <x-analysis-card
+                title="Laporan Transaksi"
+                :items="$analysisCardsData['laporanTransaksi']"
+                containerId="items-laporan-transaksi"
+                :link="route('superadmin.laporan.index')"
+            />
+        </div>
     </div>
 
 </div>
@@ -208,6 +219,17 @@
         // ========================================================
         // 2. LOGIKA SUBMIT FILTER VIA AJAX (FAIL-SAFE)
         // ========================================================
+
+        // Pemetaan key response.data.cards -> id container di DOM
+        const CARD_CONTAINER_MAP = {
+            analisisPendapatan: 'items-analisis-pendapatan',
+            produkLayanan:      'items-produk-layanan',
+            produkFnb:          'items-produk-fnb',
+            metodePembayaran:   'items-metode-pembayaran',
+            performaKasir:      'items-performa-kasir',
+            laporanTransaksi:   'items-laporan-transaksi',
+        };
+
         $(document).on('submit', 'form', function(e) {
             let form = $(this);
             
@@ -235,6 +257,7 @@
                         let data = response.data;
                         let metrics = data.metrics;
                         let chart = data.chart;
+                        let cards = data.cards;
 
                         // Update Metrik Ringkasan
                         try {
@@ -264,6 +287,19 @@
                             }
                         } catch (errChart) {
                             console.error("Gagal update grafik:", errChart);
+                        }
+
+                        // Update 6 Card Analitik (HTML sudah dirender server-side)
+                        try {
+                            if (cards) {
+                                Object.keys(CARD_CONTAINER_MAP).forEach(function (key) {
+                                    if (typeof cards[key] !== 'undefined') {
+                                        $('#' + CARD_CONTAINER_MAP[key]).html(cards[key]);
+                                    }
+                                });
+                            }
+                        } catch (errCards) {
+                            console.error("Gagal update card analitik:", errCards);
                         }
                     }
                 },

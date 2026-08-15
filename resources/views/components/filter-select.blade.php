@@ -4,6 +4,7 @@
     'options' => [],
     'placeholder' => null,
     'width' => 'col-md-3 col-sm-6',
+    'default' => null,
 ])
 
 <div class="{{ $width }} mb-3 mb-md-0">
@@ -18,7 +19,7 @@
         @endif
 
         @foreach ($options as $value => $text)
-            <option value="{{ $value }}" {{ request($name) == $value ? 'selected' : '' }}>
+            <option value="{{ $value }}" {{ request($name, $default) == $value ? 'selected' : '' }}>
                 {{ $text }}
             </option>
         @endforeach

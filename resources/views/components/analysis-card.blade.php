@@ -2,6 +2,7 @@
     'title',
     'items' => [],
     'link' => '#',
+    'containerId' => null,
 ])
 
 <div class="card custom-card border-0 shadow-sm h-100">
@@ -14,7 +15,11 @@
             </h6>
 
             {{-- 2. KONTAINER RESPONSIF (Mengunci ruang kosong setara maks 3 item) --}}
-            <div class="d-flex flex-column justify-content-start" style="min-height: 165px;">
+            <div
+                @if ($containerId) id="{{ $containerId }}" @endif
+                class="analysis-items-container d-flex flex-column justify-content-start"
+                style="min-height: 165px;"
+            >
                 @foreach ($items as $item)
                     <x-analysis-item
                         :label="$item['label']"
