@@ -20,57 +20,48 @@
 @stop
 
 @section('content')
+<div class="container-fluid">
 
-        @include('superadmin.laporan-sa.partials.summary-cards')
-
-        @include('superadmin.laporan-sa.partials.table-transaksi')
-
-        {{-- Modal detail per baris — varian modal ditentukan oleh jenis_laporan tiap transaksi --}}
-        @foreach($transaksis as $t)
-            @if($t->jenis_laporan === 'Booking')
-                @include('superadmin.laporan-sa.partials.modal-booking', ['t' => $t])
-            @else
-                @include('superadmin.laporan-sa.partials.modal-fnb', ['t' => $t])
-            @endif
-        @endforeach
-
+    {{-- Filter — disamakan persis dengan pola filter di Beranda Superadmin --}}
+    <div class="mb-4">
+        <x-filter-card :action="route('superadmin.laporan.index')">
+            <x-filter-select
+                name="periode"
+                label="Periode"
+                :options="['harian' => 'Harian', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan']"
+                width="col-md-3 col-sm-6"
+                default="bulanan"
+            />
+            <x-filter-dynamic-date width="col-md-3 col-sm-6" />
+            <x-filter-select
+                name="jenis_transaksi"
+                label="Jenis Transaksi"
+                :options="['semua' => 'Semua', 'booking' => 'Booking', 'fnb' => 'F&B']"
+                width="col-md-3 col-sm-6"
+                default="semua"
+            />
+            <x-filter-select
+                name="status_transaksi"
+                label="Status Transaksi"
+                :options="['' => 'Semua', 'selesai' => 'Selesai', 'dibatalkan' => 'Dibatalkan']"
+                width="col-md-3 col-sm-6"
+                default=""
+            />
+        </x-filter-card>
     </div>
-@stop
 
-@section('css')
-    {{-- Sesuaikan path ini jika struktur asset AdminLTE di proyekmu berbeda --}}
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/plugins/daterangepicker/daterangepicker.css') }}">
-    <style>
-        .small-box {
-            min-height: 140px;
-        }
+    @include('superadmin.laporan-sa.partials.summary-cards')
 
-        .small-box .inner h3 {
-            font-size: 28px;
-            white-space: nowrap;
-        }
+    @include('superadmin.laporan-sa.partials.table-transaksi')
 
-        .small-box .icon i {
-            font-size: 60px;
-        }
-    </style>
-@stop
+    {{-- Modal detail per baris — varian modal ditentukan oleh jenis_laporan tiap transaksi --}}
+    @foreach($transaksis as $t)
+        @if($t->jenis_laporan === 'Booking')
+            @include('superadmin.laporan-sa.partials.modal-booking', ['t' => $t])
+        @else
+            @include('superadmin.laporan-sa.partials.modal-fnb', ['t' => $t])
+        @endif
+    @endforeach
 
-@section('js')
-    {{-- Sesuaikan path ini jika struktur asset AdminLTE di proyekmu berbeda --}}
-    <script src="{{ asset('vendor/adminlte/plugins/moment/moment.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/plugins/daterangepicker/daterangepicker.js') }}"></script>
-    <script>
-        $(function () {
-            $('#rentang_tanggal').daterangepicker({
-                locale: {
-                    format: 'DD MMM YYYY',
-                    separator: ' - ',
-                    applyLabel: 'Terapkan',
-                    cancelLabel: 'Batal',
-                },
-                autoUpdateInput: true,
-            });
-        });
-    </script>
+</div>
 @stop

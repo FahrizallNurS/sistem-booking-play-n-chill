@@ -388,23 +388,6 @@
                 const [jam, menit] = normalized.split(':').map(Number);
                 const slotMenit = jam * 60 + menit;
 
-                let bukaMenit, tutupMenit;
-                if (hari === 0 || hari === 6) {
-                    bukaMenit  = 10 * 60; 
-                    tutupMenit = 24 * 60;
-                } else if (hari === 5) {
-                    bukaMenit  = 13 * 60; 
-                    tutupMenit = 24 * 60;
-                } else {
-                    bukaMenit  = 14 * 60; 
-                    tutupMenit = 22 * 60;
-                }
-
-                if (slotMenit < bukaMenit || slotMenit >= tutupMenit) return true;
-
-                const durasi = this.selectedPricing ? this.selectedPricing.durasi_jam * 60 : 0;
-                if (durasi > 0 && (slotMenit + durasi) > tutupMenit) return true;
-
                 return false;
             },
 

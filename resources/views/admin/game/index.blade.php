@@ -38,7 +38,7 @@
                         <td>{{ $i + 1 }}</td>
                         <td>
                             @if($permainan->gambar)
-                                <img src="{{ asset('storage/' . $permainan->gambar) }}"
+                                <img src="{{ asset($permainan->gambar) }}"
                                     alt="{{ $permainan->nama_permainan }}"
                                     class="img-thumbnail" width="60" height="60"
                                     style="object-fit:cover;">
@@ -66,7 +66,7 @@
                                 data-id="{{ $permainan->id_permainan }}"
                                 data-nama="{{ $permainan->nama_permainan }}"
                                 data-devices="{{ $permainan->ruangans->pluck('perangkat')->unique()->implode(',') }}"
-                                data-gambar="{{ $permainan->gambar ? asset('storage/' . $permainan->gambar) : '' }}"
+                                data-gambar="{{ $permainan->gambar ? asset($permainan->gambar) : '' }}"
                                 data-toggle="modal" data-target="#modalEdit">
                                 <i class="fas fa-edit"></i> Edit
                             </button>

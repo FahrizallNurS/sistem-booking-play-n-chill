@@ -7,27 +7,27 @@ use App\Models\MsRuangan;
 use App\Models\MsPaket;
 use App\Models\PenetapanHarga;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class LayananController extends Controller
 {
+    private const UPLOAD_DIR = 'images/ruangan';
+
     public function index(Request $request)
     {
-            $query = MsRuangan::query();
+        $query = MsRuangan::query();
 
-            // SORTING
-            if ($request->sort == 'kategori_asc') {
-                $query->orderBy('kategori', 'asc');
-            } elseif ($request->sort == 'kategori_desc') {
-                $query->orderBy('kategori', 'desc');
-            } else {
-                // default (kayak sekarang)
-                $query->latest();
-            }
+        if ($request->sort == 'kategori_asc') {
+            $query->orderBy('kategori', 'asc');
+        } elseif ($request->sort == 'kategori_desc') {
+            $query->orderBy('kategori', 'desc');
+        } else {
+            $query->latest();
+        }
 
-            $ruangans = $query->with(['penetapanHarga.transaksis'])->get();
+        $ruangans = $query->with(['penetapanHarga.transaksis'])->get();
 
-            return view('admin.layanan.index', compact('ruangans'));
+        return view('admin.layanan.index', compact('ruangans'));
     }
 
     public function store(Request $request)
@@ -48,7 +48,7 @@ class LayananController extends Controller
         ];
 
         if ($request->hasFile('galeri')) {
-            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
+            $data['galeri'] = $this->simpanFile($request->file('galeri'));
         }
 
         MsRuangan::create($data);
@@ -90,10 +90,8 @@ class LayananController extends Controller
         ];
 
         if ($request->hasFile('galeri')) {
-            if ($ruangan->galeri) {
-                Storage::disk('public')->delete($ruangan->galeri);
-            }
-            $data['galeri'] = $request->file('galeri')->store('ruangan', 'public');
+            $this->hapusFile($ruangan->galeri);
+            $data['galeri'] = $this->simpanFile($request->file('galeri'));
         }
 
         $ruangan->update($data);
@@ -111,7 +109,6 @@ class LayananController extends Controller
         return back()->with('success', "Ruangan berhasil {$status}!");
     }
 
-    // Penetapan Harga
     public function storePenetapanHarga(Request $request, $id)
     {
         $request->validate([
@@ -151,7 +148,6 @@ class LayananController extends Controller
         return back()->with('success', 'Penetapan harga berhasil dihapus!');
     }
 
-    // AJAX: ambil ruangan by kategori
     public function getRuanganByKategori($kategori)
     {
         $ruangans = MsRuangan::where('kategori', $kategori)
@@ -164,22 +160,41 @@ class LayananController extends Controller
     {
         $ruangan = MsRuangan::findOrFail($id);
 
-         $punya_transaksi = $ruangan->penetapanHarga()
-        ->whereHas('transaksis')
-        ->exists();
+        $punya_transaksi = $ruangan->penetapanHarga()
+            ->whereHas('transaksis')
+            ->exists();
 
         if ($punya_transaksi) {
             return back()->with('error', 'Ruangan tidak dapat dihapus karena memiliki data transaksi.');
         }
+
         $ruangan->permainans()->detach();
         $ruangan->penetapanHarga()->delete();
 
-         if ($ruangan->galeri) {
-        Storage::disk('public')->delete($ruangan->galeri);
-        }
+        $this->hapusFile($ruangan->galeri);
 
         $ruangan->delete();
         return redirect()->route('admin.layanan.index')
             ->with('success', 'Ruangan berhasil dihapus!');
+    }
+
+    private function simpanFile($file): string
+    {
+        $filename = 'ruangan_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path(self::UPLOAD_DIR), $filename);
+
+        return self::UPLOAD_DIR . '/' . $filename;
+    }
+
+    private function hapusFile(?string $relativePath): void
+    {
+        if (!$relativePath) {
+            return;
+        }
+
+        $path = public_path($relativePath);
+        if (File::exists($path)) {
+            File::delete($path);
+        }
     }
 }

@@ -132,9 +132,7 @@
 @section('js')
 <script>
     $(document).ready(function() {
-        // ========================================================
-        // 1. INISIALISASI CHART.JS (PEMBANDING PERIODE)
-        // ========================================================
+
         let ctx = document.getElementById('grafikPenjualanCanvas').getContext('2d');
         
         window.myChartPenjualan = new Chart(ctx, {
@@ -216,11 +214,6 @@
             }
         });
 
-        // ========================================================
-        // 2. LOGIKA SUBMIT FILTER VIA AJAX (FAIL-SAFE)
-        // ========================================================
-
-        // Pemetaan key response.data.cards -> id container di DOM
         const CARD_CONTAINER_MAP = {
             analisisPendapatan: 'items-analisis-pendapatan',
             produkLayanan:      'items-produk-layanan',
@@ -233,7 +226,6 @@
         $(document).on('submit', 'form', function(e) {
             let form = $(this);
             
-            // Hanya tangani form filter (yang ada di dalam custom-card)
             if (!form.closest('.custom-card').length) return;
 
             e.preventDefault();
@@ -244,7 +236,6 @@
             let submitBtn = form.find('button[type="submit"]');
             let originalBtnHtml = submitBtn.html();
             
-            // Indikator Loading
             submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Memuat...').prop('disabled', true);
 
             $.ajax({
@@ -259,7 +250,6 @@
                         let chart = data.chart;
                         let cards = data.cards;
 
-                        // Update Metrik Ringkasan
                         try {
                             if (metrics.total_pendapatan) $('#val-pendapatan').text(metrics.total_pendapatan);
                             if (metrics.total_booking)    $('#val-booking').text(metrics.total_booking);
@@ -269,14 +259,12 @@
                             console.error("Gagal update metrik:", errMetrics);
                         }
 
-                        // Update Grafik Pembanding (Chart.js)
                         try {
                             if (window.myChartPenjualan && chart) {
                                 window.myChartPenjualan.data.labels = chart.labels || [];
                                 window.myChartPenjualan.data.datasets[0].data = chart.previousData || [];
                                 window.myChartPenjualan.data.datasets[1].data = chart.currentData || [];
 
-                                // Penyesuaian versi Chart.js (v2 vs v3)
                                 if (window.myChartPenjualan.options.scales.yAxes) {
                                     window.myChartPenjualan.options.scales.yAxes[0].ticks.suggestedMax = chart.suggestedMax || 400000;
                                 } else if (window.myChartPenjualan.options.scales.y) {
@@ -289,7 +277,6 @@
                             console.error("Gagal update grafik:", errChart);
                         }
 
-                        // Update 6 Card Analitik (HTML sudah dirender server-side)
                         try {
                             if (cards) {
                                 Object.keys(CARD_CONTAINER_MAP).forEach(function (key) {
@@ -308,7 +295,6 @@
                     alert("Terjadi kesalahan saat mengambil data filter.");
                 },
                 complete: function() {
-                    // DIJAMIN SELALU mengembalikan tombol ke bentuk awal
                     submitBtn.html(originalBtnHtml).prop('disabled', false);
                 }
             });

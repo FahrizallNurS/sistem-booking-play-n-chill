@@ -83,14 +83,7 @@ Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tent
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
 
 // Route Galeri
-Route::get('/galeri', function () {
-    $galeris = \App\Models\Galeri::where('is_active', 1)
-                ->where('kategori', '!=', 'banner')
-                ->orderBy('created_at', 'desc')
-                ->get();
-                
-    return view('pelanggan.galeri', compact('galeris'));
-});
+Route::get('/galeri', [GalleryController::class, 'index'])->name('galeri');
 
 // Route Menu F&B
 Route::get('/menu-fb', function () {

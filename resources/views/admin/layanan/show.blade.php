@@ -64,7 +64,7 @@
 
                 <div class="col-md-5 text-center">
                     @if($ruangan->galeri)
-                        <img src="{{ asset('storage/' . $ruangan->galeri) }}"
+                        <img src="{{ asset($ruangan->galeri) }}"
                             alt="{{ $ruangan->nama_ruangan }}"
                             style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid #dee2e6;">
                     @else

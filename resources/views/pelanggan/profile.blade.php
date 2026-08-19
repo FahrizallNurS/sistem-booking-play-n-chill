@@ -310,7 +310,7 @@
 
             <div class="booking-aktif-gambar">
                 @if($ph->ruangan->galeri)
-                    <img src="{{ asset('storage/' . $ph->ruangan->galeri) }}" alt="{{ $ph->ruangan->nama_ruangan }}">
+                    <img src="{{ asset($ph->ruangan->galeri) }}" alt="{{ $ph->ruangan->nama_ruangan }}">
                 @else
                     <div class="gambar-placeholder">
                         <i class="fas fa-gamepad"></i>

@@ -186,29 +186,6 @@ class BookingController extends Controller
             $waktuMulai   = Carbon::parse($request->tanggal . ' ' . $jamInput);
             $waktuSelesai = $waktuMulai->copy()->addHours($ph->durasi_jam);
 
-            $hari = $waktuMulai->dayOfWeek;
-
-            $jamBuka = match(true) {
-                in_array($hari, [0, 6]) => '10:00',
-                $hari === 5              => '13:00',
-                default                  => '14:00',
-            };
-
-            $jamTutup = match(true) {
-                in_array($hari, [0, 5, 6]) => '23:59',
-                default                     => '22:00',
-            };
-
-            $bukaDt  = Carbon::parse($request->tanggal . ' ' . $jamBuka);
-            $tutupDt = Carbon::parse($request->tanggal . ' ' . $jamTutup)->addMinute();
-
-            if ($waktuMulai->lt($bukaDt) || $waktuSelesai->gt($tutupDt)) {
-                $namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][$hari];
-                return back()->withInput()->withErrors([
-                    'waktu_mulai' => "Hari {$namaHari} jam operasional {$jamBuka}–{$jamTutup}. Booking di luar jam operasional."
-                ]);
-            }
-
             $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
                     $q->where('id_ruangan', $ph->id_ruangan);
                 })

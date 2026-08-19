@@ -163,7 +163,7 @@
 
         @if($room->galeri)
             <div class="room-foto">
-                <img src="{{ asset('storage/' . $room->galeri) }}"
+                <img src="{{ asset($room->galeri) }}"
                     alt="{{ $room->nama_ruangan }}">
             </div>
         @else

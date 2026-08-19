@@ -569,9 +569,9 @@
             data-aos-delay="{{ $index * 50 }}">
 
             @if($permainan->gambar)
-                <img src="{{ asset('storage/' . $permainan->gambar) }}"
+               <img src="{{ asset($permainan->gambar) }}"
                     alt="{{ $permainan->nama_permainan }}"
-                    onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
+                onerror="this.src='{{ asset('images/gallery/room_sample.jpg') }}'">
             @else
                 <div style="width:100%;height:200px;background:#2d1b69;display:flex;align-items:center;justify-content:center;border-radius:12px;">
                     <span style="font-size:3rem">🎮</span>

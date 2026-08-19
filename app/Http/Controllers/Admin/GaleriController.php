@@ -5,23 +5,35 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Galeri;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class GaleriController extends Controller
 {
+    private const UPLOAD_DIR = 'uploads/galeri';
+    private const PER_PAGE = 10;
+
+    private const KATEGORI_VALID = [
+        'Reguler',
+        'Private - Gaming',
+        'Private - Nonton',
+        'Private - Karaoke',
+    ];
+
     public function index(Request $request)
     {
-        $query = Galeri::where('kategori', '!=', 'banner');
+        $search   = $request->input('search');
+        $kategori = $request->input('kategori');
 
-        if ($request->has('search') && $request->search != '') {
-            $query->where('judul_foto', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->has('kategori') && $request->kategori != '') {
-            $query->where('kategori', $request->kategori);
-        }
-
-        // Urutkan berdasarkan yang terbaru dan pakai pagination
-        $galeris = $query->orderBy('created_at', 'desc')->paginate(10);
+        $galeris = Galeri::where('kategori', '!=', 'banner')
+            ->when($search, function ($query) use ($search) {
+                $query->where('judul_foto', 'like', '%' . $search . '%');
+            })
+            ->when($kategori, function ($query) use ($kategori) {
+                $query->where('kategori', $kategori);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
         return view('admin.galeri.index', compact('galeris'));
     }
@@ -33,89 +45,94 @@ class GaleriController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'judul_foto'     => 'required|string|max:50',
-            'deskripsi_foto' => 'nullable|string|max:255',
-            'kategori'       => 'required|string',
-            'file_foto'      => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active'      => 'nullable|boolean'
+        $validated = $request->validate([
+            'judul_foto'     => 'required|string|max:100',
+            'kategori'       => 'required|in:' . implode(',', self::KATEGORI_VALID),
+            'deskripsi_foto' => 'nullable|string|max:500',
+            'file_foto'      => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $data = $request->all();
-        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+        $validated['file_foto'] = $this->simpanFile($request->file('file_foto'));
+        $validated['is_active'] = 1;
 
-        if ($request->hasFile('file_foto')) {
-            $file = $request->file('file_foto');
-            $filename = 'galeri_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/galeri'), $filename);
-            $data['file_foto'] = $filename;
-        }
-
-        Galeri::create($data);
+        Galeri::create($validated);
 
         return redirect()->route('admin.galeri.index')
-            ->with('success', 'Foto baru berhasil ditambahkan ke galeri.');
+            ->with('success', 'Foto galeri berhasil ditambahkan!');
     }
 
     public function edit($id)
     {
-        $galeri = Galeri::findOrFail($id);
+        $galeri = Galeri::where('kategori', '!=', 'banner')->findOrFail($id);
         return view('admin.galeri.edit-foto', compact('galeri'));
     }
 
     public function update(Request $request, $id)
     {
-        $galeri = Galeri::findOrFail($id);
+        $galeri = Galeri::where('kategori', '!=', 'banner')->findOrFail($id);
 
-        $request->validate([
-            'judul_foto'     => 'required|string|max:50',
-            'deskripsi_foto' => 'nullable|string|max:255',
-            'kategori'       => 'required|string',
-            'file_foto'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active'      => 'nullable|boolean'
+        $validated = $request->validate([
+            'judul_foto'     => 'required|string|max:100',
+            'kategori'       => 'required|in:' . implode(',', self::KATEGORI_VALID),
+            'deskripsi_foto' => 'nullable|string|max:500',
+            'file_foto'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $data = $request->all();
-        $data['is_active'] = $request->has('is_active') ? 1 : 0;
-
         if ($request->hasFile('file_foto')) {
-            $oldPath = public_path('uploads/galeri/' . $galeri->file_foto);
-            if ($galeri->file_foto && file_exists($oldPath)) {
-                unlink($oldPath);
-            }
-
-            $file = $request->file('file_foto');
-            $filename = 'galeri_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/galeri'), $filename);
-            $data['file_foto'] = $filename;
+            $this->hapusFile($galeri->file_foto);
+            $validated['file_foto'] = $this->simpanFile($request->file('file_foto'));
         }
 
-        $galeri->update($data);
+        $galeri->update($validated);
 
         return redirect()->route('admin.galeri.index')
-            ->with('success', 'Data galeri berhasil diperbarui.');
+            ->with('success', 'Foto galeri berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
-        $galeri = Galeri::findOrFail($id);
-        $oldPath = public_path('uploads/galeri/' . $galeri->file_foto);
-        if ($galeri->file_foto && file_exists($oldPath)) {
-            unlink($oldPath);
-        }
+        $galeri = Galeri::where('kategori', '!=', 'banner')->findOrFail($id);
 
+        $this->hapusFile($galeri->file_foto);
         $galeri->delete();
 
         return redirect()->route('admin.galeri.index')
-            ->with('success', 'Foto berhasil dihapus dari galeri.');
+            ->with('success', 'Foto galeri berhasil dihapus!');
     }
 
     public function toggleStatus($id)
     {
-        $galeri = Galeri::findOrFail($id);
-        $galeri->is_active = $galeri->is_active == 1 ? 0 : 1;
+        $galeri = Galeri::where('kategori', '!=', 'banner')->findOrFail($id);
+        $galeri->is_active = !$galeri->is_active;
         $galeri->save();
 
-        return response()->json(['success' => true, 'is_active' => $galeri->is_active]);
+        return response()->json([
+            'success'   => true,
+            'is_active' => (int) $galeri->is_active,
+        ]);
+    }
+
+    /**
+     * Simpan file ke public/uploads/galeri, kembalikan NAMA FILE doang
+     * (foldernya tetap hardcode di blade, sesuai pola yang udah ada).
+     */
+    private function simpanFile($file): string
+    {
+        $filename = 'galeri_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path(self::UPLOAD_DIR), $filename);
+
+        return $filename;
+    }
+
+    private function hapusFile(?string $filename): void
+    {
+        if (!$filename) {
+            return;
+        }
+
+        $path = public_path(self::UPLOAD_DIR . '/' . $filename);
+        if (File::exists($path)) {
+            File::delete($path);
+        }
     }
 }

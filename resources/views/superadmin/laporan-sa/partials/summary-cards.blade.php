@@ -1,70 +1,76 @@
-{{-- Area Filter — dirapikan jadi 4 field: Periode, Rentang Tanggal, Jenis Transaksi, Status Transaksi --}}
-<div class="card">
-    <div class="card-body">
-        <form method="GET" action="{{ route('superadmin.laporan.index') }}" class="row align-items-end">
-
-            {{-- Periode --}}
-            <div class="col-md-3">
-                <div class="form-group mb-0">
-                    <label>Periode</label>
-                    <select name="periode" class="form-control">
-                        <option value="harian"   {{ request('periode', 'harian') === 'harian'   ? 'selected' : '' }}>Harian</option>
-                        <option value="mingguan" {{ request('periode') === 'mingguan' ? 'selected' : '' }}>Mingguan</option>
-                        <option value="bulanan"  {{ request('periode') === 'bulanan'  ? 'selected' : '' }}>Bulanan</option>
-                    </select>
-                </div>
+{{--
+    4 card kontekstual sesuai $jenisTransaksi:
+    - semua   : Total Booking | Total F&B | Total Dibatalkan (gabungan) | Total Pendapatan (gabungan)
+    - booking : Total Booking | Booking Selesai | Booking Dibatalkan | Pendapatan Booking
+    - fnb     : Total F&B | F&B Selesai | F&B Dibatalkan | Pendapatan F&B
+--}}
+<div class="row">
+    <div class="col-md-3">
+        <div class="small-box bg-info">
+            <div class="inner">
+                @if($jenisTransaksi === 'fnb')
+                    <h3>{{ $totalFnb }}</h3>
+                    <p>Total F&amp;B</p>
+                @else
+                    <h3>{{ $totalBooking }}</h3>
+                    <p>Total Booking</p>
+                @endif
             </div>
+            <div class="icon"><i class="fas fa-calendar-check"></i></div>
+        </div>
+    </div>
 
-            {{-- Rentang Tanggal — pakai daterangepicker aktif, lihat @section('js') di index.blade.php --}}
-            <div class="col-md-3">
-                <div class="form-group mb-0">
-                    <label>Rentang Tanggal</label>
-                    <input
-                        type="text"
-                        name="rentang_tanggal"
-                        id="rentang_tanggal"
-                        class="form-control"
-                        autocomplete="off"
-                        value="{{ request('rentang_tanggal', now()->startOfMonth()->format('d M Y') . ' - ' . now()->endOfMonth()->format('d M Y')) }}"
-                    >
-                </div>
+    <div class="col-md-3">
+        <div class="small-box bg-success">
+            <div class="inner">
+                @if($jenisTransaksi === 'booking')
+                    <h3>{{ $bookingSelesai }}</h3>
+                    <p>Booking Selesai</p>
+                @elseif($jenisTransaksi === 'fnb')
+                    <h3>{{ $fnbSelesai }}</h3>
+                    <p>F&amp;B Selesai</p>
+                @else
+                    <h3>{{ $totalFnb }}</h3>
+                    <p>Total F&amp;B</p>
+                @endif
             </div>
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+        </div>
+    </div>
 
-            {{-- Jenis Transaksi --}}
-            <div class="col-md-2">
-                <div class="form-group mb-0">
-                    <label>Jenis Transaksi</label>
-                    <select name="jenis_transaksi" class="form-control">
-                        <option value="semua"   {{ request('jenis_transaksi', 'semua') === 'semua'   ? 'selected' : '' }}>Semua</option>
-                        <option value="booking" {{ request('jenis_transaksi') === 'booking' ? 'selected' : '' }}>Booking</option>
-                        <option value="fnb"     {{ request('jenis_transaksi') === 'fnb'     ? 'selected' : '' }}>F&amp;B</option>
-                    </select>
-                </div>
+    <div class="col-md-3">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                @if($jenisTransaksi === 'booking')
+                    <h3>{{ $bookingDibatalkan }}</h3>
+                    <p>Booking Dibatalkan</p>
+                @elseif($jenisTransaksi === 'fnb')
+                    <h3>{{ $fnbDibatalkan }}</h3>
+                    <p>F&amp;B Dibatalkan</p>
+                @else
+                    <h3>{{ $bookingDibatalkan + $fnbDibatalkan }}</h3>
+                    <p>Total Dibatalkan</p>
+                @endif
             </div>
+            <div class="icon"><i class="fas fa-times-circle"></i></div>
+        </div>
+    </div>
 
-            {{-- Status Transaksi — 3 opsi sesuai badge terbaru --}}
-            <div class="col-md-2">
-                <div class="form-group mb-0">
-                    <label>Status Transaksi</label>
-                    <select name="status_transaksi" class="form-control">
-                        <option value="">Semua</option>
-                        <option value="selesai"    {{ request('status_transaksi') === 'selesai'    ? 'selected' : '' }}>Selesai</option>
-                        <option value="dibatalkan" {{ request('status_transaksi') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
-                        <option value="refund"     {{ request('status_transaksi') === 'refund'     ? 'selected' : '' }}>Refund</option>
-                    </select>
-                </div>
+    <div class="col-md-3">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                @if($jenisTransaksi === 'booking')
+                    <h3>Rp {{ number_format($pendapatanBooking, 0, ',', '.') }}</h3>
+                    <p>Pendapatan Booking</p>
+                @elseif($jenisTransaksi === 'fnb')
+                    <h3>Rp {{ number_format($pendapatanFnb, 0, ',', '.') }}</h3>
+                    <p>Pendapatan F&amp;B</p>
+                @else
+                    <h3>Rp {{ number_format($pendapatanBooking + $pendapatanFnb, 0, ',', '.') }}</h3>
+                    <p>Total Pendapatan</p>
+                @endif
             </div>
-
-            {{-- Tombol Filter & Reset --}}
-            <div class="col-md-2 d-flex" style="gap: 8px;">
-                <button type="submit" class="btn btn-primary flex-fill">
-                    <i class="fas fa-search"></i> Filter
-                </button>
-                <a href="{{ route('superadmin.laporan.index') }}" class="btn btn-secondary flex-fill">
-                    Reset
-                </a>
-            </div>
-
-        </form>
+            <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+        </div>
     </div>
 </div>

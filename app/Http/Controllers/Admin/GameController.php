@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\MsPermainan;
 use App\Models\MsRuangan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class GameController extends Controller
 {
+    private const UPLOAD_DIR = 'images/game';
+
     public function index()
     {
         $permainans = MsPermainan::with('ruangans')->get();
@@ -25,15 +27,15 @@ class GameController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan',
-        'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        'devices' => 'required|array|min:1',
-        'devices.*' => 'in:PS3,PS4,PS5',
+            'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan',
+            'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'devices'        => 'required|array|min:1',
+            'devices.*'      => 'in:PS3,PS4,PS5',
         ]);
 
         $gambarPath = null;
         if ($request->hasFile('gambar')) {
-            $gambarPath = $request->file('gambar')->store('permainan', 'public');
+            $gambarPath = $this->simpanFile($request->file('gambar'));
         }
 
         $permainan = MsPermainan::create([
@@ -45,20 +47,19 @@ class GameController extends Controller
             ->pluck('id_ruangan')
             ->unique();
 
-            $permainan->ruangans()->sync($ruanganIds);
+        $permainan->ruangans()->sync($ruanganIds);
 
-                return redirect()->route('admin.game.index')
-                    ->with('success', 'Game berhasil ditambahkan!');
+        return redirect()->route('admin.game.index')
+            ->with('success', 'Game berhasil ditambahkan!');
     }
-    
 
     public function edit($id)
     {
-       $permainan = MsPermainan::with('ruangans')->findOrFail($id);
+        $permainan = MsPermainan::with('ruangans')->findOrFail($id);
         $ruangans  = MsRuangan::where('is_active', 1)->get();
         $currentDevices = $permainan->ruangans->pluck('perangkat')->unique()->values();
 
-        return view('admin.game.edit', compact('permainan', 'ruangans', 'currentDevice'));
+        return view('admin.game.edit', compact('permainan', 'ruangans', 'currentDevices'));
     }
 
     public function update(Request $request, $id)
@@ -68,16 +69,13 @@ class GameController extends Controller
         $request->validate([
             'nama_permainan' => 'required|string|max:30|unique:ms_permainan,nama_permainan,' . $id . ',id_permainan',
             'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'devices' => 'required|array|min:1',
-            'devices.*' => 'in:PS3,PS4,PS5,Nintendo Switch',
+            'devices'        => 'required|array|min:1',
+            'devices.*'      => 'in:PS3,PS4,PS5,Nintendo Switch',
         ]);
 
         if ($request->hasFile('gambar')) {
-            // Hapus gambar lama
-            if ($permainan->gambar) {
-                Storage::disk('public')->delete($permainan->gambar);
-            }
-            $permainan->gambar = $request->file('gambar')->store('permainan', 'public');
+            $this->hapusFile($permainan->gambar);
+            $permainan->gambar = $this->simpanFile($request->file('gambar'));
         }
 
         $permainan->nama_permainan = $request->nama_permainan;
@@ -86,7 +84,7 @@ class GameController extends Controller
         $ruanganIds = MsRuangan::whereIn('perangkat', $request->devices)
             ->pluck('id_ruangan')
             ->unique();
-              $permainan->ruangans()->sync($ruanganIds);
+        $permainan->ruangans()->sync($ruanganIds);
 
         return redirect()->route('admin.game.index')
             ->with('success', 'Game berhasil diupdate!');
@@ -96,14 +94,36 @@ class GameController extends Controller
     {
         $permainan = MsPermainan::findOrFail($id);
 
-        if ($permainan->gambar) {
-            Storage::disk('public')->delete($permainan->gambar);
-        }
+        $this->hapusFile($permainan->gambar);
 
         $permainan->ruangans()->detach();
         $permainan->delete();
 
         return redirect()->route('admin.game.index')
             ->with('success', 'Game berhasil dihapus!');
+    }
+
+    /**
+     * Simpan file gambar ke public/images/game dan kembalikan
+     * path relatif LENGKAP (termasuk folder) buat disimpen di DB.
+     */
+    private function simpanFile($file): string
+    {
+        $filename = 'game_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path(self::UPLOAD_DIR), $filename);
+
+        return self::UPLOAD_DIR . '/' . $filename;
+    }
+
+    private function hapusFile(?string $relativePath): void
+    {
+        if (!$relativePath) {
+            return;
+        }
+
+        $path = public_path($relativePath);
+        if (File::exists($path)) {
+            File::delete($path);
+        }
     }
 }

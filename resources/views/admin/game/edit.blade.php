@@ -47,7 +47,7 @@
                     @if($permainan->gambar)
                         <div class="mb-2">
                             <p class="text-muted small mb-1">Gambar saat ini:</p>
-                            <img src="{{ asset('storage/' . $permainan->gambar) }}"
+                            <img src="{{ asset($permainan->gambar) }}"
                                 alt="{{ $permainan->nama_permainan }}"
                                 style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;">
                         </div>
