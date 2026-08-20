@@ -25,7 +25,7 @@
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>No</th>
                         <th>Nama Paket</th>
                         <th>Sub Kategori</th>
                         <th>Deskripsi</th>

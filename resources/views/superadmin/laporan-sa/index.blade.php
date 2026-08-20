@@ -65,3 +65,7 @@
 
 </div>
 @stop
+
+@section('js')
+    @include('superadmin.laporan-sa.partials.js-pagination')
+@stop

@@ -26,13 +26,11 @@ class TrTransaksi extends Model
         return $this->belongsTo(User::class, 'id_pengguna', 'id_pengguna');
     }
 
-    // Helper — akses ruangan via penetapan_harga
     public function getRuanganAttribute()
     {
         return $this->penetapanHarga?->ruangan;
     }
 
-    // Helper — akses paket via penetapan_harga
     public function getPaketAttribute()
     {
         return $this->penetapanHarga?->paket;

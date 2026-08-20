@@ -14,7 +14,8 @@ class PenetapanHarga extends Model
         'id_paket', 
         'harga', 
         'durasi_jam', 
-        'tipe_hari'
+        'tipe_hari',
+        'sku',
     ];
 
     public function ruangan()

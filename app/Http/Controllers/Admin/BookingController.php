@@ -428,4 +428,22 @@ class BookingController extends Controller
                 'status_sewa' => 'selesai',
             ]);
     }
+
+    public function getPaketByRuangan(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ruangan' => 'required|exists:ms_ruangan,id_ruangan',
+        ]);
+
+        $pakets = DB::table('penetapan_harga')
+            ->join('ms_paket', 'penetapan_harga.id_paket', '=', 'ms_paket.id_paket')
+            ->where('penetapan_harga.id_ruangan', $request->ruangan)
+            ->where('ms_paket.is_active', 1)
+            ->select('ms_paket.id_paket', 'ms_paket.nama_paket')
+            ->distinct()
+            ->orderBy('ms_paket.nama_paket')
+            ->get();
+
+        return response()->json(['pakets' => $pakets]);
+    }
 }

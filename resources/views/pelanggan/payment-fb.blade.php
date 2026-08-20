@@ -274,7 +274,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        let sisaDetik = {{ $sisaDetik > 0 ? $sisaDetik : 0 }};
+       let sisaDetik = {{ (isset($sisaDetik) && $sisaDetik > 0) ? $sisaDetik : 0 }};
         const timerElement = document.getElementById('countdown-timer');
         const btnBayar = document.querySelector('.btn-bayar');
         const infoBox = document.querySelector('.info-box');

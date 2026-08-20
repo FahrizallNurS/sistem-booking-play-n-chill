@@ -14,6 +14,16 @@
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('admin.paket.update', $paket->id_paket) }}" method="POST">
             @csrf
             @method('PUT')
@@ -90,20 +100,28 @@
                 </select>
             </div>
 
-            <div id="pricing_container">
-                <div class="pricing-row d-flex align-items-center mb-2">
-                    <input type="number" name="durasi_jam[]" class="form-control mr-2"
-                        placeholder="Durasi (jam)" min="1">
-                    <input type="number" name="harga[]" class="form-control mr-2"
-                        placeholder="Harga (Rp)" min="0">
-                    <button type="button" class="btn btn-danger btn-hapus-pricing">
-                        <i class="fas fa-times"></i>
-                    </button>
+            <div class="form-group">
+                <label>Durasi (jam) <small class="text-muted">yang akan dibuka</small></label>
+                <div id="pricing_container">
+                    <div class="pricing-row d-flex align-items-center mb-2">
+                        <input type="number" class="form-control durasi-input mr-2"
+                            name="durasi_jam[]" placeholder="Durasi (jam)" min="1" style="max-width: 200px;">
+                        <button type="button" class="btn btn-danger btn-hapus-pricing">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" id="btn_tambah_pricing" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-plus"></i> Tambah Durasi
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label>Harga & SKU per Ruangan <small class="text-muted">(isi sel yang ingin dibuka, boleh dikosongkan sebagian)</small></label>
+                <div id="matrix_container">
+                    <small class="text-muted">Pilih ruangan & isi durasi dulu untuk menampilkan tabel harga...</small>
                 </div>
             </div>
-            <button type="button" id="btn_tambah_pricing" class="btn btn-secondary btn-sm mb-3">
-                <i class="fas fa-plus"></i> Tambah Durasi
-            </button>
 
             <hr>
             <div class="d-flex justify-content-end">
@@ -129,6 +147,7 @@
                         <th>Tipe Hari</th>
                         <th>Durasi</th>
                         <th>Harga</th>
+                        <th>SKU</th>
                         <th width="15%">Aksi</th>
                     </tr>
                 </thead>
@@ -152,6 +171,7 @@
                             </td>
                             <td>{{ $ph->durasi_jam }} jam</td>
                             <td><strong>Rp {{ number_format($ph->harga, 0, ',', '.') }}</strong></td>
+                            <td>{{ $ph->sku ?? '-' }}</td>
                             <td>
                                 @if($ph->transaksis()->exists())
                                     <button class="btn btn-secondary btn-sm" disabled title="Tidak bisa dihapus (ada transaksi)">
@@ -173,10 +193,10 @@
                     @endforeach
                 </tbody>
             </table>
-            
+
             <div class="alert alert-info mt-3 mb-0">
                 <i class="fas fa-info-circle"></i>
-                <strong>Catatan:</strong> Harga yang ditampilkan adalah harga terbaru yang berlaku saat ini. 
+                <strong>Catatan:</strong> Harga yang ditampilkan adalah harga terbaru yang berlaku saat ini.
                 Riwayat perubahan harga tetap tersimpan untuk keperluan laporan transaksi.
             </div>
         @else
@@ -207,6 +227,102 @@
 
     subKategoriSelect.addEventListener('change', toggleSubKategoriBaru);
 
+    // ============ STATE MATRIKS HARGA & SKU ============
+    let matrixValues = {}; // { [durasi]: { [ruanganId]: { harga: '', sku: '' } } }
+
+    function getCheckedRuangans() {
+        return Array.from(document.querySelectorAll('#ruangan_container input[type="checkbox"]:checked'))
+            .map(cb => ({
+                id: cb.value,
+                nama: cb.closest('.form-check').querySelector('label').textContent.trim()
+            }));
+    }
+
+    function getDurasiList() {
+        const values = Array.from(document.querySelectorAll('.durasi-input'))
+            .map(input => input.value)
+            .filter(v => v !== '' && Number(v) > 0);
+        return [...new Set(values)]; // durasi unik saja, hindari kolom ganda
+    }
+
+    function syncMatrixValuesFromDOM() {
+        document.querySelectorAll('#matrix_container td[data-durasi][data-ruangan]').forEach(cell => {
+            const durasi = cell.dataset.durasi;
+            const ruanganId = cell.dataset.ruangan;
+            const hargaInput = cell.querySelector('.matrix-harga');
+            const skuInput = cell.querySelector('.matrix-sku');
+
+            if (!matrixValues[durasi]) matrixValues[durasi] = {};
+            matrixValues[durasi][ruanganId] = {
+                harga: hargaInput ? hargaInput.value : '',
+                sku: skuInput ? skuInput.value : '',
+            };
+        });
+    }
+
+    function renderMatrix() {
+        const ruangans = getCheckedRuangans();
+        const durasiList = getDurasiList();
+        const container = document.getElementById('matrix_container');
+
+        if (ruangans.length === 0 || durasiList.length === 0) {
+            container.innerHTML = '<small class="text-muted">Pilih ruangan & isi durasi dulu untuk menampilkan tabel harga...</small>';
+            return;
+        }
+
+        let html = '<div class="table-responsive"><table class="table table-bordered table-sm align-middle">';
+        html += '<thead class="thead-light"><tr><th style="min-width:80px">Durasi</th>';
+        ruangans.forEach(r => {
+            html += `<th style="min-width:220px">${r.nama}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        durasiList.forEach(durasi => {
+            html += `<tr><td class="align-middle font-weight-bold">${durasi} jam</td>`;
+            ruangans.forEach(r => {
+                const existing = (matrixValues[durasi] && matrixValues[durasi][r.id]) || { harga: '', sku: '' };
+                html += `
+                    <td data-durasi="${durasi}" data-ruangan="${r.id}">
+                        <input type="text" inputmode="numeric"
+                            name="harga[${r.id}][${durasi}]"
+                            class="form-control form-control-sm matrix-harga mb-1"
+                            placeholder="Harga (Rp)" value="${existing.harga}">
+                        <input type="text"
+                            name="sku[${r.id}][${durasi}]"
+                            class="form-control form-control-sm matrix-sku"
+                            placeholder="SKU" maxlength="10" value="${existing.sku}">
+                    </td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }
+
+    function refreshMatrix() {
+        syncMatrixValuesFromDOM();
+        renderMatrix();
+    }
+
+    // Ruangan dicentang/dilepas -> update kolom matriks
+    document.getElementById('ruangan_container').addEventListener('change', function(e) {
+        if (e.target.matches('input[type="checkbox"]')) refreshMatrix();
+    });
+
+    // Durasi ditambah/diketik -> update baris matriks
+    document.getElementById('pricing_container').addEventListener('change', function(e) {
+        if (e.target.matches('.durasi-input')) refreshMatrix();
+    });
+
+    // Batasi input harga cuma angka & titik
+    document.getElementById('matrix_container').addEventListener('input', function(e) {
+        if (e.target.matches('.matrix-harga')) {
+            e.target.value = e.target.value.replace(/[^\d.]/g, '');
+        }
+    });
+
+    // ============ KATEGORI -> LOAD RUANGAN ============
     document.getElementById('kategori_select').addEventListener('change', function() {
         const kategori = this.value;
         const container = document.getElementById('ruangan_container');
@@ -214,6 +330,7 @@
 
         if (!kategori) {
             container.innerHTML = '<small class="text-muted">Pilih kategori dulu...</small>';
+            refreshMatrix();
             return;
         }
 
@@ -225,6 +342,7 @@
                 container.innerHTML = '';
                 if (data.length === 0) {
                     container.innerHTML = '<small class="text-muted">Tidak ada ruangan.</small>';
+                    refreshMatrix();
                     return;
                 }
                 data.forEach(r => {
@@ -238,26 +356,28 @@
                         </div>
                     `;
                 });
+                refreshMatrix();
             });
     });
 
-    const pricingTemplate = `
-        <input type="number" name="durasi_jam[]" class="form-control mr-2" placeholder="Durasi (jam)" min="1">
-        <input type="number" name="harga[]" class="form-control mr-2" placeholder="Harga (Rp)" min="0">
-        <button type="button" class="btn btn-danger btn-hapus-pricing"><i class="fas fa-times"></i></button>
-    `;
-
+    // ============ TAMBAH / HAPUS BARIS DURASI ============
     document.getElementById('btn_tambah_pricing').addEventListener('click', function() {
         const div = document.createElement('div');
-        div.className = 'pricing-row d-flex mb-2';
-        div.innerHTML = pricingTemplate;
+        div.className = 'pricing-row d-flex align-items-center mb-2';
+        div.innerHTML = `
+            <input type="number" class="form-control durasi-input mr-2" name="durasi_jam[]" placeholder="Durasi (jam)" min="1" style="max-width: 200px;">
+            <button type="button" class="btn btn-danger btn-hapus-pricing"><i class="fas fa-times"></i></button>
+        `;
         document.getElementById('pricing_container').appendChild(div);
     });
 
     document.getElementById('pricing_container').addEventListener('click', function(e) {
         if (e.target.closest('.btn-hapus-pricing')) {
             const rows = document.querySelectorAll('.pricing-row');
-            if (rows.length > 1) e.target.closest('.pricing-row').remove();
+            if (rows.length > 1) {
+                e.target.closest('.pricing-row').remove();
+                refreshMatrix();
+            }
         }
     });
 </script>

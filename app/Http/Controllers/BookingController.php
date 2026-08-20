@@ -57,12 +57,10 @@ class BookingController extends Controller
         $tipe   = $request->input('tipe', 'reguler');
 
         $room = MsRuangan::findOrFail($roomId);
-
-        // Filter paket yang is_active = 1
         $penetapanHarga = PenetapanHarga::with('paket.subKategori')
             ->where('id_ruangan', $roomId)
             ->whereHas('paket', function($query) {
-                $query->where('is_active', 1);  // ← Hanya paket aktif
+                $query->where('is_active', 1);  
             })
             ->get()
             ->groupBy('id_paket');
@@ -337,6 +335,7 @@ class BookingController extends Controller
             'status_pesanan' => 'Menunggu',
             'sumber_pesanan' => 'Online',
             'catatan'        => $request->catatan,
+            'metode_pembayaran' => $request->metode_pembayaran,
         ]);
 
         foreach ($keranjangFb as $item) {

@@ -2,10 +2,10 @@
 @include('partials.sidebar-superadmin')
 
 @section('title', 'Produk F&B - Play N Chill')
-@section('plugins.Daterangepicker', true)
-@section('plugins.Chartjs', true)
-@section('content_header')
 
+@section('plugins.Chartjs', true)
+
+@section('content_header')
 <div class="container-fluid py-2">
     <div class="row align-items-center">
         <div class="col-sm-6">
@@ -22,19 +22,18 @@
     {{-- BARIS 1: FILTER --}}
     <div class="row mb-4">
         <div class="col-12">
-            <x-filter-card :action="url()->current()">
-                <x-filter-select name="periode" label="PERIODE" :options="['harian' => 'Harian', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan']" width="col-md-2 col-sm-6"/>
-                <x-filter-date-range name="rentang_tanggal" label="RENTANG TANGGAL" placeholder="01 Jun 2026 - 30 Jun 2026" width="col-md-3 col-sm-6"/>
-                <x-filter-select name="kategori" label="KATEGORI" :options="['semua' => 'Semua']" width="col-md-2 col-sm-6"/>
-                <x-filter-select name="sub_kategori" label="SUB KATEGORI" :options="['semua' => 'Semua']" width="col-md-2 col-sm-6"/>
+            <x-filter-card id="filter-form" :action="url()->current()">
+                <x-filter-select name="periode" label="PERIODE" :options="['harian' => 'Harian', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan']" width="col-md-2 col-sm-6" default="harian"/>
+                
+                <x-filter-dynamic-date width="col-md-4 col-sm-6" />
+                
+                <x-filter-select name="kategori" label="KATEGORI" :options="$kategoriOptions" width="col-md-3 col-sm-6"/>
+                <x-filter-select name="sub_kategori" label="SUB KATEGORI" :options="$subKategoriOptions" width="col-md-3 col-sm-6"/>    
             </x-filter-card>
         </div>
     </div>
 
     {{-- BARIS 2: GRAFIK & LEGEND KUSTOM --}}
-    {{-- Legend dot di header, kotak legend interaktif (toggle + "Tambah Pembanding")
-         semuanya sudah ditangani oleh <x-chart :interactive="true">, sama seperti di
-         halaman Produk Layanan. Halaman ini tidak perlu tulis ulang JS chart apapun. --}}
     <div class="row mb-2">
         <div class="col-12">
             <x-card>
@@ -74,44 +73,46 @@
                     </tr>
                 </x-slot>
 
-                @foreach($tableData as $index => $row)
-                    <tr>
-                        <td class="px-4 text-muted py-2" style="font-size: 13px;">{{ $index + 1 }}</td>
-                        <td class="py-2">
-                            @if (!empty($row['foto']))
-                                <img src="{{ $row['foto'] }}"
-                                     alt="{{ $row['nama'] }}"
-                                     class="rounded"
-                                     style="width: 44px; height: 44px; object-fit: cover; border: 1px solid #e5e7eb;"
-                                     onerror="this.onerror=null; this.src='{{ asset('images/logo_dumb.png') }}';">
-                            @else
-                                <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 44px; height: 44px; border: 1px solid #e5e7eb;">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                            @endif
-                        </td>
+                <tbody id="fnb-table-body">
+                    @foreach($tableData as $index => $row)
+                        <tr>
+                            <td class="px-4 text-muted py-2" style="font-size: 13px;">{{ $index + 1 }}</td>
+                            <td class="py-2">
+                                @if (!empty($row['foto']))
+                                    <img src="{{ $row['foto'] }}"
+                                         alt="{{ $row['nama'] }}"
+                                         class="rounded"
+                                         style="width: 44px; height: 44px; object-fit: cover; border: 1px solid #e5e7eb;"
+                                         onerror="this.onerror=null; this.src='{{ asset('images/logo_dumb.png') }}';">
+                                @else
+                                    <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width: 44px; height: 44px; border: 1px solid #e5e7eb;">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                @endif
+                            </td>
 
-                        <td class="text-dark font-weight-bold py-2" style="font-size: 13px;">{{ $row['nama'] }}</td>
-                        <td class="text-muted py-2" style="font-size: 13px;">{{ $row['kategori'] }}</td>
-                        <td class="text-muted py-2" style="font-size: 13px;">{{ $row['sub_kategori'] }}</td>
-                        <td class="text-muted text-right py-2" style="font-size: 13px;">Rp. {{ number_format($row['harga_beli'], 2, ',', '.') }}</td>
-                        <td class="text-muted text-right py-2" style="font-size: 13px;">Rp. {{ number_format($row['harga_jual'], 2, ',', '.') }}</td>
-                        <td class="text-muted py-2" style="font-size: 13px;">{{ $row['sku'] }}</td>
-                        <td class="text-muted text-center py-2" style="font-size: 13px;">{{ $row['stock'] }}</td>
-                        <td class="text-center py-2">
-                            <x-badge :variant="$statusBadgeVariant[$row['status']] ?? 'secondary'" :label="$row['status']" />
-                        </td>
-                    </tr>
-                @endforeach
+                            <td class="text-dark font-weight-bold py-2" style="font-size: 13px;">{{ $row['nama'] }}</td>
+                            <td class="text-muted py-2" style="font-size: 13px;">{{ $row['kategori'] }}</td>
+                            <td class="text-muted py-2" style="font-size: 13px;">{{ $row['sub_kategori'] }}</td>
+                            <td class="text-muted text-right py-2" style="font-size: 13px;">Rp. {{ number_format($row['harga_beli'], 2, ',', '.') }}</td>
+                            <td class="text-muted text-right py-2" style="font-size: 13px;">Rp. {{ number_format($row['harga_jual'], 2, ',', '.') }}</td>
+                            <td class="text-muted py-2" style="font-size: 13px;">{{ $row['sku'] }}</td>
+                            <td class="text-muted text-center py-2" style="font-size: 13px;">{{ $row['stock'] }}</td>
+                            <td class="text-center py-2">
+                                <x-badge :variant="$statusBadgeVariant[$row['status']] ?? 'secondary'" :label="$row['status']" />
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
 
                 <x-slot name="footer">
-                    <span class="text-muted" style="font-size: 13px;">Menampilkan 1 hingga {{ count($tableData) }} dari {{ count($tableData) }} entri</span>
+                    <span id="footer-info" class="text-muted" style="font-size: 13px;">Menampilkan 1 hingga {{ count($tableData) }} dari {{ count($tableData) }} entri</span>
                     <div class="btn-group">
                         <button class="btn btn-sm btn-light border text-muted">Sebelumnya</button>
                         <button class="btn btn-sm btn-primary" style="background-color: #6f42c1; border-color: #6f42c1;">1</button>
                         <button class="btn btn-sm btn-light border text-muted">Selanjutnya</button>
                     </div>
-                </x-slot>
+                </x-slot>   
             </x-table>
         </div>
     </div>
@@ -130,4 +131,88 @@ label {
     margin-bottom: 4px;
 }
 </style>
+@stop
+
+@section('js')
+{{-- 1. Suntikkan Mesin Moment.js agar kalender tidak mogok --}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/id.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // 2. Inisialisasi DateRangePicker (Sekarang pasti bisa karena moment.js sudah ada)
+    $('#rentang_tanggal').daterangepicker({
+        locale: {
+            format: 'DD MMM YYYY',
+            separator: ' - ',
+            applyLabel: 'Pilih',
+            cancelLabel: 'Batal',
+            fromLabel: 'Dari',
+            toLabel: 'Sampai',
+            customRangeLabel: 'Custom',
+            daysOfWeek: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+            monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+            firstDay: 1
+        }
+    });
+
+    // 3. Proses AJAX saat form di-submit (tombol Filter diklik)
+    $('#filter-form').on('submit', function(e) {
+        e.preventDefault(); 
+        
+        let form = $(this);
+        let btn = form.find('button[type="submit"]');
+        let origBtn = btn.html();
+
+        // Ganti tombol dengan animasi loading
+        btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Memuat...').prop('disabled', true);
+
+        $.get(form.attr('action') || window.location.href, form.serialize(), function(res) {
+            if(res.success) {
+                // Update Data Chart
+                const chartInstance = window.__pncCharts['fnbAnalysisChart'];
+                if (chartInstance) {
+                    chartInstance.data.labels = res.labels;
+                    
+                    chartInstance.data.datasets = res.datasets.map(function(item) {
+                        return {
+                            label: item.label,
+                            data: item.data,
+                            borderColor: item.color || '#6f42c1',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            pointHitRadius: 10,
+                            pointBackgroundColor: item.color || '#6f42c1',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                        };
+                    });
+                    
+                    chartInstance.update();
+                    
+                    if (typeof pncRenderInteractiveLegend === 'function') {
+                        pncRenderInteractiveLegend(document.getElementById('fnbAnalysisChart'), chartInstance, res.datasets);
+                    }
+                }
+                
+                // Update Tabel
+                if(res.html !== undefined) {
+                    $('#fnb-table-body').html(res.html);
+                    
+                    // Pastikan id ini ada di span footer tabelmu
+                    $('#footer-info').text('Menampilkan 1 hingga ' + res.total + ' dari ' + res.total + ' entri');
+                }
+            }
+            
+            btn.html(origBtn).prop('disabled', false);
+        }).fail(function() {
+            alert('Terjadi kesalahan saat memuat data filter.');
+            btn.html(origBtn).prop('disabled', false);
+        });
+    });
+});
+</script>
 @stop

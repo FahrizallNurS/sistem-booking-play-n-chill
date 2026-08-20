@@ -22,7 +22,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <x-filter-card id="filter-form" :action="url()->current()">
-                <x-filter-select name="periode" label="PERIODE" :options="['harian' => 'HARIAN', 'mingguan' => 'MINGGUAN', 'bulanan' => 'BULANAN']" width="col-md-2 col-sm-6"/>
+                <x-filter-select name="periode" label="PERIODE" :options="['harian' => 'Harian', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan']" width="col-md-2 col-sm-6" default="bulanan"/>
                 <x-filter-dynamic-date width="col-md-4 col-sm-6" />
                 <x-filter-select name="kategori" label="KATEGORI" :options="$kategoriOptions" width="col-md-2 col-sm-6"/>
                 <x-filter-select name="sub_kategori" label="SUB KATEGORI" :options="$subKategoriOptions" width="col-md-2 col-sm-6"/>
@@ -160,7 +160,8 @@
 
 @section('js')
 <script>
-    const allPakets = @json($allPakets);
+    // Diubah jadi let, karena akan ditimpa JSON dari response saat submit filter
+    let allPakets = @json($allPakets);
     const initialLabels = @json($chartLabels);
     const initialDatasets = @json($chartDatasets);
     const initialSuggestedMax = {{ $suggestedMax }};
@@ -300,8 +301,18 @@
                 addCardOpen = false;
                 serviceChart.update();
                 renderLegends();
+            } else {
+                // Berarti Paket sudah tidak relevan dengan filter form
+                addCardOpen = false;
+                renderLegends();
             }
         });
+    }
+
+    function getActivePaketIds() {
+        return serviceChart.data.datasets
+            .map(ds => ds.paket_id)
+            .filter(id => id !== null && id !== undefined);
     }
 
     $(document).ready(function() {
@@ -369,19 +380,39 @@
         });
 
         // 5. AJAX FILTER & PAGINATION
-        $('#filter-form form').on('submit', function(e) {
+        $(document).on('submit', '#filter-form, #filter-form form', function(e) {
             e.preventDefault();
-            let form = $(this);
+            
+            // Pastikan kita menangkap elemen <form> yang benar
+            let form = $(this).is('form') ? $(this) : $(this).find('form');
+            if(form.length === 0) form = $(this); 
+            
             let btn = form.find('button[type="submit"]');
             let origBtn = btn.html();
 
             btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
 
-            $.get(form.attr('action') || window.location.href, form.serialize(), function(res) {
-                if(res.success) {
+            let paketIds = getActivePaketIds();
+            let requestData = form.serialize() + '&paket_ids=' + paketIds.join(',');
+
+            $.get(form.attr('action') || window.location.href, requestData, function(res) {
+                if (res.success) {
                     serviceChart.data.labels = res.labels;
                     serviceChart.data.datasets = formatDatasets(res.datasets);
                     serviceChart.options.scales.y.suggestedMax = res.suggestedMax;
+                    
+                    // PENTING: Update array Paket yang tersedia untuk Dropdown search
+                    if (res.allPakets) {
+                        allPakets = res.allPakets;
+                    }
+                    
+                    // PENTING: Update Tabel data
+                    if (res.table) {
+                        $('#table-body').html(res.table.html);
+                        $('#pagination-links').html(res.table.pagination);
+                        $('#pagination-info').text(res.table.info);
+                    }
+
                     addCardOpen = false;
                     serviceChart.update();
                     renderLegends();
@@ -390,11 +421,17 @@
             });
         });
 
+        // Menyesuaikan penarikan data form untuk Pagination
         $(document).on('click', '#pagination-links a', function(e) {
             e.preventDefault();
             let url = $(this).attr('href');
-            let formData = $('#filter-form form').serialize();
-            url += (url.includes('?') ? '&' : '?') + formData;
+            
+            let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
+            let formData = form.serialize();
+            
+            let paketIds = getActivePaketIds();
+            let requestData = formData + '&paket_ids=' + paketIds.join(',');
+            url += (url.includes('?') ? '&' : '?') + requestData;
 
             $.get(url, function(res) {
                 if(res.html) {

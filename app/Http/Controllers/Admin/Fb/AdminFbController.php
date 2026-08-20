@@ -48,7 +48,7 @@ class AdminFbController extends Controller
         $pos->update([
             'status_pesanan'    => $request->status_pesanan,
             'status_pembayaran' => $request->status_pembayaran,
-            'id_admin'          => auth()->id(),
+            'id_admin'          => auth()->user()->id_pengguna,
         ]);
 
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui!');
@@ -77,7 +77,7 @@ class AdminFbController extends Controller
                 'catatan'           => $validated['catatan'] ?? null,
                 'metode_pembayaran' => $validated['metode_pembayaran'],
                 'items'             => $validated['items'],
-                'id_admin'          => auth()->id(),          // <-- baru
+                'id_admin'          => auth()->user()->id_pengguna,
                 'dicetak_oleh'      => auth()->user()->nama_pengguna,
             ]);
         } catch (ValidationException $e) {

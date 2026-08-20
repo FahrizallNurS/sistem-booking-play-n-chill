@@ -162,9 +162,43 @@ class SATinjauLaporanController extends Controller
         );
     }
 
+    private function paginateTransaksis($transaksis, Request $request)
+    {
+        $perPage = 10;
+        $page    = (int) $request->input('page', 1);
+        $slice   = $transaksis->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $slice,
+            $transaksis->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+    }
+
     public function index(Request $request)
     {
         $data = $this->getQueryData($request);
+        $data['transaksisPaged'] = $this->paginateTransaksis($data['transaksis'], $request);
+
+        // Handler AJAX: klik link pagination tabel, tanpa reload halaman
+        if ($request->ajax() && $request->has('page')) {
+            $html = view('superadmin.laporan-sa.partials.table-rows', [
+                'transaksis' => $data['transaksisPaged'],
+            ])->render();
+
+            $pagination = view('superadmin.laporan-sa.partials.pagination-links', [
+                'transaksisPaged' => $data['transaksisPaged'],
+            ])->render();
+
+            return response()->json([
+                'html'       => $html,
+                'pagination' => $pagination,
+                'info'       => "Menampilkan {$data['transaksisPaged']->firstItem()} hingga {$data['transaksisPaged']->lastItem()} dari {$data['transaksisPaged']->total()} entri",
+            ]);
+        }
+
         return view('superadmin.laporan-sa.index', $data);
     }
 

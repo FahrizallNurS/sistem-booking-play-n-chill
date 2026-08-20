@@ -157,6 +157,7 @@
 $(document).ready(function () {
 
     const penetapanHargaUrl = "{{ route('admin.booking.penetapan-harga') }}";
+    const getPaketUrl = "{{ route('admin.booking.paket-by-ruangan') }}";
     const storeUrl = "{{ route('admin.booking.manual.store') }}";
     const csrfToken = "{{ csrf_token() }}";
 
@@ -230,7 +231,49 @@ $(document).ready(function () {
             });
     }
 
-    $('#select_ruangan, #select_paket').on('change', muatOpsiDurasi);
+    // ================= Fetch Paket berdasarkan Ruangan =================
+    $('#select_ruangan').on('change', function() {
+        const idRuangan = $(this).val();
+        const selectPaket = $('#select_paket');
+        const containerDurasi = $('#durasi-options');
+
+        // Reset dropdown paket dan opsi durasi
+        selectPaket.empty().append('<option value="">Pilih Paket</option>');
+        containerDurasi.html('<small class="text-muted">Pilih ruangan &amp; paket terlebih dahulu.</small>');
+        selectedPricing = null;
+        $('#id_penetapan_harga').val('');
+        $('#waktu_selesai_preview').val('-');
+
+        if (!idRuangan) {
+            selectPaket.prop('disabled', false);
+            return;
+        }
+
+        // Disable sementara saat loading
+        selectPaket.prop('disabled', true).empty().append('<option value="">Memuat paket...</option>');
+
+        $.getJSON(getPaketUrl, { ruangan: idRuangan })
+            .done(function(res) {
+                selectPaket.empty().append('<option value="">Pilih Paket</option>');
+                
+                if (res.pakets && res.pakets.length > 0) {
+                    res.pakets.forEach(function(paket) {
+                        selectPaket.append('<option value="' + paket.id_paket + '">' + paket.nama_paket + '</option>');
+                    });
+                } else {
+                    selectPaket.empty().append('<option value="">Tidak ada paket di ruangan ini</option>');
+                }
+            })
+            .fail(function() {
+                selectPaket.empty().append('<option value="">Gagal memuat paket</option>');
+            })
+            .always(function() {
+                selectPaket.prop('disabled', false);
+            });
+    });
+
+    // ================= Fetch kombinasi durasi+tipe_hari+harga saat Paket berubah =================
+    $('#select_paket').on('change', muatOpsiDurasi);
 
     // ================= Pilih salah satu opsi durasi =================
     $(document).on('click', '.btn-durasi-option', function () {

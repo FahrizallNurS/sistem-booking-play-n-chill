@@ -15,7 +15,7 @@ class ProdukLayananController extends Controller
     // Palet warna khusus grafik pembanding (Maks 5)
     private $colorPalette = ['#10b981', '#f97316', '#0ea5e9', '#8b5cf6', '#ec4899'];
 
-   private function getDateRange(Request $request): array
+    private function getDateRange(Request $request): array
     {
         $periode = $request->input('periode', 'bulanan');
 
@@ -70,9 +70,6 @@ class ProdukLayananController extends Controller
         return [$start, $end, $periode];
     }
 
-    /**
-     * Helper: Format Sumbu X Grafik
-     */
     private function buildAxes($start, $end, $periode): array
     {
         $labels = [];
@@ -180,13 +177,39 @@ class ProdukLayananController extends Controller
         return $query;
     }
 
+    /**
+     * Mengambil daftar paket yang TERSISA setelah filter kategori diterapkan.
+     */
+    private function getAvailablePakets(Request $request): array
+    {
+        $query = PenetapanHarga::query()
+            ->join('ms_paket', 'penetapan_harga.id_paket', '=', 'ms_paket.id_paket')
+            ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
+            ->join('ms_sub_kategori_paket', 'ms_paket.ms_sub_kategori_paket_id_sub_kategori_paket', '=', 'ms_sub_kategori_paket.id_sub_kategori_paket')
+            ->where('ms_paket.is_active', 1)
+            ->select('ms_paket.id_paket', 'ms_paket.nama_paket')
+            ->distinct();
+
+        if ($request->filled('kategori') && $request->kategori !== 'semua') {
+            $query->where('ms_ruangan.kategori', $request->kategori);
+        }
+        if ($request->filled('sub_kategori') && $request->sub_kategori !== 'semua') {
+            $query->where('ms_sub_kategori_paket.id_sub_kategori_paket', $request->sub_kategori);
+        }
+
+        return $query->get()->toArray();
+    }
+
     public function index(Request $request)
     {
         [$start, $end, $periode] = $this->getDateRange($request);
         $suggestedMax = $this->getSuggestedMax($periode);
 
+        // Filter paket yang sah sesuai kondisi dropdown "Kategori"
+        $allPakets = $this->getAvailablePakets($request);
+
         // 1. HANDLER AJAX: Pagination Tabel Tanpa Reload
-        if ($request->ajax() && $request->has('page')) {
+        if ($request->ajax() && $request->has('page') && !$request->has('add_paket_id')) {
             $tableData = $this->getTableQuery($request)->paginate(10);
             
             $html = '';
@@ -194,7 +217,7 @@ class ProdukLayananController extends Controller
             foreach ($tableData as $index => $row) {
                 $html .= '<tr>
                     <td class="px-4 text-muted py-3" style="font-size: 13px;">' . ($startNum + $index) . '</td>
-                    <td class="text-dark py-3" style="font-size: 13px;">' . e($row->paket) . '</td>
+                    <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">' . e($row->paket) . '</td>
                     <td class="text-muted py-3" style="font-size: 13px;">' . e($row->kategori) . '</td>
                     <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sub) . '</td>
                     <td class="text-muted py-3" style="font-size: 13px;">Rp ' . number_format($row->harga, 0, ',', '.') . '</td>
@@ -212,49 +235,69 @@ class ProdukLayananController extends Controller
 
         // 2. HANDLER AJAX: Menambah Pembanding ke Grafik
         if ($request->ajax() && $request->has('add_paket_id')) {
+            $availableIds = array_column($allPakets, 'id_paket');
+            if (!in_array($request->add_paket_id, $availableIds)) {
+                return response()->json(['success' => false, 'message' => 'Paket tidak tersedia untuk filter saat ini.']);
+            }
+
             $dataset = $this->fetchDatasetForPaket($request->add_paket_id, $start, $end, $periode, $request->color_index ?? 0);
             return response()->json(['success' => true, 'dataset' => $dataset, 'suggestedMax' => $suggestedMax]);
         }
 
         // 3. INITIAL LOAD & SUBMIT FILTER (Data Dropdown)
         $kategoriOptions = ['semua' => 'Semua Kategori', 'REGULAR' => 'REGULAR', 'PRIVATE-ROOM' => 'PRIVATE-ROOM'];
-        
+
         $subKategoriOptions = ['semua' => 'Semua Sub Kategori'];
         $subKategoris = MsSubKategoriPaket::where('is_active', 1)->get();
         foreach ($subKategoris as $sub) {
             $subKategoriOptions[$sub->id_sub_kategori_paket] = $sub->nama_sub_kategori;
         }
 
-        // Data Paket untuk fitur Autocomplete (hanya diambil nama dan ID nya saja)
-        $allPakets = MsPaket::where('is_active', 1)->select('id_paket', 'nama_paket')->get();
-
-        // Cari Top 4 Paket terlaris berdasarkan rentang tanggal yang dipilih
-        $topPackages = DB::table('tr_transaksi')
-            ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
-            ->where('tr_transaksi.status_sewa', 'selesai')
-            ->whereBetween('tr_transaksi.waktu_mulai', [$start, $end])
-            ->select('penetapan_harga.id_paket', DB::raw('SUM(tr_transaksi.total_harga) as total_revenue'))
-            ->groupBy('penetapan_harga.id_paket')
-            ->orderByDesc('total_revenue')
-            ->limit(4) // Sengaja 4 agar sisa 1 ruang kosong untuk test tambah pembanding
-            ->pluck('id_paket')
-            ->toArray();
+        // Paket yang tampil di grafik: dari state client (jika ada), atau Top-4 terlaris
+        $paketIds = $this->resolvePaketIds($request, $start, $end, $allPakets);
 
         $axes = $this->buildAxes($start, $end, $periode);
         $chartLabels = $axes['labels'];
         $chartDatasets = [];
-        
-        foreach ($topPackages as $index => $paketId) {
-            $chartDatasets[] = $this->fetchDatasetForPaket($paketId, $start, $end, $periode, $index);
+
+        foreach ($paketIds as $index => $paketId) {
+            $dataset = $this->fetchDatasetForPaket($paketId, $start, $end, $periode, $index);
+            if ($dataset) {
+                $chartDatasets[] = $dataset;
+            }
         }
 
         // 4. HANDLER AJAX: Jika user ganti rentang tanggal / submit form filter
         if ($request->ajax()) {
+            // Render ulang tabel halaman 1 dan kirim daftar autocomplete paket terbaru
+            $tableRequest = clone $request;
+            $tableRequest->query->set('page', 1);
+            $tableData = $this->getTableQuery($tableRequest)->paginate(10);
+
+            $tableHtml = '';
+            foreach ($tableData as $index => $row) {
+                $tableHtml .= '<tr>
+                    <td class="px-4 text-muted py-3" style="font-size: 13px;">' . ($index + 1) . '</td>
+                    <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">' . e($row->paket) . '</td>
+                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->kategori) . '</td>
+                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sub) . '</td>
+                    <td class="text-muted py-3" style="font-size: 13px;">Rp ' . number_format($row->harga, 0, ',', '.') . '</td>
+                    <td class="text-muted py-3 text-center" style="font-size: 13px;">' . e($row->jam) . '</td>
+                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sku) . '</td>
+                </tr>';
+            }
+
             return response()->json([
                 'success' => true,
                 'labels' => $chartLabels,
                 'datasets' => $chartDatasets,
                 'suggestedMax' => $suggestedMax,
+                'allPakets' => $allPakets,
+                'table' => [
+                    'html' => $tableHtml,
+                    'pagination' => $tableData->links('pagination::bootstrap-4')->render(),
+                    'info' => "Menampilkan {$tableData->firstItem()} hingga {$tableData->lastItem()} dari {$tableData->total()} entri"
+                ]
             ]);
         }
 
@@ -268,5 +311,38 @@ class ProdukLayananController extends Controller
     private function getSuggestedMax(string $periode): int
     {
         return $periode === 'harian' ? 400000 : 1000000;
+    }
+
+    private function resolvePaketIds(Request $request, $start, $end, array $availablePakets): array
+    {
+        $availableIds = array_column($availablePakets, 'id_paket');
+
+        if ($request->has('paket_ids')) {
+            $raw = $request->input('paket_ids', '');
+            $ids = is_array($raw) ? $raw : explode(',', $raw);
+            
+            // Validasi id yang masuk, pastikan masih match dengan filter aktif
+            $filtered = array_values(array_unique(array_filter(
+                array_map('intval', $ids),
+                fn($id) => in_array($id, $availableIds)
+            )));
+
+            if (!empty($filtered)) {
+                return $filtered;
+            }
+        }
+
+        // Kalau kosong (atau ga ada yg match), balikin default top-4 revenue DARI paket yang tersedia
+        return DB::table('tr_transaksi')
+            ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
+            ->where('tr_transaksi.status_sewa', 'selesai')
+            ->whereBetween('tr_transaksi.waktu_mulai', [$start, $end])
+            ->whereIn('penetapan_harga.id_paket', $availableIds)
+            ->select('penetapan_harga.id_paket', DB::raw('SUM(tr_transaksi.total_harga) as total_revenue'))
+            ->groupBy('penetapan_harga.id_paket')
+            ->orderByDesc('total_revenue')
+            ->limit(4) 
+            ->pluck('id_paket')
+            ->toArray();
     }
 }

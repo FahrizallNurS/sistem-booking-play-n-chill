@@ -43,13 +43,13 @@ class PaketController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nama_paket' => [
-            'required',
-            'string',
-            'max:40',
-            \Illuminate\Validation\Rule::unique('ms_paket', 'nama_paket')
-                ->where('is_active', 1)
+                'required',
+                'string',
+                'max:40',
+                \Illuminate\Validation\Rule::unique('ms_paket', 'nama_paket')
+                    ->where('is_active', 1)
             ],
             'id_sub_kategori_paket'  => 'required_without:sub_kategori_baru|nullable|exists:ms_sub_kategori_paket,id_sub_kategori_paket',
             'sub_kategori_baru'      => 'required_without:id_sub_kategori_paket|nullable|string|max:50',
@@ -62,8 +62,11 @@ class PaketController extends Controller
             'durasi_jam'       => 'nullable|array',
             'durasi_jam.*'     => 'nullable|integer|min:1',
             'harga'            => 'nullable|array',
-            'harga.*'          => 'nullable|string', // ← ubah ke string biar titik tidak dipotong
+            'sku'              => 'nullable|array',
         ]);
+
+        $validator->after(fn($v) => $this->validateMatrixCells($request, $v));
+        $validator->validate();
 
         // Sub kategori baru? buat dulu, kalau enggak pakai yang sudah dipilih
         if ($request->filled('sub_kategori_baru')) {
@@ -84,24 +87,7 @@ class PaketController extends Controller
             'is_active'       => $request->is_active,
         ]);
 
-        if ($request->ruangan_ids && $request->durasi_jam && $request->tipe_hari) {
-            foreach ($request->ruangan_ids as $ruanganId) {
-                foreach ($request->durasi_jam as $index => $durasi) {
-                    if ($durasi && !empty($request->harga[$index])) {
-                        // ← strip titik ribuan sebelum simpan
-                        $harga = (int) str_replace('.', '', $request->harga[$index]);
-
-                        PenetapanHarga::create([
-                            'id_ruangan' => $ruanganId,
-                            'id_paket'   => $paket->id_paket,
-                            'tipe_hari'  => $request->tipe_hari,
-                            'durasi_jam' => $durasi,
-                            'harga'      => $harga,
-                        ]);
-                    }
-                }
-            }
-        }
+        $this->savePenetapanHargaMatrix($request, $paket->id_paket);
 
         return redirect()->route('admin.paket.index')
             ->with('success', 'Paket berhasil dibuat!');
@@ -129,7 +115,7 @@ class PaketController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nama_paket'      => 'required|string|max:40',
             'id_sub_kategori_paket'  => 'required_without:sub_kategori_baru|nullable|exists:ms_sub_kategori_paket,id_sub_kategori_paket',
             'sub_kategori_baru'      => 'required_without:id_sub_kategori_paket|nullable|string|max:50',
@@ -142,10 +128,12 @@ class PaketController extends Controller
             'durasi_jam'      => 'nullable|array',
             'durasi_jam.*'    => 'integer|min:1',
             'harga'           => 'nullable|array',
-            'harga.*'         => 'nullable|string',
+            'sku'             => 'nullable|array',
         ]);
 
-        // Sub kategori baru? buat dulu, kalau enggak pakai yang sudah dipilih
+        $validator->after(fn($v) => $this->validateMatrixCells($request, $v));
+        $validator->validate();
+
         if ($request->filled('sub_kategori_baru')) {
             $subKategori = MsSubKategoriPaket::create([
                 'nama_sub_kategori' => $request->sub_kategori_baru,
@@ -165,31 +153,7 @@ class PaketController extends Controller
             'is_active'       => $request->is_active,
         ]);
 
-        if ($request->ruangan_ids && $request->durasi_jam && $request->tipe_hari) {
-            foreach ($request->ruangan_ids as $ruanganId) {
-                foreach ($request->durasi_jam as $index => $durasi) {
-                    if ($durasi && isset($request->harga[$index])) {
-                        $harga = (int) str_replace('.', '', $request->harga[$index]);
-
-                        $existing = PenetapanHarga::findExisting(
-                            $ruanganId, 
-                            $paket->id_paket, 
-                            $request->tipe_hari, 
-                            $durasi
-                        );
-                        if (!$existing || $existing->harga != $harga) {
-                            PenetapanHarga::create([
-                                'id_ruangan' => $ruanganId,
-                                'id_paket'   => $paket->id_paket,
-                                'tipe_hari'  => $request->tipe_hari,
-                                'durasi_jam' => $durasi,
-                                'harga'      => $harga,
-                            ]);
-                        }
-                    }
-                }
-            }
-        }
+        $this->savePenetapanHargaMatrix($request, $paket->id_paket);
 
         return redirect()->route('admin.paket.index')
             ->with('success', 'Paket berhasil diupdate!');
@@ -256,6 +220,84 @@ class PaketController extends Controller
         $penetapan->delete();
         
         return back()->with('success', 'Penetapan harga berhasil dihapus!');
+    }
+
+    private function validateMatrixCells(Request $request, $validator): void
+{
+    if (!$request->ruangan_ids || !$request->durasi_jam || !$request->tipe_hari) {
+        return;
+    }
+
+    $durasiList = array_unique(array_filter($request->durasi_jam));
+    $skusInRequest = [];
+
+    foreach ($request->ruangan_ids as $ruanganId) {
+        foreach ($durasiList as $durasi) {
+            $hargaRaw = $request->input("harga.$ruanganId.$durasi");
+            if ($hargaRaw === null || $hargaRaw === '') {
+                continue; // sel memang dikosongkan, dilewati
+            }
+
+            $field = "sku.$ruanganId.$durasi";
+            $sku = trim((string) $request->input($field));
+
+            if ($sku === '') {
+                $validator->errors()->add($field, "SKU wajib diisi (ada harga untuk durasi {$durasi} jam).");
+                continue;
+            }
+
+            if (mb_strlen($sku) > 10) {
+                $validator->errors()->add($field, 'SKU maksimal 10 karakter.');
+                continue;
+            }
+
+            if (isset($skusInRequest[$sku])) {
+                $validator->errors()->add($field, "SKU \"{$sku}\" dipakai lebih dari sekali di form ini.");
+                continue;
+            }
+
+            $skusInRequest[$sku] = true;
+        }
+    }
+
+    if (!empty($skusInRequest)) {
+        $clashes = PenetapanHarga::whereIn('sku', array_keys($skusInRequest))
+            ->pluck('sku')
+            ->unique();
+
+        foreach ($clashes as $clashSku) {
+            $validator->errors()->add('sku_conflict', "SKU \"{$clashSku}\" sudah dipakai di sistem, gunakan SKU lain.");
+        }
+    }
+}
+    private function savePenetapanHargaMatrix(Request $request, int $idPaket): void
+    {
+        if (!$request->ruangan_ids || !$request->durasi_jam || !$request->tipe_hari) {
+            return;
+        }
+
+        $durasiList = array_unique(array_filter($request->durasi_jam));
+
+        foreach ($request->ruangan_ids as $ruanganId) {
+            foreach ($durasiList as $durasi) {
+                $hargaRaw = $request->input("harga.$ruanganId.$durasi");
+                if ($hargaRaw === null || $hargaRaw === '') {
+                    continue;
+                }
+
+                $harga = (int) str_replace('.', '', $hargaRaw);
+                $sku   = trim((string) $request->input("sku.$ruanganId.$durasi"));
+
+                PenetapanHarga::create([
+                    'id_ruangan' => $ruanganId,
+                    'id_paket'   => $idPaket,
+                    'tipe_hari'  => $request->tipe_hari,
+                    'durasi_jam' => $durasi,
+                    'harga'      => $harga,
+                    'sku'        => $sku,
+                ]);
+            }
+        }
     }
 
 }
