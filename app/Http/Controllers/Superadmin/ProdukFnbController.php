@@ -19,7 +19,7 @@ class ProdukFnbController extends Controller
         // =======================================================
         $kategoriDb = MsSubKategoriProduk::whereNotNull('kategori_produk')
             ->distinct()
-            ->pluck('kategori_produk', 'kategori_produk') // Memperbaiki nama kolom
+            ->pluck('kategori_produk', 'kategori_produk')
             ->toArray();
         $kategoriOptions = ['semua' => 'Semua'] + $kategoriDb;
 
@@ -34,8 +34,11 @@ class ProdukFnbController extends Controller
         $subKategoriFilter = $request->input('sub_kategori', 'semua');
         $periode = $request->input('periode', 'harian'); 
 
+        // 🔹 AMBIL SEMUA PRODUK UNTUK SEARCH BOX (TAMBAH PEMBANDING)
+        $allProduks = MsProduk::where('is_active', 1)->get(['id_produk', 'nama_produk']);
+
         // =======================================================
-        // 2. DATA TABEL PRODUK
+        // 2. DATA TABEL PRODUK (TETAP MENGGUNAKAN KODEMU)
         // =======================================================
         $queryProduk = MsProduk::with('subKategori')->orderBy('nama_produk');
 
@@ -67,50 +70,34 @@ class ProdukFnbController extends Controller
         $statusBadgeVariant = ['Aktif' => 'success', 'Nonaktif' => 'danger'];
 
         // =======================================================
-        // 3. DATA GRAFIK (DENGAN LOGIKA DYNAMIC DATE)
+        // 3. LOGIKA DYNAMIC DATE
         // =======================================================
-        $kategoriFnb = [
-            'makanan_berat'  => ['label' => 'Makanan Berat',  'color' => '#3498db'],
-            'makanan_ringan' => ['label' => 'Makanan Ringan', 'color' => '#2ecc71'],
-            'minuman'        => ['label' => 'Minuman',        'color' => '#f39c12'],
-        ];
-
         if ($periode === 'harian') {
             $val = $request->input('tanggal', Carbon::now()->format('Y-m-d'));
             $baseDateStart = Carbon::parse($val);
-            
             $queryStart = $baseDateStart->copy()->startOfDay();
             $queryEnd   = $baseDateStart->copy()->endOfDay();
-            
         } elseif ($periode === 'mingguan') {
             $val = $request->input('minggu', Carbon::now()->format('Y-\WW')); 
             $baseDateStart = Carbon::now();
-            
             if (preg_match('/^(\d{4})-W(\d{2})$/', $val, $matches)) {
                 $baseDateStart->setISODate($matches[1], $matches[2]);
             }
-            
             $queryStart = $baseDateStart->copy()->startOfWeek();
             $queryEnd   = $baseDateStart->copy()->endOfWeek();
-            
         } else {
             $val = $request->input('bulan', Carbon::now()->format('Y-m'));
             $baseDateStart = Carbon::parse($val . '-01'); 
-            
             $queryStart = $baseDateStart->copy()->startOfMonth();
             $queryEnd   = $baseDateStart->copy()->endOfMonth();
         }
 
-        $transaksiPos = TrPos::with('details.produk.subKategori')
+        $transaksiPos = TrPos::with('details')
             ->whereBetween('created_at', [$queryStart, $queryEnd])
             ->whereNotIn('status_pesanan', ['Dibatalkan']) 
             ->get();
 
         $chartLabels = [];
-        $dataMakananBerat = [];
-        $dataMakananRingan = [];
-        $dataMinuman = [];
-
         $iterables = [];
 
         if ($periode === 'harian') {
@@ -143,48 +130,101 @@ class ProdukFnbController extends Controller
 
         foreach ($iterables as $step) {
             $chartLabels[] = $step['label'];
-            $transaksiFiltered = $transaksiPos->filter($step['filter']);
-
-            $totalMakananBerat = 0;
-            $totalMakananRingan = 0;
-            $totalMinuman = 0;
-
-            foreach ($transaksiFiltered as $pos) {
-                foreach ($pos->details as $detail) {
-                    $kat    = $detail->produk->subKategori->kategori_produk ?? '';
-                    $subKat = $detail->produk->subKategori->sub_kategori_produk ?? '';
-
-                    if ($kategoriFilter !== 'semua' && $kat !== $kategoriFilter) continue;
-                    if ($subKategoriFilter !== 'semua' && $subKat !== $subKategoriFilter) continue;
-                    
-                    $subKatLower = strtolower($subKat);
-                    if (str_contains($subKatLower, 'makanan berat')) {
-                        $totalMakananBerat += $detail->subtotal;
-                    } elseif (str_contains($subKatLower, 'makanan ringan')) {
-                        $totalMakananRingan += $detail->subtotal;
-                    } elseif (str_contains($subKatLower, 'minuman')) {
-                        $totalMinuman += $detail->subtotal;
-                    } else {
-                        $totalMakananRingan += $detail->subtotal;
-                    }
-                }
-            }
-
-            $dataMakananBerat[] = $totalMakananBerat;
-            $dataMakananRingan[] = $totalMakananRingan;
-            $dataMinuman[] = $totalMinuman;
         }
 
-        $chartDatasets = [
-            ['label' => $kategoriFnb['makanan_berat']['label'],  'data' => $dataMakananBerat,  'color' => $kategoriFnb['makanan_berat']['color']],
-            ['label' => $kategoriFnb['makanan_ringan']['label'], 'data' => $dataMakananRingan, 'color' => $kategoriFnb['makanan_ringan']['color']],
-            ['label' => $kategoriFnb['minuman']['label'],        'data' => $dataMinuman,       'color' => $kategoriFnb['minuman']['color']],
-        ];
+        $suggestedMax = 0;
+        $colors = ['#6f42c1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6'];
 
+        // =======================================================
+        // 4. AJAX: JIKA MENAMBAH 1 PEMBANDING BARU
+        // =======================================================
+        if ($request->ajax() && $request->has('add_produk_id')) {
+            $produkId = $request->input('add_produk_id');
+            $produk = MsProduk::find($produkId);
+            $colorIndex = $request->input('color_index', 0);
+            
+            $data = [];
+            foreach ($iterables as $step) {
+                $transaksiFiltered = $transaksiPos->filter($step['filter']);
+                $total = 0;
+                foreach ($transaksiFiltered as $pos) {
+                    foreach ($pos->details as $detail) {
+                        if ($detail->id_produk == $produkId) {
+                            $total += $detail->subtotal;
+                        }
+                    }
+                }
+                $data[] = $total;
+                if ($total > $suggestedMax) $suggestedMax = $total;
+            }
+
+            return response()->json([
+                'success' => true,
+                'dataset' => [
+                    'id_produk' => $produkId,
+                    'label'     => $produk->nama_produk ?? 'Unknown',
+                    'data'      => $data,
+                    'color'     => $colors[$colorIndex % count($colors)]
+                ],
+                'suggestedMax' => $suggestedMax + ($suggestedMax * 0.1)
+            ]);
+        }
+
+        // =======================================================
+        // 5. RENDER CHART DATASET SAAT LOAD AWAL ATAU FILTER
+        // =======================================================
+        $chartDatasets = [];
+        $produkIds = [];
+        
+        if ($request->has('produk_ids') && !empty($request->input('produk_ids'))) {
+            $produkIds = explode(',', $request->input('produk_ids'));
+        } else {
+            // Default saat load awal: Tampilkan 2 produk F&B terlaris
+            $topProduks = \App\Models\TrPosDetail::select('id_produk', \Illuminate\Support\Facades\DB::raw('SUM(subtotal) as total'))
+                ->groupBy('id_produk')
+                ->orderByDesc('total')
+                ->limit(2)
+                ->pluck('id_produk')
+                ->toArray();
+            $produkIds = $topProduks;
+        }
+
+        foreach ($produkIds as $index => $pid) {
+            $produk = MsProduk::find($pid);
+            if (!$produk) continue;
+
+            $data = [];
+            foreach ($iterables as $step) {
+                $transaksiFiltered = $transaksiPos->filter($step['filter']);
+                $total = 0;
+                foreach ($transaksiFiltered as $pos) {
+                    foreach ($pos->details as $detail) {
+                        if ($detail->id_produk == $pid) {
+                            $total += $detail->subtotal;
+                        }
+                    }
+                }
+                $data[] = $total;
+                if ($total > $suggestedMax) $suggestedMax = $total;
+            }
+
+            $chartDatasets[] = [
+                'id_produk' => $pid,
+                'label'     => $produk->nama_produk,
+                'data'      => $data,
+                'color'     => $colors[$index % count($colors)]
+            ];
+        }
+
+        $suggestedMax = $suggestedMax + ($suggestedMax * 0.1);
+
+        // =======================================================
+        // 6. RESPONSE AJAX FILTER UTAMA
+        // =======================================================
         if ($request->ajax()) {
             $tableHtml = '';
             
-            // Render baris tabel menjadi HTML
+            // Format ulang tabel agar sama persis dengan desain aslimu
             foreach ($tableData as $index => $row) {
                 $fotoUrl = !empty($row['foto']) ? $row['foto'] : asset('images/logo_dumb.png');
                 $fotoImg = !empty($row['foto']) 
@@ -208,13 +248,14 @@ class ProdukFnbController extends Controller
                 $tableHtml .= '</tr>';
             }
 
-            // Kembalikan JSON ke frontend
             return response()->json([
-                'success'  => true,
-                'labels'   => $chartLabels,
-                'datasets' => $chartDatasets,
-                'html'     => $tableHtml,
-                'total'    => count($tableData)
+                'success'      => true,
+                'labels'       => $chartLabels,
+                'datasets'     => $chartDatasets,
+                'html'         => $tableHtml,
+                'total'        => count($tableData),
+                'suggestedMax' => $suggestedMax,
+                'allProduks'   => $allProduks 
             ]);
         }
 
@@ -224,7 +265,9 @@ class ProdukFnbController extends Controller
             'chartLabels', 
             'chartDatasets',
             'kategoriOptions',
-            'subKategoriOptions'
+            'subKategoriOptions',
+            'allProduks',
+            'suggestedMax'
         ));
     }
 }

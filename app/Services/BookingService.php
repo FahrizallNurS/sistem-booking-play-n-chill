@@ -112,7 +112,9 @@ class BookingService
                 $transaksi,
                 $data['items'] ?? [],
                 $data['metode_pembayaran'],
-                $data['dicetak_oleh'] ?? 'Admin'
+                $data['dicetak_oleh'] ?? 'Admin',
+                $data['id_admin'] ?? null
+
             );
 
             return $transaksi->fresh();
@@ -123,9 +125,10 @@ class BookingService
         TrTransaksi $transaksi,
         array $itemsFnb,
         string $metodePembayaran,
-        string $dicetakOleh
+        string $dicetakOleh,
+        ?int $idAdminPencetak = null
     ): string {
-        return DB::transaction(function () use ($transaksi, $itemsFnb, $metodePembayaran, $dicetakOleh) {
+        return DB::transaction(function () use ($transaksi, $itemsFnb, $metodePembayaran, $dicetakOleh, $idAdminPencetak) {
 
             $transaksi = TrTransaksi::where('id_transaksi', $transaksi->id_transaksi)
                 ->lockForUpdate()
@@ -142,13 +145,43 @@ class BookingService
             $ph   = $transaksi->penetapanHarga;
             $user = $transaksi->pengguna;
 
-            // --- Item F&B: validasi stock & susun baris tr_pos + tr_pos_detail ---
-            // Harga TIDAK dipercaya dari input, selalu diambil ulang dari ms_produk
-            // supaya tidak bisa dimanipulasi dari sisi client.
             $fnbDetailRows = [];
             $totalFnb = 0;
 
-            if (!empty($itemsFnb)) {
+            // Cek dulu apakah sudah ada TrPos yang nempel ke booking ini (kasus
+            // booking ONLINE: F&B sudah dipesan & stock-nya sudah dipotong duluan
+            // saat checkout, lihat BookingController::store()). Kalau ada,
+            // JANGAN bikin TrPos/TrPosDetail baru dan JANGAN potong stock lagi --
+            // cukup pakai data yang sudah ada dan tandai lunas.
+            $trPos = TrPos::where('id_transaksi', $transaksi->id_transaksi)
+                ->lockForUpdate()
+                ->first();
+
+            if ($trPos) {
+                $existingDetails = TrPosDetail::where('id_pos', $trPos->id_pos)->get();
+
+                foreach ($existingDetails as $d) {
+                    $produk = MsProduk::find($d->id_produk);
+
+                    $fnbDetailRows[] = [
+                        'produk'       => $produk, // bisa null kalau produk sudah dihapus
+                        'nama_produk'  => $produk->nama_produk ?? 'Produk Dihapus',
+                        'jumlah'       => $d->jumlah,
+                        'harga_satuan' => $d->harga_satuan,
+                        'subtotal'     => $d->subtotal,
+                    ];
+                    $totalFnb += $d->subtotal;
+                }
+
+                $trPos->update([
+                    'status_pembayaran' => 'lunas',
+                    'metode_pembayaran' => $metodePembayaran,
+                    'id_admin'          => $idAdminPencetak ?? $trPos->id_admin,
+                    
+                ]);
+
+            } elseif (!empty($itemsFnb)) {
+
                 foreach ($itemsFnb as $item) {
                     $jumlah = (int) ($item['jumlah'] ?? 0);
                     if ($jumlah <= 0) {
@@ -177,38 +210,35 @@ class BookingService
 
                     $fnbDetailRows[] = [
                         'produk'       => $produk,
+                        'nama_produk'  => $produk->nama_produk,
                         'jumlah'       => $jumlah,
                         'harga_satuan' => $hargaSatuan,
                         'subtotal'     => $subtotal,
                     ];
                 }
-            }
 
-            $trPos = null;
-
-            if (!empty($fnbDetailRows)) {
-                $trPos = TrPos::create([
-                    'id_transaksi'      => $transaksi->id_transaksi,
-                    'id_pengguna'       => $transaksi->id_pengguna,
-                    'id_admin'          => $transaksi->id_admin,   // <-- baru, warisan dari parent
-                    'total_pos'         => $totalFnb,
-                    'sumber_pesanan'    => $transaksi->sumber_booking ?? 'Kasir',
-                    'status_pesanan'    => 'Menunggu',
-                    'status_pembayaran' => 'lunas',
-                    'metode_pembayaran' => $metodePembayaran,
-                    'catatan'           => null,
-                ]);
-
-                foreach ($fnbDetailRows as $row) {
-                    TrPosDetail::create([
-                        'id_pos'       => $trPos->id_pos,
-                        'id_produk'    => $row['produk']->id_produk,
-                        'jumlah'       => $row['jumlah'],
-                        'harga_satuan' => $row['harga_satuan'],
-                        'subtotal'     => $row['subtotal'],
+                if (!empty($fnbDetailRows)) {
+                    $trPos = TrPos::create([
+                        'id_transaksi'      => $transaksi->id_transaksi,
+                        'id_pengguna'       => $transaksi->id_pengguna,
+                        'id_admin'          => $idAdminPencetak ?? $transaksi->id_admin,
+                        'total_pos'         => $totalFnb,
+                        'sumber_pesanan'    => $transaksi->sumber_booking ?? 'Kasir',
+                        'status_pesanan'    => 'Menunggu',
+                        'status_pembayaran' => 'lunas',
+                        'metode_pembayaran' => $metodePembayaran,
+                        'catatan'           => null,
                     ]);
 
-                    $row['produk']->decrement('stock', $row['jumlah']);
+                    foreach ($fnbDetailRows as $row) {
+                        $items[] = [
+                            'nama'     => $row['nama_produk'] ?? ($row['produk']->nama_produk ?? 'Produk'),
+                            'sub'      => null,
+                            'qty'      => $row['jumlah'],
+                            'harga'    => $row['harga_satuan'],
+                            'subtotal' => $row['subtotal'],
+                        ];
+                    }
                 }
             }
 
@@ -239,14 +269,6 @@ class BookingService
         });
     }
 
-    /**
-     * Susun data struk 58mm (khusus konteks booking: item ruangan + opsional
-     * F&B), lalu delegasikan proses render+simpan filenya ke
-     * GeneratesStrukPdf::simpanStrukPdf() supaya logic simpan-filenya tidak
-     * terduplikasi dengan FbService.
-     *
-     * @param array $fnbDetailRows  hasil susunan dari finalisasiStruk(), boleh kosong
-     */
     private function generateStrukPdf(
         TrTransaksi $transaksi,
         PenetapanHarga $ph,

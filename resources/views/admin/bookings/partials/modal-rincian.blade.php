@@ -127,8 +127,8 @@
                 <div>
                     <button type="button" class="btn btn-outline-secondary font-weight-bold mr-2" data-dismiss="modal">Kembali / Cek Lagi</button>
                    {{-- Tombol Cetak (Muncul duluan) --}}
-                    <button type="button" id="btn-cetak-struk" class="btn btn-secondary font-weight-bold">
-                        <i class="fas fa-print mr-1"></i> Cetak Struk
+                    <button type="button" class="btn text-white px-4 shadow-sm font-weight-bold" style="background-color: #6f42c1; border-radius: 6px;" id="btn-cetak-struk-fb">
+                        <i class="fas fa-print mr-2"></i> Cetak Struk
                     </button>
                     
                     {{-- Tombol Selesai (Disembunyikan pake d-none) --}}
@@ -192,14 +192,21 @@ $(document).on('click', '#btn-cetak-struk', function () {
                 $('#btn-selesai').removeClass('d-none');
             }
         },
-        error: function (xhr) {
-            if (strukWindow) strukWindow.close(); // tutup tab kosong kalau gagal
-            const msg = xhr.responseJSON?.errors
-                ? Object.values(xhr.responseJSON.errors).flat().join('\n')
-                : 'Gagal mencetak struk. Silakan coba lagi.';
-            alert(msg);
-            btn.prop('disabled', false).html('<i class="fas fa-print mr-1"></i> Cetak Struk');
-        }
+       error: function(xhr) {
+                        let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
+                        // Jika error 422 (Validasi gagal)
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            let firstError = '';
+                            // Ambil pesan error pertama dari Laravel
+                            for (let key in errors) {
+                                firstError = errors[key][0];
+                                break;
+                            }
+                            errorMessage = 'Validasi Gagal: ' + firstError;
+                        }
+                        Swal.fire('Gagal!', errorMessage, 'error');
+                    }
     });
 });
 </script>

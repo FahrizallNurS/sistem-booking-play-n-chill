@@ -12,32 +12,26 @@
 @section('content')
 <div class="container-fluid px-2 pb-4">
     
-    {{-- 1. BAGIAN TOOLBAR (Filter Tanggal, Sumber, Status, Tombol) --}}
     <div class="card border-0 shadow-sm mb-4" style="border-radius: 8px;">
         <div class="card-body py-3">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                 
-                {{-- Kumpulan Filter (Kiri) - DIUBAH MENJADI FORM --}}
                 <form action="{{ url()->current() }}" method="GET" class="d-flex flex-wrap align-items-center mb-0" style="gap: 12px;">
                     
-                    {{-- Input Tanggal --}}
                     <input type="date" name="tanggal" value="{{ request('tanggal') }}" class="form-control shadow-none text-muted" style="width: 170px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; padding: 0.45rem 0.75rem; height: 38px;">
 
-                    {{-- Dropdown Sumber Pesanan --}}
                     <select name="sumber" class="form-select shadow-none text-muted" style="width: 150px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; cursor: pointer; padding: 0.45rem 2rem 0.45rem 0.75rem; height: 38px;">
                         <option value="">Semua Sumber</option>
                         <option value="Kasir" {{ request('sumber') == 'Kasir' ? 'selected' : '' }}>Kasir</option>
                         <option value="Online" {{ request('sumber') == 'Online' ? 'selected' : '' }}>Online</option>
                     </select>
 
-                    {{-- Dropdown Status --}}
                     <select name="status" class="form-select shadow-none text-muted" style="width: 150px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; cursor: pointer; padding: 0.45rem 2rem 0.45rem 0.75rem; height: 38px;">
                         <option value="">Semua Status</option>
                         <option value="Menunggu" {{ request('status') == 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
                         <option value="Selesai" {{ request('status') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
                     </select>
 
-                    {{-- Tombol Filter & Reset --}}
                     <div class="d-flex" style="gap: 8px;">
                         <button type="submit" class="btn btn-primary px-3 shadow-sm" style="border-radius: 6px; font-weight: 500; background-color: #0084ff; border: none; font-size: 0.875rem; height: 38px; display: flex; align-items: center;">
                             <i class="fas fa-filter me-1"></i> Filter
@@ -48,7 +42,6 @@
                     </div>
                 </form>
 
-                {{-- Tombol Tambah Pesanan (Kanan) --}}
                 <div>
                     <a href="{{ url('/admin/fb/transaksi/create') }}" class="btn btn-purple px-4 w-100 shadow-sm text-decoration-none" style="border-radius: 6px; font-weight: 500; font-size: 0.875rem; height: 38px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-plus me-1"></i> Tambah Pesanan
@@ -59,7 +52,6 @@
         </div>
     </div>
 
-    {{-- 2. BAGIAN TABEL DATA --}}
     <div class="card border-0 shadow-sm" style="border-radius: 8px;">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -79,7 +71,6 @@
                     </thead>
                     <tbody style="font-size: 0.9rem; color: #374151;">
                         
-                        {{-- LOOPING DATA TRANSAKSI DARI DATABASE --}}
                         @forelse($transaksiFb as $index => $item)
                         <tr>
                             <td>{{ $transaksiFb->firstItem() + $index }}</td>
@@ -106,7 +97,6 @@
                                 @endif
                             </td>
                             
-                           {{-- 🔹 KOLOM STATUS PESANAN 🔹 --}}
                             <td>
                                 @if($item->status_pesanan === 'Selesai')
                                     <span class="badge text-white py-1 px-3" style="background-color: #28a745; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">SELESAI</span>
@@ -116,8 +106,7 @@
                                     <span class="badge text-dark py-1 px-3" style="background-color: #ffc107; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">MENUNGGU</span>
                                 @endif
                             </td>
-                            
-                            {{-- 🔹 KOLOM STATUS BAYAR 🔹 --}}
+
                             <td>
                                 @if($item->status_pembayaran === 'lunas')
                                     <span class="badge bg-success py-1 px-3" style="border-radius: 4px; font-weight: 600; font-size: 0.725rem;">LUNAS</span>
@@ -129,19 +118,26 @@
                                     <span class="badge bg-secondary py-1 px-3" style="border-radius: 4px; font-weight: 600; font-size: 0.725rem;">BELUM BAYAR</span>
                                 @endif
                             </td>
-                            
+
                             <td>
-                                {{-- Tombol Mata memicu Modal (Ganda untuk BS4 & BS5) --}}
-                                <button type="button" class="btn btn-primary btn-sm shadow-sm" style="border-radius: 4px; padding: 0.2rem 1rem;" 
-                                    data-toggle="modal" data-target="#modalDetail{{ $item->id_pos }}"
-                                    data-bs-toggle="modal" data-bs-target="#modalDetail{{ $item->id_pos }}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <div class="d-flex justify-content-center align-items-center" style="gap: 5px;">
+
+                                    {{-- Tombol Cetak Struk --}}
+                                  <button type="button" onclick="cetakStrukLangsung('{{ route('admin.fb.transaksi.cetak-struk', $item->id_pos) }}')" class="btn btn-secondary btn-sm shadow-sm" style="border-radius: 4px; padding: 0.2rem 0.6rem;" title="Cetak Struk">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+
+                                    {{-- Tombol Mata memicu Modal --}}
+                                    <button type="button" class="btn btn-primary btn-sm shadow-sm" style="border-radius: 4px; padding: 0.2rem 0.6rem;" 
+                                        data-toggle="modal" data-target="#modalDetail{{ $item->id_pos }}"
+                                        data-bs-toggle="modal" data-bs-target="#modalDetail{{ $item->id_pos }}" title="Detail Transaksi">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            {{-- 🔹 Colspan diubah menjadi 8 karena kolom bertambah 🔹 --}}
                             <td colspan="8" class="text-center py-4 text-muted">Belum ada data transaksi F&B.</td>
                         </tr>
                         @endforelse
@@ -150,7 +146,6 @@
                 </table>
             </div>
 
-            {{-- 3. BAGIAN PAGINATION LARAVEL --}}
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center p-3 border-top bg-light">
                 <span class="text-muted" style="font-size: 0.85rem;">
                     Menampilkan {{ $transaksiFb->firstItem() ?? 0 }} sampai {{ $transaksiFb->lastItem() ?? 0 }} dari {{ $transaksiFb->total() }} entri
@@ -165,7 +160,6 @@
 
 </div>
 
-{{-- 🔹 MODAL DETAIL TRANSAKSI DIPINDAH KE SINI (LUAR TABEL & LUAR FORELSE UTAMA) 🔹 --}}
 @foreach($transaksiFb as $item)
     <div class="modal fade text-start" id="modalDetail{{ $item->id_pos }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -204,7 +198,6 @@
                                 <span class="badge {{ $item->status_pembayaran === 'lunas' ? 'bg-success' : ($item->status_pembayaran === 'sudah-bayar' ? 'bg-info text-dark' : 'bg-secondary') }}">{{ strtoupper($item->status_pembayaran) }}</span>
                             </div>
 
-                            {{-- 🔹 CATATAN PESANAN DITAMBAHKAN DI SINI 🔹 --}}
                             <div class="col-md-12 mt-2">
                                 <span class="text-muted d-block mb-1" style="font-size: 0.8rem;">Catatan Pesanan:</span>
                                 @if($item->catatan)
@@ -218,7 +211,6 @@
 
                         </div>
 
-                        {{-- RINCIAN PESANAN --}}
                         <h6 class="fw-bold mb-3" style="font-size: 0.85rem; color: #4b5563;">RINCIAN PESANAN</h6>
                         <div class="table-responsive mb-3">
                             <table class="table table-bordered table-sm text-center" style="font-size: 0.85rem;">
@@ -234,7 +226,6 @@
 
                                <tbody>
                                     @php
-                                        // Tarik data detail keranjang berdasarkan id_pos transaksi ini
                                         $rincian = \App\Models\TrPosDetail::where('id_pos', $item->id_pos)->get();
                                     @endphp
                                     
@@ -267,7 +258,6 @@
                             </table>
                         </div>
 
-                        {{-- EDIT STATUS --}}
                         <h6 class="fw-bold mb-2" style="font-size: 0.85rem; color: #4b5563;">EDIT STATUS</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -321,4 +311,30 @@
         padding-bottom: 1rem;
     }
 </style>
+@endpush
+
+@push('js')
+<script>
+    // 1. Pastikan nama fungsinya "cetakStrukLangsung" (L besar)
+    function cetakStrukLangsung(url) {
+        let iframe = document.getElementById('frameCetakStruk');
+        if (!iframe) {
+            // 2. Pastikan pakai tanda kutip ('iframe')
+            iframe = document.createElement('iframe'); 
+            iframe.id = 'frameCetakStruk';
+            iframe.style.display = 'none';
+            // 3. Kurang titik koma (;) di baris ini sebelumnya, sudah ditambahkan
+            document.body.appendChild(iframe); 
+        }
+
+        iframe.src = url;
+
+        iframe.onload = function() {
+            setTimeout(function() {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 500);
+        };
+    }
+</script>    
 @endpush

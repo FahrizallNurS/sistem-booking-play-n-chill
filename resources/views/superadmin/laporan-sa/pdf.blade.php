@@ -128,7 +128,7 @@
     {{-- Header --}}
     <div class="header">
         <img src="{{ public_path('gambar/PNCLOGO.jpg') }}" alt="Play N Chill Logo">
-        <h1>LAPORAN BOOKING - SUPERADMIN</h1>
+        <h1>LAPORAN TRANSAKSI - SUPERADMIN</h1>
         <p>Play N Chill - Gaming & Entertainment Center</p>
     </div>
 
@@ -156,28 +156,52 @@
     {{-- Summary - DENGAN TAMBAHAN --}}
     <div class="summary-box">
         <div class="summary-item">
-            <h3>{{ $totalPelanggan }}</h3>
-            <p>Pelanggan</p>
+            @if($jenisTransaksi === 'fnb')
+                <h3>{{ $totalFnb }}</h3>
+                <p>Total F&amp;B</p>
+            @else
+                <h3>{{ $totalBooking }}</h3>
+                <p>Total Booking</p>
+            @endif
         </div>
+
         <div class="summary-item">
-            <h3>{{ $totalAdmin }}</h3>
-            <p>Admin</p>
+            @if($jenisTransaksi === 'booking')
+                <h3>{{ $bookingSelesai }}</h3>
+                <p>Booking Selesai</p>
+            @elseif($jenisTransaksi === 'fnb')
+                <h3>{{ $fnbSelesai }}</h3>
+                <p>F&amp;B Selesai</p>
+            @else
+                <h3>{{ $totalFnb }}</h3>
+                <p>Total F&amp;B</p>
+            @endif
         </div>
+
         <div class="summary-item">
-            <h3>{{ $totalBooking }}</h3>
-            <p>Booking</p>
+            @if($jenisTransaksi === 'booking')
+                <h3>{{ $bookingDibatalkan }}</h3>
+                <p>Booking Dibatalkan</p>
+            @elseif($jenisTransaksi === 'fnb')
+                <h3>{{ $fnbDibatalkan }}</h3>
+                <p>F&amp;B Dibatalkan</p>
+            @else
+                <h3>{{ $bookingDibatalkan + $fnbDibatalkan }}</h3>
+                <p>Total Dibatalkan</p>
+            @endif
         </div>
+
         <div class="summary-item">
-            <h3>{{ $totalSelesai }}</h3>
-            <p>Selesai</p>
-        </div>
-        <div class="summary-item">
-            <h3>{{ $totalDibatalkan }}</h3>
-            <p>Dibatalkan</p>
-        </div>
-        <div class="summary-item">
-            <h3 style="font-size: 13px;">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h3>
-            <p>Pendapatan</p>
+            @if($jenisTransaksi === 'booking')
+                <h3 style="font-size: 13px;">Rp {{ number_format($pendapatanBooking, 0, ',', '.') }}</h3>
+                <p>Pendapatan Booking</p>
+            @elseif($jenisTransaksi === 'fnb')
+                <h3 style="font-size: 13px;">Rp {{ number_format($pendapatanFnb, 0, ',', '.') }}</h3>
+                <p>Pendapatan F&amp;B</p>
+            @else
+                <h3 style="font-size: 13px;">Rp {{ number_format($pendapatanBooking + $pendapatanFnb, 0, ',', '.') }}</h3>
+                <p>Total Pendapatan</p>
+            @endif
         </div>
     </div>
 
@@ -186,60 +210,53 @@
         <thead>
             <tr>
                 <th style="width: 3%;">#</th>
-                <th style="width: 11%;">Kode</th>
-                <th style="width: 14%;">Pelanggan</th>
-                <th style="width: 9%;">Ruangan</th>
-                <th style="width: 11%;">Paket</th>
-                <th style="width: 16%;">Waktu Main</th>
-                <th style="width: 8%;">Jenis</th>
-                <th style="width: 13%;">Total</th>
-                <th style="width: 8%;">Status</th>
+                <th style="width: 10%;">Kode/Jenis</th>
+                <th style="width: 13%;">Pelanggan</th>
+                <th style="width: 10%;">Kasir</th>
+                <th style="width: 16%;">Produk</th>
+                <th style="width: 8%;">Jumlah</th>
+                <th style="width: 9%;">Metode</th>
+                <th style="width: 12%;">Total</th>
+                <th style="width: 9%;">Sumber</th>
+                <th style="width: 10%;">Status</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($transaksis as $i => $t)
+            @forelse($rows as $i => $r)
             @php
-                $ph = $t->penetapanHarga;
-                $badgeSewa = match($t->status_sewa) {
-                    'dikonfirmasi' => 'success',
-                    'dibatalkan'   => 'danger',
-                    'selesai'      => 'primary',
-                    default        => 'secondary',
+                $badgeStatus = match($r->status) {
+                    'selesai'    => 'primary',
+                    'dibatalkan' => 'danger',
+                    default      => 'secondary',
                 };
             @endphp
             <tr>
                 <td>{{ $i + 1 }}</td>
-                <td>{{ $t->kode_sewa }}</td>
-                <td>{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
-                <td>{{ $ph->ruangan->nama_ruangan ?? '-' }}</td>
-                <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
                 <td>
-                    {{ \Carbon\Carbon::parse($t->waktu_mulai)->format('d/m/Y H:i') }}
-                    — {{ \Carbon\Carbon::parse($t->waktu_selesai)->format('H:i') }}
+                    {{ $jenisTransaksi === 'semua' ? $r->jenis_laporan : $r->kode_transaksi }}
                 </td>
-                <td>
-                    <span class="badge badge-{{ $t->opsi_pembayaran === 'full' ? 'primary' : 'info' }}">
-                        {{ $t->opsi_pembayaran === 'full' ? 'Full' : 'DP' }}
-                    </span>
-                </td>
-                <td>Rp {{ number_format($t->total_harga, 0, ',', '.') }}</td>
-                <td>
-                    <span class="badge badge-{{ $badgeSewa }}">{{ ucfirst($t->status_sewa) }}</span>
-                </td>
+                <td>{{ $r->pelanggan }}</td>
+                <td>{{ $r->kasir }}</td>
+                <td>{{ $r->produk }}</td>
+                <td>{{ $r->jumlah }}</td>
+                <td>{{ $r->metode }}</td>
+                <td>Rp {{ number_format($r->total, 0, ',', '.') }}</td>
+                <td>{{ $r->sumber }}</td>
+                <td><span class="badge badge-{{ $badgeStatus }}">{{ ucfirst($r->status) }}</span></td>
             </tr>
             @empty
             <tr>
-                <td colspan="9" style="text-align: center; padding: 18px; color: #999;">
+                <td colspan="10" style="text-align: center; padding: 18px; color: #999;">
                     Tidak ada data untuk periode ini.
                 </td>
             </tr>
             @endforelse
         </tbody>
-        @if($transaksis->isNotEmpty())
+        @if(count($rows) > 0)
         <tfoot>
             <tr class="total-row">
                 <td colspan="7" class="text-right fw-bold">Total Pendapatan (Selesai):</td>
-                <td colspan="2" class="fw-bold">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</td>
+                <td colspan="3" class="fw-bold">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
         @endif

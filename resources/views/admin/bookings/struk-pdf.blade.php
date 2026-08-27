@@ -4,31 +4,38 @@
     <meta charset="utf-8">
     <style>
         /* Margin kertas diminimalkan biar nggak buang ruang */
-        @page { margin: 2mm; }
-        body {
-            font-family: 'Courier New', monospace;
-            font-size: 11px; /* Ukuran font dinaikin dikit biar kebaca jelas */
-            width: 54mm;
-            margin: 0;
-            padding: 0;
-            line-height: 1.2; /* Line spacing dirapatkan biar khas struk kasir */
-            color: #000;
-        }
+        @page { 
+    size: 46mm 200mm;   /* BARU — 46mm = 42mm konten + 2mm margin kiri-kanan, masih di bawah 48mm area cetak fisik. Tinggi dibuat longgar (200mm) karena driver zj-58 kamu udah dioptimasi buat skip baris kosong, jadi nggak buang kertas percuma */
+    margin: 2mm; 
+}
+body {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    width: 42mm;
+    margin: 0 auto;   /* diubah dari margin: 0 — jaring pengaman, biar konten selalu ke-center apa pun lebar halaman yang akhirnya kepakai */
+    padding: 0;
+    line-height: 1.2;
+    color: #000;
+}
         .center { text-align: center; }
         .left { text-align: left; }
-        .right { text-align: right; }
+        .right { text-align: right; white-space: nowrap; }
         .bold { font-weight: bold; }
 
-        /* Garis pembatas elegan (dashed) pengganti ==== */
+        /* Helper class untuk spacing baru */
+        .mt-10 { margin-top: 10px; }
+        .mb-10 { margin-bottom: 10px; }
+
+        /* Garis pembatas elegan (dashed) */
         .line-dashed {
             border-top: 1px dashed #000;
-            margin: 3px 0;
+            margin: 3px 0; /* Tetap rapat, jarak diatur di elemen bawahnya */
         }
 
         /* Garis total ganda untuk pemisah tagihan bawah */
         .line-double {
             border-top: 3px double #000;
-            margin: 3px 0;
+            margin: 10px 0; /* Kasih jarak agak lega atas bawah */
         }
 
         table { width: 100%; border-collapse: collapse; }
@@ -41,9 +48,9 @@
 
         /* Tabel khusus untuk Item (3 Kolom: Qty, Nama, Harga) */
         .table-item td { padding-bottom: 2px; }
-        .col-qty { width: 8%; text-align: left; }
-        .col-name { width: 62%; text-align: left; padding-right: 2px; }
-        .col-price { width: 30%; text-align: right; }
+        .col-qty { width: 10%; text-align: left; }
+        .col-name { width: 52%; text-align: left; padding-right: 2px; }
+        .col-price { width: 38%; text-align: right; white-space: nowrap; }
 
         /* Sub-item (kayak tipe hari) masuk sejajar dengan nama item */
         .item-sub {
@@ -53,8 +60,12 @@
         }
         
         .footer-info {
-            margin-top: 5px;
+            margin-top: 10px;
             font-size: 10px;
+            text-align: center; /* Dibuat center sesuai contoh */
+        }
+        .footer-info div {
+            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -68,7 +79,9 @@
 
     <div class="center bold" style="font-size: 13px;">{{ $pengaturan->nama_toko }}</div>
     <div class="center">{!! nl2br(e($pengaturan->alamat_toko)) !!}</div>
-    <div class="center">{{ $pengaturan->slogan_header }}</div>
+    
+    <!-- Spasi kosong sebelum garis putus-putus pertama -->
+    <div class="center mb-10">{{ $pengaturan->slogan_header }}</div>
 
     <div class="line-dashed"></div>
 
@@ -83,10 +96,10 @@
     <div class="line-dashed"></div>
 
     {{-- ============= Daftar Item (Layout 3 Kolom) ============= --}}
-    <table class="table-item">
+    <!-- Tambah mt-10 agar ada jarak setelah garis putus-putus -->
+    <table class="table-item mt-10">
         @foreach($items as $item)
             @php
-                // Menghapus kata "Jam -" jika ada bawaan dari BookingService
                 $namaItemBersih = str_replace('Jam - ', '', $item['nama']);
             @endphp
             <tr>
@@ -105,7 +118,8 @@
     <div class="line-dashed"></div>
 
     {{-- ============= Total ============= --}}
-    <table>
+    <!-- Tambah mt-10 agar ada jarak setelah garis putus-putus -->
+    <table class="mt-10">
         <tr>
             <td>Subtotal {{ count($items) }}</td>
             <td class="right">{{ number_format($subTotal, 0, ',', '.') }}</td>
@@ -125,7 +139,8 @@
 
     <div class="line-dashed"></div>
 
-    <table>
+    <!-- Tambah mt-10 agar ada jarak setelah garis putus-putus -->
+    <table class="mt-10">
         <tr>
             <td>{{ $metodePembayaran }}</td>
             <td class="right">{{ number_format($totalBayar, 0, ',', '.') }}</td>
@@ -138,20 +153,19 @@
 
     @if($catatan)
         <div class="line-dashed"></div>
-        <div>Catatan :</div>
-        <div>{{ $catatan }}</div>
+        <!-- Tambah mt-10 dan mb-10 agar terpisah rapi dari garis dan footer -->
+        <div class="mt-10">Catatan :</div>
+        <div class="mb-10">{{ $catatan }}</div>
     @endif
 
     <div class="line-double"></div>
 
     {{-- ============= Footer ============= --}}
+    <!-- Format diubah dari tabel menjadi div center -->
     <div class="footer-info">
-        <table>
-            <tr><td style="width: 35%;">Wifi SSID</td><td style="width: 5%;">:</td><td>{{ $pengaturan->wifi_ssid }}</td></tr>
-            <tr><td>Wifi Pass</td><td>:</td><td>{{ $pengaturan->wifi_password }}</td></tr>
-            <tr><td>Terbayar</td><td>:</td><td>{{ $waktuPembayaran }}</td></tr>
-            <tr><td>Dicetak</td><td>:</td><td>{{ $dicetakOleh }}</td></tr>
-        </table>
+        <div>Wifi Pass : {{ $pengaturan->wifi_password }}</div>
+        <div>Terbayar  : {{ $waktuPembayaran }}</div>
+        <div>Dicetak   : {{ $dicetakOleh }}</div>
     </div>
 
 </body>

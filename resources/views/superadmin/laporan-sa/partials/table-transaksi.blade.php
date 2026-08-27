@@ -14,7 +14,9 @@
             @endif
         </h3>
         <div class="card-tools ml-auto">
-            <button class="btn btn-default btn-sm mr-1"><i class="fas fa-file-excel"></i> EXCEL</button>
+           <a href="{{ route('superadmin.laporan.export-excel', request()->all()) }}" class="btn btn-default btn-sm mr-1" target="_blank">
+                <i class="fas fa-file-excel text-success"></i> EXCEL
+            </a>
             <a href="{{ route('superadmin.laporan.export-pdf', request()->all()) }}" class="btn btn-default btn-sm" target="_blank">
                 <i class="fas fa-file-pdf"></i> PDF
             </a>

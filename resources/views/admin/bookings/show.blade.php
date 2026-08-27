@@ -27,7 +27,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Informasi Booking</h3>
                     <div class="card-tools">
-                        <a href="{{ route('admin.booking.index') }}" class="btn btn-secondary btn-sm">
+                        <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
                     </div>
@@ -182,14 +182,6 @@
         {{-- Panel Aksi --}}
         <div class="col-md-4">
 
-            {{--
-                Struk — TAMPILAN SAJA, backend belum disambung.
-                $strukDicetakPada di bawah ini di-hardcode manual buat preview
-                2 kondisi tombol. Nanti kalau backend jadi, ganti baris ini
-                jadi: $strukDicetakPada = $booking->struk_dicetak_pada;
-            --}}
-            @php $strukDicetakPada = null; // ganti jadi now() di sini buat preview state "sudah dicetak" @endphp
-
             {{-- Struk --}}
             <div class="card">
                 <div class="card-header bg-secondary text-white">
@@ -204,19 +196,25 @@
                         <small class="text-muted d-block text-center mt-2">
                             Tersedia setelah pembayaran berstatus <strong>Lunas</strong>.
                         </small>
-                    @elseif(!$strukDicetakPada)
-                        <a href="#" target="_blank" class="btn btn-success btn-block">
+                    @elseif(!$booking->struk_created_at)
+                        <button type="button" id="btn-cetak-struk-show" class="btn btn-success btn-block"
+                            data-toggle="modal" data-target="#modalMetodeBayarStruk">
                             <i class="fas fa-print mr-1"></i> Cetak Struk
-                        </a>
+                        </button>
                         <small class="text-muted d-block text-center mt-2">
                             Belum pernah dicetak.
                         </small>
                     @else
-                        <a href="#" target="_blank" class="btn btn-outline-success btn-block">
-                            <i class="fas fa-receipt mr-1"></i> Lihat Struk
+                        <button type="button" id="btn-cetak-ulang-struk" class="btn btn-success btn-block"
+                            data-pdf-url="{{ asset('assets/struk/' . $booking->kode_sewa . '.pdf') }}">
+                            <i class="fas fa-print mr-1"></i> Cetak Ulang
+                        </button>
+                        <a href="{{ asset('assets/struk/' . $booking->kode_sewa . '.pdf') }}" target="_blank"
+                            class="btn btn-outline-success btn-block btn-sm mt-2">
+                            <i class="fas fa-receipt mr-1"></i> Lihat Struk (PDF)
                         </a>
                         <small class="text-muted d-block text-center mt-2">
-                            Pertama kali dicetak: {{ \Carbon\Carbon::parse($strukDicetakPada)->format('d/m/Y H:i') }}
+                            Pertama kali dicetak: {{ \Carbon\Carbon::parse($booking->struk_created_at)->format('d/m/Y H:i') }}
                         </small>
                     @endif
                 </div>
@@ -446,6 +444,71 @@
         </div>
     </div>
 
+    {{-- Modal Pilih Metode Pembayaran (khusus cetak struk pertama kali dari
+         halaman ini). Ditempatkan terpisah dari modal-fb karena halaman ini
+         SENGAJA tidak menyertakan pesanan F&B (lihat catatan di footer modal
+         di bawah) -- cetak struk di sini murni untuk booking ruangan saja. --}}
+    <div class="modal fade" id="modalMetodeBayarStruk" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-print mr-1"></i> Cetak Struk</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        Booking: <strong>{{ $booking->kode_sewa }}</strong><br>
+                        <small class="text-muted">
+                            Pilih metode pembayaran yang dipakai untuk pelunasan ini.
+                            Metode bisa berbeda dari metode pembayaran awal booking
+                            (mis. DP online lalu dilunasi tunai di kasir).
+                        </small>
+                    </p>
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold text-muted small mb-2 d-block">Metode Pembayaran</label>
+                        <div class="d-flex" style="gap: 10px;">
+                            <button type="button" class="btn btn-outline-secondary flex-fill btn-metode-bayar-struk" data-value="TUNAI">
+                                <i class="fas fa-money-bill-wave mr-1"></i> Tunai
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary flex-fill btn-metode-bayar-struk" data-value="QRIS">
+                                <i class="fas fa-qrcode mr-1"></i> QRIS
+                            </button>
+                        </div>
+                        <input type="hidden" id="inputMetodeBayarStruk" value="">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" id="btn-konfirmasi-cetak-struk" class="btn btn-success" disabled>
+                        <i class="fas fa-print mr-1"></i> Cetak Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Iframe struk disembunyikan tapi tetap "hidup" (bukan display:none)
+         supaya window.print() dari dalam iframe tetap bisa jalan di semua
+         browser. Pola sama seperti create.blade.php & index.blade.php. --}}
+    <iframe id="cetak-struk-iframe"></iframe>
+
+@stop
+
+@section('css')
+<style>
+    #cetak-struk-iframe {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border: 0;
+        visibility: hidden;
+    }
+    .btn-metode-bayar-struk.active-metode {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: #fff;
+    }
+</style>
 @stop
 
 @section('js')
@@ -504,6 +567,104 @@
                 });
             });
         }
+
+        // ================= Cetak Struk (pilih metode bayar) =================
+        $(document).on('click', '.btn-metode-bayar-struk', function () {
+            $('.btn-metode-bayar-struk').removeClass('active-metode');
+            $(this).addClass('active-metode');
+            $('#inputMetodeBayarStruk').val($(this).data('value'));
+            $('#btn-konfirmasi-cetak-struk').prop('disabled', false);
+        });
+
+        // Reset pilihan tiap modal dibuka ulang, biar gak kebawa dari
+        // percobaan sebelumnya (mis. abis klik Batal).
+        $('#modalMetodeBayarStruk').on('show.bs.modal', function () {
+            $('.btn-metode-bayar-struk').removeClass('active-metode');
+            $('#inputMetodeBayarStruk').val('');
+            $('#btn-konfirmasi-cetak-struk').prop('disabled', true)
+                .html('<i class="fas fa-print mr-1"></i> Cetak Sekarang');
+        });
+
+        function triggerPrintStrukShow(onDone) {
+            const iframe = document.getElementById('cetak-struk-iframe');
+            if (!iframe || !iframe.contentWindow) return;
+
+            const win = iframe.contentWindow;
+            let done = false;
+
+            const finish = function () {
+                if (done) return; // guard biar callback nggak double-fire
+                done = true;
+                win.removeEventListener('afterprint', finish);
+                clearTimeout(fallbackTimer);
+                if (typeof onDone === 'function') onDone();
+            };
+
+            // Fallback safety net kalau afterprint nggak nembak (mis. Safari lama)
+            const fallbackTimer = setTimeout(finish, 8000);
+
+            win.addEventListener('afterprint', finish);
+            win.focus();
+            win.print();
+        }
+
+        // admin tinggal klik tombol ini lagi tanpa batas.
+        const btnCetakUlang = document.getElementById('btn-cetak-ulang-struk');
+        if (btnCetakUlang) {
+            btnCetakUlang.addEventListener('click', function () {
+                const iframe = document.getElementById('cetak-struk-iframe');
+                const pdfUrl = this.dataset.pdfUrl;
+                if (!iframe || !pdfUrl) return;
+
+                const btn = $(this);
+                const originalHtml = btn.html();
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyiapkan...');
+
+                iframe.onload = function () {
+                    triggerPrintStrukShow(function () {
+                        btn.prop('disabled', false).html(originalHtml);
+                    });
+                };
+                iframe.src = pdfUrl + '?t=' + Date.now();
+            });
+        }
+
+        $('#btn-konfirmasi-cetak-struk').on('click', function () {
+        const metodePembayaran = $('#inputMetodeBayarStruk').val();
+        if (!metodePembayaran) return;
+
+        const btn = $(this);
+        const iframe = document.getElementById('cetak-struk-iframe');
+
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+
+        $.ajax({
+            url: '{{ route('admin.booking.cetak-struk', $booking->id_transaksi) }}',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: {
+                metode_pembayaran: metodePembayaran,
+                items: [],
+            },
+            success: function (res) {
+                if (res.success && iframe) {
+                    iframe.onload = function () {
+                        triggerPrintStrukShow(function () {
+                            location.reload();
+                        });
+                    };
+                    iframe.src = res.data.pdf_url;
+                }
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON?.errors
+                    ? Object.values(xhr.responseJSON.errors).flat().join('\n')
+                    : 'Gagal mencetak struk. Silakan coba lagi.';
+                alert(msg);
+                btn.prop('disabled', false).html('<i class="fas fa-print mr-1"></i> Cetak Sekarang');
+            }
+        });
+    });
 
     });
 

@@ -102,6 +102,10 @@ class LaporanController extends Controller
             ->whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
             ->sum('total_pos');
 
+        $totalSelesai    = $bookingSelesai + $fnbSelesai;
+        $totalDibatalkan = $bookingDibatalkan + $fnbDibatalkan;
+        $totalPendapatan = $pendapatanBooking + $pendapatanFnb;
+
         return [
             'transaksis'        => $transaksis,
             'jenisTransaksi'    => $jenisTransaksi,
@@ -114,6 +118,9 @@ class LaporanController extends Controller
             'fnbDibatalkan'     => $fnbDibatalkan,
             'pendapatanBooking' => $pendapatanBooking,
             'pendapatanFnb'     => $pendapatanFnb,
+            'totalSelesai'      => $totalSelesai,
+            'totalDibatalkan'   => $totalDibatalkan,
+            'totalPendapatan'   => $totalPendapatan,
             'periode'           => $periode,
             'start'             => $start,
             'end'               => $end,

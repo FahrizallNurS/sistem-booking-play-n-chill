@@ -81,6 +81,7 @@
                                 <label for="wifi_ssid">Nama WiFi (SSID)</label>
                                 <input type="text" class="form-control @error('wifi_ssid') is-invalid @enderror" id="wifi_ssid" name="wifi_ssid" value="{{ old('wifi_ssid', $pengaturan->wifi_ssid) }}">
                                 @error('wifi_ssid') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                                <small class="text-muted">SSID tidak dicetak di struk, hanya dipakai di halaman lain.</small>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -116,8 +117,8 @@
                 </div>
 
                 <div class="center bold" id="preview-nama-toko" style="font-size: 13px;">{{ $pengaturan->nama_toko ?: 'Nama Toko' }}</div>
-                <div class="center" id="preview-alamat-toko">{{ $pengaturan->alamat_toko ?: 'Alamat toko' }}</div>
-                <div class="center" id="preview-slogan">{{ $pengaturan->slogan_header }}</div>
+                <div class="center" id="preview-alamat-toko">{!! nl2br(e($pengaturan->alamat_toko ?: 'Alamat toko')) !!}</div>
+                <div class="center mb-10" id="preview-slogan">{{ $pengaturan->slogan_header }}</div>
 
                 <div class="line-dashed"></div>
 
@@ -130,11 +131,11 @@
 
                 <div class="line-dashed"></div>
 
-                <table class="table-item" id="preview-items"></table>
+                <table class="table-item mt-10" id="preview-items"></table>
 
                 <div class="line-dashed"></div>
 
-                <table>
+                <table class="mt-10">
                     <tr>
                         <td id="preview-subtotal-label"></td>
                         <td class="right" id="preview-subtotal-value"></td>
@@ -147,7 +148,7 @@
 
                 <div class="line-dashed"></div>
 
-                <table>
+                <table class="mt-10">
                     <tr>
                         <td>TUNAI</td>
                         <td class="right" id="preview-total-bayar-1"></td>
@@ -161,12 +162,9 @@
                 <div class="line-double"></div>
 
                 <div class="footer-info">
-                    <table>
-                        <tr><td style="width: 35%;">Wifi SSID</td><td style="width: 5%;">:</td><td id="preview-wifi-ssid"></td></tr>
-                        <tr><td>Wifi Pass</td><td>:</td><td id="preview-wifi-pass"></td></tr>
-                        <tr><td>Terbayar</td><td>:</td><td id="preview-waktu-bayar"></td></tr>
-                        <tr><td>Dicetak</td><td>:</td><td>Admin</td></tr>
-                    </table>
+                    <div>Wifi Pass : <span id="preview-wifi-pass"></span></div>
+                    <div>Terbayar : <span id="preview-waktu-bayar"></span></div>
+                    <div>Dicetak : Admin</div>
                 </div>
             </div>
         </div>
@@ -199,8 +197,11 @@
 
     .struk-preview .center { text-align: center; }
     .struk-preview .left { text-align: left; }
-    .struk-preview .right { text-align: right; }
+    .struk-preview .right { text-align: right; white-space: nowrap; }
     .struk-preview .bold { font-weight: bold; }
+
+    .struk-preview .mt-10 { margin-top: 10px; }
+    .struk-preview .mb-10 { margin-bottom: 10px; }
 
     .struk-preview .line-dashed {
         border-top: 1px dashed #000;
@@ -209,7 +210,7 @@
 
     .struk-preview .line-double {
         border-top: 3px double #000;
-        margin: 3px 0;
+        margin: 10px 0;
     }
 
     .struk-preview table { width: 100%; border-collapse: collapse; }
@@ -220,9 +221,9 @@
     .struk-preview .val { text-align: left; word-break: break-word; }
 
     .struk-preview .table-item td { padding-bottom: 2px; }
-    .struk-preview .col-qty { width: 8%; text-align: left; }
-    .struk-preview .col-name { width: 62%; text-align: left; padding-right: 2px; }
-    .struk-preview .col-price { width: 30%; text-align: right; }
+    .struk-preview .col-qty { width: 10%; text-align: left; }
+    .struk-preview .col-name { width: 52%; text-align: left; padding-right: 2px; }
+    .struk-preview .col-price { width: 38%; text-align: right; white-space: nowrap; }
 
     .struk-preview .item-sub {
         padding-left: 8%;
@@ -231,8 +232,13 @@
     }
 
     .struk-preview .footer-info {
-        margin-top: 5px;
+        margin-top: 10px;
         font-size: 10px;
+        text-align: center;
+    }
+
+    .struk-preview .footer-info div {
+        margin-bottom: 2px;
     }
 
     @media (max-width: 767px) {
@@ -253,6 +259,10 @@
 <script>
 (function () {
     'use strict';
+    // nama item dummy sengaja pakai format "X Jam - Nama Paket" biar sama persis
+    // dengan yang dikirim BookingService::generateStrukPdf(), lalu di-strip
+    // "Jam - " di renderItems() supaya preview match sama struk-pdf.blade.php
+    // (lihat str_replace('Jam - ', '', $item['nama']) di template PDF asli).
     var DUMMY_ITEMS = [
         { qty: 1, nama: '2 Jam - Paket Reguler', sub: 'Senin-Kamis', subtotal: 50000 },
         { qty: 2, nama: 'Es Teh Manis', sub: null, subtotal: 16000 },
@@ -267,7 +277,6 @@
     var elNamaToko   = document.getElementById('nama_toko');
     var elAlamatToko = document.getElementById('alamat_toko');
     var elSlogan     = document.getElementById('slogan_header');
-    var elWifiSsid   = document.getElementById('wifi_ssid');
     var elWifiPass   = document.getElementById('wifi_password');
     var elLogoInput  = document.getElementById('logo_struk');
     var elLogoError  = document.getElementById('logo_struk_error');
@@ -286,7 +295,6 @@
         totalTagihan: document.getElementById('preview-total-tagihan'),
         totalBayar1: document.getElementById('preview-total-bayar-1'),
         totalBayar2: document.getElementById('preview-total-bayar-2'),
-        wifiSsid: document.getElementById('preview-wifi-ssid'),
         wifiPass: document.getElementById('preview-wifi-pass'),
         waktuBayar: document.getElementById('preview-waktu-bayar')
     };
@@ -316,6 +324,14 @@
         el.textContent = (value && String(value).trim() !== '') ? value : (fallback || '');
     }
 
+    // Sama seperti nl2br(e(...)) di struk-pdf.blade.php, tapi versi client-side.
+    function setMultilineText(el, value, fallback) {
+        var raw = (value && String(value).trim() !== '') ? value : (fallback || '');
+        var div = document.createElement('div');
+        div.textContent = raw; // escape dulu
+        el.innerHTML = div.innerHTML.replace(/\n/g, '<br>');
+    }
+
     function renderItems() {
         pv.items.innerHTML = '';
 
@@ -328,7 +344,8 @@
 
             var tdName = document.createElement('td');
             tdName.className = 'col-name';
-            tdName.textContent = item.nama;
+            // samain dengan str_replace('Jam - ', '', $item['nama']) di server
+            tdName.textContent = item.nama.replace('Jam - ', '');
 
             var tdPrice = document.createElement('td');
             tdPrice.className = 'col-price';
@@ -376,15 +393,11 @@
     }
 
     function updateAlamatToko() {
-        setText(pv.alamatToko, elAlamatToko.value, 'Alamat toko');
+        setMultilineText(pv.alamatToko, elAlamatToko.value, 'Alamat toko');
     }
 
     function updateSlogan() {
         setText(pv.slogan, elSlogan.value, '');
-    }
-
-    function updateWifiSsid() {
-        setText(pv.wifiSsid, elWifiSsid.value, '-');
     }
 
     function updateWifiPass() {
@@ -444,7 +457,6 @@
     elNamaToko.addEventListener('input', updateNamaToko);
     elAlamatToko.addEventListener('input', updateAlamatToko);
     elSlogan.addEventListener('input', updateSlogan);
-    elWifiSsid.addEventListener('input', updateWifiSsid);
     elWifiPass.addEventListener('input', updateWifiPass);
     elLogoInput.addEventListener('change', updateLogoPreview);
 
@@ -454,7 +466,6 @@
     updateNamaToko();
     updateAlamatToko();
     updateSlogan();
-    updateWifiSsid();
     updateWifiPass();
 })();
 </script>

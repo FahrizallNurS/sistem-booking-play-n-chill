@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Admin\Fb;
 use App\Http\Controllers\Controller;
 use App\Models\TrPos;
 use App\Models\User;
+use App\Models\MsPengaturan;
+use App\Models\TrPosDetail;
+use App\Models\MsProduk;
 use App\Services\FbService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use PDF;
 
 class AdminFbController extends Controller
 {
@@ -54,7 +58,7 @@ class AdminFbController extends Controller
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui!');
     }
 
-    public function store(Request $request)
+  public function store(Request $request)
     {
         $validated = $request->validate([
             'nama_pelanggan'     => 'required|string|max:50',
@@ -70,7 +74,7 @@ class AdminFbController extends Controller
             'items.*.jumlah'     => 'required|integer|min:1',
         ]);
 
-        try {
+       try {
             $pos = $this->fbService->createPos([
                 'nama_pelanggan'    => $validated['nama_pelanggan'],
                 'no_telp'           => $validated['no_telp'] ?? null,
@@ -80,6 +84,12 @@ class AdminFbController extends Controller
                 'id_admin'          => auth()->user()->id_pengguna,
                 'dicetak_oleh'      => auth()->user()->nama_pengguna,
             ]);
+
+            // 🔹 JURUS ELOQUENT AMAN: Simpan nama ke kolom baru & buang ID Octopus 🔹
+            $pos->nama_pelanggan = $validated['nama_pelanggan'];
+            $pos->id_pengguna = null; 
+            $pos->save();
+
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
@@ -93,7 +103,7 @@ class AdminFbController extends Controller
             'data'    => [
                 'id_pos'   => $pos->id_pos,
                 'kode_pos' => $pos->kode_pos,
-                'pdf_url'  => asset('assets/struk/' . $pos->kode_pos . '.pdf'),
+                'pdf_url'  => url('/admin/fb/transaksi/cetak-struk/' . $pos->id_pos),
             ],
         ]);
     }
@@ -110,6 +120,64 @@ class AdminFbController extends Controller
                        ->values();
 
         return view('admin.fb.transaksi.tambah-pesanan', compact('produks', 'kategoriFnb'));
+    }
+
+    public function cetakStruk($id)
+    {
+        $pos = TrPos::findOrFail($id);
+        $pengaturan = MsPengaturan::current();
+
+        $rincian = TrPosDetail::where('id_pos', $id)->get();
+        
+        $items = [];
+        $subTotal = 0;
+        
+        foreach ($rincian as $detail) {
+            $namaProduk = MsProduk::where('id_produk', $detail->id_produk)->value('nama_produk') ?? 'Produk F&B';
+
+            $items[] = [
+                'qty' => $detail->jumlah,
+                'nama' => $namaProduk,
+                'subtotal' => $detail->subtotal,
+                'sub' => ''
+            ];
+            $subTotal += $detail->subtotal;
+        }
+
+       // Tentukan nama customer: Prioritaskan input manual kasir terlebih dahulu
+        if (!empty($pos->nama_pelanggan)) {
+            $customer = $pos->nama_pelanggan;
+        } elseif ($pos->id_pengguna) {
+            $customer = User::where('id_pengguna', $pos->id_pengguna)->value('nama_pengguna');
+        } else {
+            $customer = 'Pelanggan Umum';
+        }
+
+        $waktu = \Carbon\Carbon::parse($pos->created_at)->format('d/m/Y H:i');
+
+        $data = [
+            'pengaturan' => $pengaturan,
+            'kodeSewa' => 'FNBPNC-' . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT),
+            'waktu' => $waktu,
+            'kasir' => $pos->dicetak_oleh ?? auth()->user()->nama_pengguna,
+            'customer' => $customer,
+            'items' => $items,
+            'subTotal' => $subTotal,
+            'totalTagihan' => $pos->total_pos,
+            'jumlahDp' => 0, 
+            'metodePembayaran' => $pos->metode_pembayaran ?? 'TUNAI',
+            'totalBayar' => $pos->total_pos,
+            'catatan' => $pos->catatan,
+            'waktuPembayaran' => $waktu,
+            'dicetakOleh' => auth()->user()->nama_pengguna,
+        ];
+
+        $pdf = PDF::loadView('admin.bookings.struk-pdf', $data);
+        
+        // Atur ukuran kertas struk kasir 58mm (46mm margin custom)
+        $pdf->setPaper([0, 0, 130, 566], 'portrait'); 
+        
+        return $pdf->stream('Struk-FNB-' . $pos->id_pos . '.pdf');
     }
     
 }

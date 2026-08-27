@@ -16,7 +16,7 @@ class TrPos extends Model
 
     public function getKodePosAttribute(): string
     {
-        return 'POS-' . str_pad((string) $this->id_pos, 3, '0', STR_PAD_LEFT);
+        return 'FNBPNC-' . str_pad((string) $this->id_pos, 3, '0', STR_PAD_LEFT);
     }
 
     public function pengguna()

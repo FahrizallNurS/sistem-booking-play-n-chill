@@ -12,9 +12,9 @@
         <td class="align-middle py-3">{{ $transaksis instanceof \Illuminate\Pagination\LengthAwarePaginator ? (($transaksis->currentPage() - 1) * $transaksis->perPage() + $i + 1) : $i + 1 }}</td>
 
         @if($jenis === 'booking')
-            <td class="align-middle py-3" style="color: #e83e8c;">{{ $t->kode_sewa }}</td>
+            <td class="align-middle py-3" style="color: #e83e8c;">{{ $t->kode_transaksi }}</td>
         @elseif($jenis === 'fnb')
-            <td class="align-middle py-3" style="color: #e83e8c;">{{ $t->id_pos }}</td>
+            <td class="align-middle py-3" style="color: #e83e8c;">{{ $t->kode_transaksi }}</td>
         @else
             <td class="align-middle py-3 font-weight-bold">{{ $t->jenis_laporan }}</td>
         @endif

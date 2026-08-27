@@ -85,7 +85,7 @@
                 <textarea name="catatan_pembayaran" class="form-control" rows="2"></textarea>
             </div>
 
-            <a href="{{ route('admin.booking.index') }}" class="btn btn-secondary">Batal</a>
+            <a href="{{ url()->previous() }}" class="btn btn-secondary">Batal</a>
             <button type="submit" class="btn btn-primary">Update</button>
         </form>
     </div>

@@ -372,7 +372,8 @@ class BookingController extends Controller
                 $booking,
                 $validated['items'] ?? [],
                 $validated['metode_pembayaran'],
-                auth()->user()->nama_pengguna
+                auth()->user()->nama_pengguna,
+                auth()->id()
             );
         } catch (ValidationException $e) {
             return response()->json([

@@ -16,7 +16,7 @@ trait GeneratesStrukPdf
      */
     protected function simpanStrukPdf(string $view, array $data, string $namaFile): string
     {
-        $pdf = Pdf::loadView($view, $data)->setPaper([0, 0, 164, 600]);
+        $pdf = Pdf::loadView($view, $data)->setPaper([0, 0, 132, 2000]);
 
         $path = public_path('assets/struk');
 
@@ -28,4 +28,6 @@ trait GeneratesStrukPdf
 
         return 'assets/struk/' . $namaFile . '.pdf';
     }
+
+    
 }

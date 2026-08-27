@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Admin\GaleriController;
 use App\Http\Controllers\Admin\Fb\ProdukController;
 use App\Http\Controllers\Admin\PengaturanController;
+use App\Http\Controllers\Admin\Fb\AdminFbController;
 
 // Auth & Superadmin Controllers...
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -221,8 +222,12 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('data-user', KelolaUserController::class)->names('users');
         Route::patch('/data-user/{id}/password', [KelolaUserController::class, 'gantiPassword'])->name('users.password');
         Route::patch('/data-user/{id}/toggle-status', [KelolaUserController::class, 'toggleStatus'])->name('users.toggle-status'); 
+
+        //Laporan Superadmin
         Route::get('/tinjau-laporan', [SATinjauLaporanController::class, 'index'])->name('laporan.index');
         Route::get('/tinjau-laporan/export-pdf', [SATinjauLaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
+        Route::get('/laporan/export-excel', [\App\Http\Controllers\Superadmin\SATinjauLaporanController::class, 'exportExcel'])
+        ->name('laporan.export-excel');
         Route::get('/profil', [SAProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [SAProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [SAProfilController::class, 'gantiPassword'])->name('profil.password');
@@ -274,6 +279,9 @@ Route::middleware(['auth'])->group(function () {
         // Pengaturan (Wifi, dll)
         Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
         Route::patch('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
+        // Strukk
+       Route::get('/fb/transaksi/cetak-struk/{id}', [AdminFbController::class, 'cetakStruk'])->name('fb.transaksi.cetak-struk');
 
         
         Route::delete('/paket/penetapan/{id}', [PaketController::class, 'destroyPenetapan'])
