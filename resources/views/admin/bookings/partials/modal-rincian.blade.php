@@ -127,7 +127,7 @@
                 <div>
                     <button type="button" class="btn btn-outline-secondary font-weight-bold mr-2" data-dismiss="modal">Kembali / Cek Lagi</button>
                    {{-- Tombol Cetak (Muncul duluan) --}}
-                    <button type="button" class="btn text-white px-4 shadow-sm font-weight-bold" style="background-color: #6f42c1; border-radius: 6px;" id="btn-cetak-struk-fb">
+                    <button type="button" class="btn text-white px-4 shadow-sm font-weight-bold" style="background-color: #6f42c1; border-radius: 6px;" id="btn-cetak-struk">
                         <i class="fas fa-print mr-2"></i> Cetak Struk
                     </button>
                     

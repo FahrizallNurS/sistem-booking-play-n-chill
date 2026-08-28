@@ -219,7 +219,8 @@ label {
             `;
         });
 
-        if (datasets.length < 5) {
+        // Maksimal 7 Pembanding untuk F&B (sesuai jumlah palet warna)
+        if (datasets.length < 7) {
             boxesHTML += buildAddCardHTML();
         } else {
             addCardOpen = false;
@@ -285,7 +286,9 @@ label {
     }
 
     function addProdukToChart(produkId) {
-        let formData = $('#filter-form form').serialize();
+        // Ambil elemen form yang benar
+        let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
+        let formData = form.serialize();
         let colorIndex = fnbChart.data.datasets.length;
 
         $.get(window.location.href, formData + '&add_produk_id=' + produkId + '&color_index=' + colorIndex, function(res) {
@@ -310,16 +313,18 @@ label {
     }
 
 $(document).ready(function() {
-    $('#rentang_tanggal').daterangepicker({
-        locale: {
-            format: 'DD MMM YYYY',
-            separator: ' - ',
-            applyLabel: 'Pilih', cancelLabel: 'Batal', fromLabel: 'Dari', toLabel: 'Sampai',
-            daysOfWeek: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-            monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
-            firstDay: 1
-        }
-    });
+    if ($('#rentang_tanggal').length) {
+        $('#rentang_tanggal').daterangepicker({
+            locale: {
+                format: 'DD MMM YYYY',
+                separator: ' - ',
+                applyLabel: 'Pilih', cancelLabel: 'Batal', fromLabel: 'Dari', toLabel: 'Sampai',
+                daysOfWeek: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+                firstDay: 1
+            }
+        });
+    }
 
     const ctx = document.getElementById('fnbAnalysisChart').getContext('2d');
     fnbChart = new Chart(ctx, {
@@ -356,7 +361,7 @@ $(document).ready(function() {
                     }
                 }
             }
-        });
+        }
     });
 
     renderLegends();
@@ -377,14 +382,16 @@ $(document).ready(function() {
         }
     });
 
-    $('#filter-form').on('submit', function(e) {
+    $(document).on('submit', '#filter-form, #filter-form form', function(e) {
         e.preventDefault(); 
         
-        let form = $(this);
+        let form = $(this).is('form') ? $(this) : $(this).find('form');
+        if(form.length === 0) form = $(this); 
+
         let btn = form.find('button[type="submit"]');
         let origBtn = btn.html();
 
-        btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Memuat...').prop('disabled', true);
+        btn.html('<i class="fas fa-spinner fa-spin mr-2"></i>').prop('disabled', true);
 
         let produkIds = getActiveProdukIds();
         let requestData = form.serialize() + '&produk_ids=' + produkIds.join(',');
