@@ -9,11 +9,12 @@ class TrTransaksi extends Model
     protected $table = 'tr_transaksi';
     protected $primaryKey = 'id_transaksi';
     protected $fillable = [
-        'id_penetapan_harga', 'id_pengguna', 'id_admin', 'kode_sewa',
-        'waktu_mulai', 'waktu_selesai', 'total_harga',
-        'opsi_pembayaran', 'metode_pembayaran', 'jumlah_dp', 'status_sewa',
-        'status_pembayaran', 'catatan_pembayaran', 'sisa_bayar',
-        'sumber_booking','struk_created_at',
+    'id_penetapan_harga', 'id_pengguna', 'id_admin', 'kode_sewa',
+    'waktu_mulai', 'waktu_selesai', 'total_harga',
+    'opsi_pembayaran', 'metode_pembayaran', 'jumlah_dp', 'status_sewa',
+    'status_pembayaran', 'catatan_pembayaran', 'sisa_bayar',
+    'uang_diterima', 'kembalian',
+    'sumber_booking', 'struk_created_at', 'nomor_nota',
     ];
 
     public function penetapanHarga()

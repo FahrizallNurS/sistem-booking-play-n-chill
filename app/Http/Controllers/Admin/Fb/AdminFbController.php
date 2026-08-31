@@ -65,6 +65,7 @@ class AdminFbController extends Controller
             'no_telp'            => 'nullable|string|max:15',
             'catatan'            => 'nullable|string|max:50',
             'metode_pembayaran'  => 'required|in:TUNAI,QRIS',
+            'uang_diterima'      => 'required_if:metode_pembayaran,TUNAI|nullable|integer|min:0',
             'items'              => 'required|array|min:1',
             'items.*.id_produk'  => [
                 'required',
@@ -75,11 +76,12 @@ class AdminFbController extends Controller
         ]);
 
        try {
-            $pos = $this->fbService->createPos([
+                $pos = $this->fbService->createPos([
                 'nama_pelanggan'    => $validated['nama_pelanggan'],
                 'no_telp'           => $validated['no_telp'] ?? null,
                 'catatan'           => $validated['catatan'] ?? null,
                 'metode_pembayaran' => $validated['metode_pembayaran'],
+                'uang_diterima'     => $validated['uang_diterima'] ?? null,
                 'items'             => $validated['items'],
                 'id_admin'          => auth()->user()->id_pengguna,
                 'dicetak_oleh'      => auth()->user()->nama_pengguna,
@@ -155,9 +157,10 @@ class AdminFbController extends Controller
 
         $waktu = \Carbon\Carbon::parse($pos->created_at)->format('d/m/Y H:i');
 
-        $data = [
+            $data = [
             'pengaturan' => $pengaturan,
-            'kodeSewa' => 'FNBPNC-' . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT),
+            'kodeSewa'  => $pos->kode_pos,
+            'nomorNota' => $pos->nomor_nota ?: ('FNBPNC-' . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT)), // fallback data lama
             'waktu' => $waktu,
             'kasir' => $pos->dicetak_oleh ?? auth()->user()->nama_pengguna,
             'customer' => $customer,
@@ -167,6 +170,8 @@ class AdminFbController extends Controller
             'jumlahDp' => 0, 
             'metodePembayaran' => $pos->metode_pembayaran ?? 'TUNAI',
             'totalBayar' => $pos->total_pos,
+            'uangDiterima' => $pos->uang_diterima,
+            'kembalian' => $pos->kembalian,
             'catatan' => $pos->catatan,
             'waktuPembayaran' => $waktu,
             'dicetakOleh' => auth()->user()->nama_pengguna,

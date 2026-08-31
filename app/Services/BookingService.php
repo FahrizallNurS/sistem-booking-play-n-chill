@@ -19,17 +19,6 @@ class BookingService
 {
     use GeneratesStrukPdf;
 
-    /**
-     * Buat booking manual oleh kasir/admin.
-     * Begitu tersimpan, langsung difinalisasi (dikonfirmasi + lunas + cetak struk),
-     * lewat finalisasiStruk() supaya logic-nya sama persis dengan flow booking online.
-     *
-     * @param  array $data  boleh menyertakan 'items' => [['id_produk' => int, 'jumlah' => int], ...]
-     *                      untuk pesanan F&B yang dibuat bersamaan dengan booking (opsional).
-     * @throws ValidationException jika kombinasi tidak valid, ada bentrok jadwal,
-     *                             atau stock salah satu item F&B tidak cukup
-     *                             (dalam kasus ini seluruh booking ikut rollback, atomic).
-     */
     public function createManualBooking(array $data): TrTransaksi
     {
         return DB::transaction(function () use ($data) {
@@ -113,7 +102,8 @@ class BookingService
                 $data['items'] ?? [],
                 $data['metode_pembayaran'],
                 $data['dicetak_oleh'] ?? 'Admin',
-                $data['id_admin'] ?? null
+                $data['id_admin'] ?? null,
+                $data['uang_diterima'] ?? null
 
             );
 
@@ -126,9 +116,10 @@ class BookingService
         array $itemsFnb,
         string $metodePembayaran,
         string $dicetakOleh,
-        ?int $idAdminPencetak = null
+        ?int $idAdminPencetak = null,
+        ?int $uangDiterima = null
     ): string {
-        return DB::transaction(function () use ($transaksi, $itemsFnb, $metodePembayaran, $dicetakOleh, $idAdminPencetak) {
+        return DB::transaction(function () use ($transaksi, $itemsFnb, $metodePembayaran, $dicetakOleh, $idAdminPencetak, $uangDiterima) {
 
             $transaksi = TrTransaksi::where('id_transaksi', $transaksi->id_transaksi)
                 ->lockForUpdate()
@@ -136,7 +127,6 @@ class BookingService
 
             $pdfRelativePath = 'assets/struk/' . $transaksi->kode_sewa . '.pdf';
 
-            // --- Idempotensi: sudah pernah dicetak, jangan ulangi proses ---
             if (!empty($transaksi->struk_created_at)) {
                 return $pdfRelativePath;
             }
@@ -148,11 +138,6 @@ class BookingService
             $fnbDetailRows = [];
             $totalFnb = 0;
 
-            // Cek dulu apakah sudah ada TrPos yang nempel ke booking ini (kasus
-            // booking ONLINE: F&B sudah dipesan & stock-nya sudah dipotong duluan
-            // saat checkout, lihat BookingController::store()). Kalau ada,
-            // JANGAN bikin TrPos/TrPosDetail baru dan JANGAN potong stock lagi --
-            // cukup pakai data yang sudah ada dan tandai lunas.
             $trPos = TrPos::where('id_transaksi', $transaksi->id_transaksi)
                 ->lockForUpdate()
                 ->first();
@@ -164,7 +149,7 @@ class BookingService
                     $produk = MsProduk::find($d->id_produk);
 
                     $fnbDetailRows[] = [
-                        'produk'       => $produk, // bisa null kalau produk sudah dihapus
+                        'produk'       => $produk, 
                         'nama_produk'  => $produk->nama_produk ?? 'Produk Dihapus',
                         'jumlah'       => $d->jumlah,
                         'harga_satuan' => $d->harga_satuan,
@@ -242,15 +227,36 @@ class BookingService
                 }
             }
 
-            // --- Finalisasi status booking ---
+
+                        // --- Finalisasi status booking ---
             $totalTagihan = (int) $transaksi->total_harga + $totalFnb;
             $jumlahDp = (int) ($transaksi->jumlah_dp ?? 0);
+            $sisaYangDibayar = $totalTagihan - $jumlahDp;
+
+            // Kembalian cuma relevan buat TUNAI. QRIS: uang_diterima & kembalian
+            // sengaja dipaksa null (nominal pas otomatis dari sistem pembayaran).
+            $kembalian = null;
+            if ($metodePembayaran === 'TUNAI') {
+                if ($uangDiterima === null || $uangDiterima < $sisaYangDibayar) {
+                    throw ValidationException::withMessages([
+                        'uang_diterima' => 'Uang diterima kurang dari total tagihan yang harus dibayar.',
+                    ]);
+                }
+                $kembalian = $uangDiterima - $sisaYangDibayar;
+            } else {
+                $uangDiterima = null;
+            }
+
+            $nomorNota = $this->generateNomorNota();
             $transaksi->update([
                 'status_sewa'       => 'dikonfirmasi',
                 'status_pembayaran' => 'lunas',
                 'sisa_bayar'        => 0,
                 'metode_pembayaran' => $metodePembayaran,
                 'struk_created_at'  => now(),
+                'nomor_nota'        => $nomorNota,
+                'uang_diterima'     => $uangDiterima,
+                'kembalian'         => $kembalian,
             ]);
 
             // --- Generate PDF struk (gabungan item ruangan + F&B) ---
@@ -262,14 +268,17 @@ class BookingService
                 $fnbDetailRows,
                 $totalTagihan,
                 $metodePembayaran,
-                $jumlahDp
+                $jumlahDp,
+                $uangDiterima,
+                $kembalian
             );
 
             return $pdfRelativePath;
+
         });
     }
 
-    private function generateStrukPdf(
+        private function generateStrukPdf(
         TrTransaksi $transaksi,
         PenetapanHarga $ph,
         User $user,
@@ -277,7 +286,9 @@ class BookingService
         array $fnbDetailRows = [],
         ?int $totalTagihanOverride = null,
         ?string $metodePembayaranOverride = null,
-        int $jumlahDp = 0
+        int $jumlahDp = 0,
+        ?int $uangDiterima = null,
+        ?int $kembalian = null
     ): void {
         $pengaturan = MsPengaturan::current();
 
@@ -317,8 +328,11 @@ class BookingService
             'jumlahDp'         => $jumlahDp,
             'totalTagihan'     => $totalTagihan,
             'totalBayar'       => $sisaYangDibayar,
+            'uangDiterima'     => $uangDiterima,
+            'kembalian'        => $kembalian,
             'pengaturan'       => $pengaturan,
             'kodeSewa'         => $transaksi->kode_sewa,
+            'nomorNota'        => $transaksi->nomor_nota ?: $transaksi->kode_sewa,
             'wifiSsid'         => $pengaturan->wifi_ssid,
             'wifiPassword'     => $pengaturan->wifi_password,
             'waktu'            => now()->format('d/m/Y H:i'),

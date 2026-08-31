@@ -19,13 +19,16 @@ class PengaturanController extends Controller
     public function update(Request $request)
     {
         // 1. Validasi Inputan
-        $validated = $request->validate([
+            $validated = $request->validate([
             'wifi_ssid'     => 'required|string|max:50',
             'wifi_password' => 'required|string|max:50',
             'nama_toko'     => 'required|string|max:150',
             'alamat_toko'   => 'required|string|max:200',
             'slogan_header' => 'nullable|string|max:100', // Boleh kosong
             'logo_struk'    => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Max 2MB
+            'ig'            => 'required|string|max:100',
+            'wa'            => 'required|string|max:100',
+            'tiktok'        => 'required|string|max:100',
         ]);
 
         $pengaturan = MsPengaturan::current();

@@ -67,6 +67,13 @@ body {
         .footer-info div {
             margin-bottom: 2px;
         }
+        .footer-slogan {
+            font-size: 10px;
+            font-style: italic;
+        }
+        .footer-sosmed {
+            font-size: 9px;
+        }
     </style>
 </head>
 <body>
@@ -77,17 +84,14 @@ body {
         </div>
     @endif
 
-    <div class="center bold" style="font-size: 13px;">{{ $pengaturan->nama_toko }}</div>
-    <div class="center">{!! nl2br(e($pengaturan->alamat_toko)) !!}</div>
-    
-    <!-- Spasi kosong sebelum garis putus-putus pertama -->
-    <div class="center mb-10">{{ $pengaturan->slogan_header }}</div>
+    <div class="center bold mb-10" style="font-size: 13px;">{{ $pengaturan->nama_toko }}</div>
+    <div class="center mb-10">{!! nl2br(e($pengaturan->alamat_toko)) !!}</div>
 
     <div class="line-dashed"></div>
 
     {{-- ============= Info Transaksi ============= --}}
     <table>
-        <tr><td class="label">Nota</td><td class="sep">:</td><td class="val">{{ $kodeSewa }}</td></tr>
+        <tr><td class="label">Nota</td><td class="sep">:</td><td class="val">{{ $nomorNota ?? $kodeSewa }}</td></tr>
         <tr><td class="label">Waktu</td><td class="sep">:</td><td class="val">{{ $waktu }}</td></tr>
         <tr><td class="label">Kasir</td><td class="sep">:</td><td class="val">{{ $kasir }}</td></tr>
         <tr><td class="label">Cust</td><td class="sep">:</td><td class="val">{{ $customer }}</td></tr>
@@ -140,6 +144,7 @@ body {
     <div class="line-dashed"></div>
 
     <!-- Tambah mt-10 agar ada jarak setelah garis putus-putus -->
+        <!-- Tambah mt-10 agar ada jarak setelah garis putus-putus -->
     <table class="mt-10">
         <tr>
             <td>{{ $metodePembayaran }}</td>
@@ -149,6 +154,16 @@ body {
             <td class="bold" style="font-size: 12px;">Total Bayar</td>
             <td class="right bold" style="font-size: 12px;">{{ number_format($totalBayar, 0, ',', '.') }}</td>
         </tr>
+        @if(!empty($kembalian) && $kembalian > 0)
+            <tr>
+                <td>Tunai</td>
+                <td class="right">{{ number_format($uangDiterima, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td class="bold">Kembali</td>
+                <td class="right bold">{{ number_format($kembalian, 0, ',', '.') }}</td>
+            </tr>
+        @endif
     </table>
 
     @if($catatan)
@@ -161,11 +176,30 @@ body {
     <div class="line-double"></div>
 
     {{-- ============= Footer ============= --}}
-    <!-- Format diubah dari tabel menjadi div center -->
+    {{-- Urutan: Wifi Pass -> Slogan -> Sosmed -> Dicetak oleh --}}
     <div class="footer-info">
         <div>Wifi Pass : {{ $pengaturan->wifi_password }}</div>
-        <div>Terbayar  : {{ $waktuPembayaran }}</div>
-        <div>Dicetak   : {{ $dicetakOleh }}</div>
+
+        @if(!empty($pengaturan->slogan_header))
+            <div class="footer-slogan mt-10 mb-10">{{ $pengaturan->slogan_header }}</div>
+        @endif
+
+        {{-- PERBAIKAN LAYOUT SOSMED: Dibuat bersusun ke bawah (vertikal) --}}
+        <div class="footer-sosmed mb-10">
+            @if(!empty($pengaturan->ig))
+                <div>IG : {{ $pengaturan->ig }}</div>
+            @endif
+            
+            @if(!empty($pengaturan->wa))
+                <div>WA : {{ $pengaturan->wa }}</div>
+            @endif
+            
+            @if(!empty($pengaturan->tiktok))
+                <div>Tiktok : {{ $pengaturan->tiktok }}</div>
+            @endif
+        </div>
+
+        <div>Dicetak : {{ $dicetakOleh }}</div>
     </div>
 
 </body>

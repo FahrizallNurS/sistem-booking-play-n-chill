@@ -462,19 +462,15 @@ $(document).ready(function () {
         }
     }
 
-    // ================= Override submit "Cetak Struk" di modal rincian =================
-    // modal-rincian.blade.php dipakai bersama index.blade.php. Di sana klik
-    // "Cetak Struk" submit ke endpoint cetak-struk booking yang SUDAH ada.
-    // Di halaman ini booking BELUM ada, jadi kita daftarkan strategi submit
-    // sendiri (dipanggil dari modal-rincian.blade.php kalau terdaftar):
-    // simpan booking baru + item F&B (kalau ada) dalam SATU request ke
-    // storeManual, baru cetak lewat iframe. Ini titik ekstensi supaya
-    // modal-rincian.blade.php tidak perlu tahu detail form/endpoint halaman ini.
-    window.fnbSubmitOverride = function (btnCetak, fnbState) {
-        // Klik kedua dst. pada tombol yang sama (label sudah "Cetak Ulang")
-        // cuma print ulang PDF yang sudah ada, bukan submit ulang data booking.
+        window.fnbSubmitOverride = function (btnCetak, fnbState) {
+
         if (bookingSudahTersimpan) {
             triggerPrintStruk();
+            return;
+        }
+
+        if (typeof window.validasiRincianPembayaranSiap === 'function'
+            && !window.validasiRincianPembayaranSiap()) {
             return;
         }
 
@@ -492,6 +488,9 @@ $(document).ready(function () {
             id_penetapan_harga: $('#id_penetapan_harga').val(),
             waktu_mulai: $('#waktu_mulai').val(),
             metode_pembayaran: $('#metode_pembayaran').val(),
+            uang_diterima: (typeof window.getRincianUangDiterima === 'function')
+                ? window.getRincianUangDiterima()
+                : null,
             catatan: $('#catatan').val(),
             items: items,
         };

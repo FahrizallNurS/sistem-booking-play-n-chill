@@ -4,6 +4,8 @@ namespace App\Services\Concerns;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+
 
 trait GeneratesStrukPdf
 {
@@ -27,7 +29,33 @@ trait GeneratesStrukPdf
         $pdf->save($path . '/' . $namaFile . '.pdf');
 
         return 'assets/struk/' . $namaFile . '.pdf';
+        
     }
 
+    protected function generateNomorNota(): string
+    {
+        $tanggal = now()->format('Y-m-d');
+
+        DB::table('tr_nomor_urut_harian')->insertOrIgnore([
+            'tanggal'         => $tanggal,
+            'urutan_terakhir' => 0,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        $urutan = DB::table('tr_nomor_urut_harian')
+            ->where('tanggal', $tanggal)
+            ->lockForUpdate()
+            ->value('urutan_terakhir') + 1;
+
+        DB::table('tr_nomor_urut_harian')
+            ->where('tanggal', $tanggal)
+            ->update([
+                'urutan_terakhir' => $urutan,
+                'updated_at'      => now(),
+            ]);
+
+        return now()->format('ymd') . '/' . config('struk.kode_cabang') . '/' . str_pad($urutan, 3, '0', STR_PAD_LEFT);
+    }
     
 }

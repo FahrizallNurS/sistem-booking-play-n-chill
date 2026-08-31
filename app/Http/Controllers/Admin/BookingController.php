@@ -106,7 +106,7 @@ class BookingController extends Controller
     public function storeManual(Request $request): JsonResponse
     {
         // 1. Definisikan aturan validasi HANYA untuk data yang dikirim dari form
-        $validated = $request->validate([
+            $validated = $request->validate([
             'nama_pelanggan'     => 'required|string|max:100',
             'no_telp'            => 'nullable|string|max:15',
             'email'              => 'nullable|email|max:100',
@@ -115,11 +115,8 @@ class BookingController extends Controller
             'id_penetapan_harga' => 'required|integer|exists:penetapan_harga,id_penetapan_harga',
             'waktu_mulai'        => 'required|date_format:Y-m-d\TH:i',
             'metode_pembayaran'  => 'required|in:TUNAI,QRIS',
+            'uang_diterima'      => 'required_if:metode_pembayaran,TUNAI|nullable|integer|min:0',
             'catatan'            => 'nullable|string|max:100',
-            // Item F&B opsional — booking manual boleh dibuat dengan atau
-            // tanpa pesanan F&B sekaligus. Harga TIDAK divalidasi di sini,
-            // selalu diambil ulang dari ms_produk di BookingService supaya
-            // tidak bisa dimanipulasi dari sisi client.
             'items'              => 'nullable|array',
             'items.*.id_produk'  => [
                 'required_with:items',
@@ -131,7 +128,7 @@ class BookingController extends Controller
         ]);
 
         try {
-            $transaksi = $this->bookingService->createManualBooking([
+                $transaksi = $this->bookingService->createManualBooking([
                 'nama_pelanggan'     => $validated['nama_pelanggan'],
                 'no_telp'            => $validated['no_telp'] ?? null,
                 'email'              => $validated['email'] ?? null,
@@ -140,6 +137,7 @@ class BookingController extends Controller
                 'id_penetapan_harga' => $validated['id_penetapan_harga'],
                 'waktu_mulai'        => $validated['waktu_mulai'],
                 'metode_pembayaran'  => $validated['metode_pembayaran'],
+                'uang_diterima'      => $validated['uang_diterima'] ?? null,
                 'catatan'            => $validated['catatan'] ?? null,
                 'items'              => $validated['items'] ?? [],
                 'id_admin'           => auth()->id(),
@@ -360,6 +358,7 @@ class BookingController extends Controller
     {
         $validated = $request->validate([
             'metode_pembayaran' => 'required|in:TUNAI,QRIS',
+            'uang_diterima'      => 'required_if:metode_pembayaran,TUNAI|nullable|integer|min:0',
             'items'              => 'array',
             'items.*.id_produk'  => 'required_with:items|integer|exists:ms_produk,id_produk',
             'items.*.jumlah'     => 'required_with:items|integer|min:1',
@@ -373,7 +372,8 @@ class BookingController extends Controller
                 $validated['items'] ?? [],
                 $validated['metode_pembayaran'],
                 auth()->user()->nama_pengguna,
-                auth()->id()
+                auth()->id(),
+                $validated['uang_diterima'] ?? null
             );
         } catch (ValidationException $e) {
             return response()->json([

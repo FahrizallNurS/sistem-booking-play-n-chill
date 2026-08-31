@@ -48,6 +48,7 @@
                         <label for="slogan_header">Slogan / Info Tambahan</label>
                         <input type="text" class="form-control @error('slogan_header') is-invalid @enderror" id="slogan_header" name="slogan_header" value="{{ old('slogan_header', $pengaturan->slogan_header) }}" placeholder="Contoh: Play, Chill, Repeat!">
                         @error('slogan_header') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                        <small class="text-muted">Sekarang tampil di bagian bawah (footer) struk, bukan di header.</small>
                     </div>
 
                     <hr>
@@ -93,6 +94,33 @@
                         </div>
                     </div>
 
+                    <hr>
+
+                    <label class="d-block mb-2">Media Sosial <small class="text-muted">(tampil di footer struk)</small></label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="ig">Instagram</label>
+                                <input type="text" class="form-control @error('ig') is-invalid @enderror" id="ig" name="ig" value="{{ old('ig', $pengaturan->ig) }}" placeholder="@pncjogja">
+                                @error('ig') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="wa">WhatsApp</label>
+                                <input type="text" class="form-control @error('wa') is-invalid @enderror" id="wa" name="wa" value="{{ old('wa', $pengaturan->wa) }}" placeholder="0812xxxxxxx">
+                                @error('wa') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="tiktok">TikTok</label>
+                                <input type="text" class="form-control @error('tiktok') is-invalid @enderror" id="tiktok" name="tiktok" value="{{ old('tiktok', $pengaturan->tiktok) }}" placeholder="@pncjogja">
+                                @error('tiktok') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="card-footer">
                     <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
@@ -117,8 +145,7 @@
                 </div>
 
                 <div class="center bold" id="preview-nama-toko" style="font-size: 13px;">{{ $pengaturan->nama_toko ?: 'Nama Toko' }}</div>
-                <div class="center" id="preview-alamat-toko">{!! nl2br(e($pengaturan->alamat_toko ?: 'Alamat toko')) !!}</div>
-                <div class="center mb-10" id="preview-slogan">{{ $pengaturan->slogan_header }}</div>
+                <div class="center mb-10" id="preview-alamat-toko">{!! nl2br(e($pengaturan->alamat_toko ?: 'Alamat toko')) !!}</div>
 
                 <div class="line-dashed"></div>
 
@@ -161,9 +188,11 @@
 
                 <div class="line-double"></div>
 
+                {{-- Footer: Wifi Pass -> Slogan -> Sosmed -> Dicetak oleh (samain persis sama struk-pdf.blade.php) --}}
                 <div class="footer-info">
                     <div>Wifi Pass : <span id="preview-wifi-pass"></span></div>
-                    <div>Terbayar : <span id="preview-waktu-bayar"></span></div>
+                    <div class="footer-slogan" id="preview-slogan-footer"></div>
+                    <div class="footer-sosmed" id="preview-sosmed"></div>
                     <div>Dicetak : Admin</div>
                 </div>
             </div>
@@ -241,6 +270,15 @@
         margin-bottom: 2px;
     }
 
+    .struk-preview .footer-slogan {
+        font-size: 10px;
+        font-style: italic;
+    }
+
+    .struk-preview .footer-sosmed {
+        font-size: 9px;
+    }
+
     @media (max-width: 767px) {
         .struk-preview-wrapper { position: static; margin-top: 20px; }
     }
@@ -268,7 +306,10 @@
         { qty: 2, nama: 'Es Teh Manis', sub: null, subtotal: 16000 },
         { qty: 1, nama: 'Kentang Goreng', sub: null, subtotal: 18000 }
     ];
-    var DUMMY_KODE_SEWA = 'PNC-' + formatTanggalKode(new Date()) + '-A1B2';
+
+    // Format nomor nota dummy samain sama GeneratesStrukPdf::generateNomorNota()
+    // di backend: YYMMDD/KODECABANG/001
+    var DUMMY_NOMOR_NOTA = formatTanggalKodeSingkat(new Date()) + '/' + (window.STRUK_KODE_CABANG || 'PNC01') + '/001';
 
     var MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB, samain sama rule validasi server
     var ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
@@ -277,6 +318,9 @@
     var elNamaToko   = document.getElementById('nama_toko');
     var elAlamatToko = document.getElementById('alamat_toko');
     var elSlogan     = document.getElementById('slogan_header');
+    var elIg         = document.getElementById('ig');
+    var elWa         = document.getElementById('wa');
+    var elTiktok     = document.getElementById('tiktok');
     var elWifiPass   = document.getElementById('wifi_password');
     var elLogoInput  = document.getElementById('logo_struk');
     var elLogoError  = document.getElementById('logo_struk_error');
@@ -286,7 +330,8 @@
         logo: document.getElementById('preview-logo'),
         namaToko: document.getElementById('preview-nama-toko'),
         alamatToko: document.getElementById('preview-alamat-toko'),
-        slogan: document.getElementById('preview-slogan'),
+        sloganFooter: document.getElementById('preview-slogan-footer'),
+        sosmed: document.getElementById('preview-sosmed'),
         nota: document.getElementById('preview-nota'),
         waktu: document.getElementById('preview-waktu'),
         items: document.getElementById('preview-items'),
@@ -295,15 +340,15 @@
         totalTagihan: document.getElementById('preview-total-tagihan'),
         totalBayar1: document.getElementById('preview-total-bayar-1'),
         totalBayar2: document.getElementById('preview-total-bayar-2'),
-        wifiPass: document.getElementById('preview-wifi-pass'),
-        waktuBayar: document.getElementById('preview-waktu-bayar')
+        wifiPass: document.getElementById('preview-wifi-pass')
     };
 
     // Logo asli dari database, dipakai sebagai fallback kalau user batal pilih file
     var logoAsliSrc = pv.logo.getAttribute('src') || '';
 
-    function formatTanggalKode(date) {
-        var y = date.getFullYear();
+    function formatTanggalKodeSingkat(date) {
+        // YYMMDD -- samain sama now()->format('ymd') di generateNomorNota()
+        var y = String(date.getFullYear()).slice(-2);
         var m = String(date.getMonth() + 1).padStart(2, '0');
         var d = String(date.getDate()).padStart(2, '0');
         return '' + y + m + d;
@@ -382,10 +427,9 @@
     }
 
     function renderInfoTransaksi() {
-        setText(pv.nota, DUMMY_KODE_SEWA);
+        setText(pv.nota, DUMMY_NOMOR_NOTA);
         var waktuSekarang = formatWaktuSekarang();
         setText(pv.waktu, waktuSekarang);
-        setText(pv.waktuBayar, waktuSekarang);
     }
 
     function updateNamaToko() {
@@ -397,7 +441,15 @@
     }
 
     function updateSlogan() {
-        setText(pv.slogan, elSlogan.value, '');
+        setText(pv.sloganFooter, elSlogan.value, '');
+    }
+
+    function updateSosmed() {
+        var parts = [];
+        if (elIg.value.trim())     parts.push('IG ' + elIg.value.trim());
+        if (elWa.value.trim())     parts.push('WA ' + elWa.value.trim());
+        if (elTiktok.value.trim()) parts.push('TT ' + elTiktok.value.trim());
+        setText(pv.sosmed, parts.join(' | '), '');
     }
 
     function updateWifiPass() {
@@ -457,6 +509,9 @@
     elNamaToko.addEventListener('input', updateNamaToko);
     elAlamatToko.addEventListener('input', updateAlamatToko);
     elSlogan.addEventListener('input', updateSlogan);
+    elIg.addEventListener('input', updateSosmed);
+    elWa.addEventListener('input', updateSosmed);
+    elTiktok.addEventListener('input', updateSosmed);
     elWifiPass.addEventListener('input', updateWifiPass);
     elLogoInput.addEventListener('change', updateLogoPreview);
 
@@ -466,6 +521,7 @@
     updateNamaToko();
     updateAlamatToko();
     updateSlogan();
+    updateSosmed();
     updateWifiPass();
 })();
 </script>

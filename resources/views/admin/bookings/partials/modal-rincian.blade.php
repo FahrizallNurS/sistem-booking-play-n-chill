@@ -90,6 +90,25 @@
                             </div>
                         </div>
 
+                        {{-- Muncul cuma kalau metode bayar TUNAI (di-toggle via JS
+                             berdasarkan isi #detail-metode-bayar saat modal dibuka). --}}
+                        <div id="rincian-uang-diterima-section" class="mb-4" style="display: none;">
+                            <div class="row mb-2 align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Uang Diterima</div>
+                                <div class="col-8">
+                                    <input type="number" min="0" step="1" inputmode="numeric"
+                                        class="form-control form-control-sm" id="rincian-uang-diterima"
+                                        placeholder="Nominal uang tunai">
+                                </div>
+                            </div>
+                            <div class="row align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Kembalian</div>
+                                <div class="col-8 font-weight-bold" id="rincian-kembalian-preview" style="color: #28a745;">
+                                    Rp 0
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="border-top pt-4 mb-3"></div>
 
                         {{-- Sisa Booking: muncul cuma di skenario booking DP online yang
@@ -127,8 +146,8 @@
                 <div>
                     <button type="button" class="btn btn-outline-secondary font-weight-bold mr-2" data-dismiss="modal">Kembali / Cek Lagi</button>
                    {{-- Tombol Cetak (Muncul duluan) --}}
-                    <button type="button" class="btn text-white px-4 shadow-sm font-weight-bold" style="background-color: #6f42c1; border-radius: 6px;" id="btn-cetak-struk">
-                        <i class="fas fa-print mr-2"></i> Cetak Struk
+                    <button type="button" id="btn-cetak-struk" class="btn btn-secondary font-weight-bold">
+                        <i class="fas fa-print mr-1"></i> Cetak Struk
                     </button>
                     
                     {{-- Tombol Selesai (Disembunyikan pake d-none) --}}
@@ -142,16 +161,72 @@
 </div>
 @push('js')
 <script>
+
+function triggerPrintStrukRincian() {
+    const iframe = document.getElementById('cetak-struk-iframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }
+}
+
+// ============ Uang Diterima & Kembalian (shared: flow booking baru & F&B ke booking existing) ============
+function parseRupiahRincian(str) {
+    return parseInt(String(str).replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+function isMetodeBayarTunai() {
+    return ($('#detail-metode-bayar').text() || '').trim().toUpperCase() === 'TUNAI';
+}
+
+function updateStatusTombolCetakRincian() {
+    const btn = $('#btn-cetak-struk');
+
+    if (!isMetodeBayarTunai()) {
+        btn.prop('disabled', false);
+        return;
+    }
+
+    const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
+    const uangDiterima = parseInt($('#rincian-uang-diterima').val(), 10) || 0;
+    const kembalian = uangDiterima - grandTotal;
+
+    $('#rincian-kembalian-preview').text('Rp ' + (kembalian > 0 ? kembalian : 0).toLocaleString('id-ID'));
+    btn.prop('disabled', uangDiterima < grandTotal);
+}
+
+$('#modalDetailPesanan').on('show.bs.modal', function () {
+    $('#rincian-uang-diterima').val('');
+    $('#rincian-kembalian-preview').text('Rp 0');
+    $('#rincian-uang-diterima-section').toggle(isMetodeBayarTunai());
+    updateStatusTombolCetakRincian();
+});
+
+$(document).on('input', '#rincian-uang-diterima', updateStatusTombolCetakRincian);
+
+window.getRincianUangDiterima = function () {
+    if (!isMetodeBayarTunai()) return null;
+    const val = parseInt($('#rincian-uang-diterima').val(), 10);
+    return isNaN(val) ? null : val;
+};
+
+window.validasiRincianPembayaranSiap = function () {
+    if (!isMetodeBayarTunai()) return true;
+
+    const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
+    const uangDiterima = window.getRincianUangDiterima();
+
+    if (uangDiterima === null || uangDiterima < grandTotal) {
+        alert('Uang diterima kurang dari Grand Total. Silakan periksa kembali nominal tunai.');
+        return false;
+    }
+    return true;
+};
+
 $(document).on('click', '#btn-cetak-struk', function () {
     const state = window.fnbState;
     const btn = $(this);
 
-    // Titik ekstensi: halaman lain (mis. create.blade.php, alur "Tambah
-    // Booking" yang belum punya id_transaksi) bisa mendaftarkan strategi
-    // submit sendiri lewat window.fnbSubmitOverride, tanpa file ini perlu
-    // tahu detail form/endpoint halaman tersebut. Kalau tidak ada yang
-    // mendaftar, perilaku default di bawah ini (submit ke cetak-struk booking
-    // yang sudah ada) tetap berjalan seperti biasa.
     if (typeof window.fnbSubmitOverride === 'function') {
         window.fnbSubmitOverride(btn, state);
         return;
@@ -159,6 +234,10 @@ $(document).on('click', '#btn-cetak-struk', function () {
 
     if (!state || !state.bookingId) {
         alert('Data pesanan tidak ditemukan. Silakan ulangi dari awal.');
+        return;
+    }
+
+    if (!window.validasiRincianPembayaranSiap()) {
         return;
     }
 
@@ -178,6 +257,7 @@ $(document).on('click', '#btn-cetak-struk', function () {
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         data: {
             metode_pembayaran: state.metodePembayaran,
+            uang_diterima: window.getRincianUangDiterima(),
             items: state.items,
         },
         success: function (res) {
