@@ -123,7 +123,7 @@
                                 <div class="d-flex justify-content-center align-items-center" style="gap: 5px;">
 
                                     {{-- Tombol Cetak Struk --}}
-                                  <button type="button" onclick="cetakStrukLangsung('{{ route('admin.fb.transaksi.cetak-struk', $item->id_pos) }}')" class="btn btn-secondary btn-sm shadow-sm" style="border-radius: 4px; padding: 0.2rem 0.6rem;" title="Cetak Struk">
+                                 <button type="button" onclick="cetakStrukLangsung('{{ secure_url('admin/fb/transaksi/cetak-struk/' . $item->id_pos) }}')" class="btn btn-secondary btn-sm shadow-sm" style="border-radius: 4px; padding: 0.2rem 0.6rem;" title="Cetak Struk">
                                         <i class="fas fa-print"></i>
                                     </button>
 
@@ -337,4 +337,28 @@
         };
     }
 </script>    
+
+<script>
+    function cetakStrukLangsung(url) {
+        // Baris pamungkas: Paksa URL menjadi HTTPS apapun yang terjadi
+        url = url.replace('http://', 'https://');
+
+        let iframe = document.getElementById('frameCetakStruk');
+        if (!iframe) {
+            iframe = document.createElement('iframe'); 
+            iframe.id = 'frameCetakStruk';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe); 
+        }
+
+        iframe.src = url;
+
+        iframe.onload = function() {
+            setTimeout(function() {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 500);
+        };
+    }
+</script>
 @endpush

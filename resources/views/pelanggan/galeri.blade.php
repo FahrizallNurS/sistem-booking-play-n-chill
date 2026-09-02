@@ -48,68 +48,7 @@
 </head>
 <body>
 
-{{-- ═══ NAVBAR ═══ --}}
-<nav class="navbar navbar-expand-lg fixed-top">
-    <div class="container-fluid px-4">
-        <a class="navbar-brand p-0" href="{{ url('/') }}">
-            <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
-        </a>
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navMain">
-            <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/') }}">Home</a>
-                </li>
-                
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/booking') }}">Booking</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/menu-fb') }}">Menu F&B</a>
-                </li>
-
-                <li class="nav-item">
-                    {{-- Perhatikan class nav-btn-active pindah ke sini --}}
-                    <a class="nav-link nav-btn-active" href="{{ url('/galeri') }}">Galeri</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/tentang-kami') }}">Tentang Kami</a>
-                </li>
-
-                <li class="nav-item ms-2">
-                    @guest
-                        <a class="nav-link nav-btn-active" href="{{ url('/login') }}" style="background-color: var(--orange) !important;">
-                            Login
-                        </a>
-                    @endguest
-                    @auth
-                        <div class="dropdown">
-                            <div class="nav-avatar" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="var(--purple-dark)"/>
-                                </svg>
-                            </div>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
-                                <li><span class="dropdown-item-text fw-bold">{{ auth()->user()->name ?? 'User' }}</span></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">Keluar (Logout)</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    @endauth
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+@include('partials.navbar')
 
 <style>
     .filter-btn {
@@ -337,66 +276,7 @@
     </div>
 </div>
 
-{{-- ═══ FOOTER ═══ --}}
-<footer>
-    <div class="container">
-        <div class="row g-4 pb-2">
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-logo font-modak">Play N Chill</div>
-                <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
-            </div>
-
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-head">Jam Operasional</div>
-                <ul class="f-list">
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
-                        <div>
-                            <div>Senin – Kamis: 14.00 – 22.00</div>
-                            <div>Jumat: 13.00 – 00.00</div>
-                            <div>Sabtu – Minggu: 10.00 – 00.00</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-head">Hubungi Kami</div>
-                <ul class="f-list">
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span>playnchillmadiun@gmail.com</span></li>
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
-                        <span>Jl. Margobawero No.46, Mojorejo, Kec. Taman, Kota Madiun, Jawa Timur 63139</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-head">Ikuti Kami</div>
-                <ul class="f-list f-soc-list">
-                    <li>
-                        <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
-                            <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
-                        </a>
-                    </li>
-                    <li>
-                        <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
-                            <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
-                        </a>
-                    </li>
-                    <li>
-                        <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
-                            <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <hr class="f-divider">
-        <p class="f-copy">&copy; {{ date('Y') }} Play N Chill Madiun. All rights reserved.</p>
-    </div>
-</footer>
+@include('partials.footer')
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
