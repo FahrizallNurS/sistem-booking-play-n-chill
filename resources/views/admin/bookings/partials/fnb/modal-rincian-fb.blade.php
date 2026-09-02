@@ -39,7 +39,7 @@
 
                         <div class="row mb-2" style="font-size: 13px;">
                             <div class="col-4 font-weight-bold text-dark">Kode Sewa</div>
-                            <div class="col-8 font-style-italic text-muted text-break">
+                            <div class="col-8 font-style-italic text-muted text-break" id="rincian-kode-sewa">
                                 Akan digenerate otomatis setelah disimpan
                             </div>
                         </div>
@@ -90,13 +90,29 @@
                             </div>
                         </div>
 
+                        {{-- Muncul cuma kalau metode bayar TUNAI (di-toggle via JS
+                             berdasarkan isi #detail-metode-bayar saat modal dibuka). --}}
+                        <div id="rincian-uang-diterima-section" class="mb-4" style="display: none;">
+                            <div class="row mb-2 align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Uang Diterima</div>
+                                <div class="col-8">
+                                    <input type="number" min="0" step="1" inputmode="numeric"
+                                        class="form-control form-control-sm" id="rincian-uang-diterima"
+                                        placeholder="Nominal uang tunai">
+                                </div>
+                            </div>
+                            <div class="row align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Kembalian</div>
+                                <div class="col-8 font-weight-bold" id="rincian-kembalian-preview" style="color: #28a745;">
+                                    Rp 0
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="border-top pt-4 mb-3"></div>
 
-                        {{-- Sisa Booking: muncul cuma di skenario booking DP online yang
-                             dilunasin di kasir. Baris ini terkunci (bukan item F&B),
-                             angkanya diisi dari sisi JS pas alur checkout F&B dipicu.
-                             Sengaja disembunyikan default — belum ada trigger backend
-                             yang ngisi ini, menyusul di task checkout F&B. --}}
+                        {{-- Sisa Booking: tidak relevan untuk F&B mandiri, tetap
+                             disembunyikan permanen via JS. --}}
                         <div id="rincian-sisa-booking-section" style="display: none;">
                             <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
                                 <span class="font-weight-bold text-dark">Sisa Booking (belum lunas)</span>
@@ -104,8 +120,8 @@
                             </div>
                         </div>
 
-                        {{-- Rincian F&B: diisi lewat JS di modal-fb.blade.php pas klik
-                             "Simpan Pesanan" --}}
+                        {{-- Rincian F&B: diisi lewat JS di tambah-pesanan.blade.php
+                             (fnbShowRincianManual) pas klik "Simpan Pesanan" --}}
                         <div id="rincian-fnb-section" style="display: none;">
                             <h6 class="text-muted mb-3" style="font-size: 14px;">Rincian Pesanan F&B</h6>
                             <div id="rincian-fnb-items"></div>
@@ -130,9 +146,9 @@
                     <button type="button" id="btn-cetak-struk" class="btn btn-secondary font-weight-bold">
                         <i class="fas fa-print mr-1"></i> Cetak Struk
                     </button>
-                    
+
                     {{-- Tombol Selesai (Disembunyikan pake d-none) --}}
-                    <a href="{{ route('admin.booking.index') }}" id="btn-selesai" class="btn btn-success font-weight-bold shadow-sm d-none">
+                    <a href="{{ route('admin.fb.transaksi.index') }}" id="btn-selesai" class="btn btn-success font-weight-bold shadow-sm d-none">
                         <i class="fas fa-check-circle mr-1"></i> Selesai
                     </a>
                 </div>
@@ -142,13 +158,9 @@
 </div>
 @push('js')
 <script>
-// Trigger print dari iframe tersembunyi #cetak-struk-iframe. Didefinisikan
-// lokal di sini (bukan dependensi ke fungsi sejenis di create.blade.php)
-// supaya handler default #btn-cetak-struk ini mandiri -- gak gantung ke
-// script global halaman lain. Halaman yang memakai partial ini (mis.
-// index.blade.php) wajib menyediakan <iframe id="cetak-struk-iframe">
-// tersembunyi (bukan display:none, biar window.print() dari dalamnya
-// tetap jalan di semua browser).
+// Trigger print dari iframe tersembunyi #cetak-struk-iframe. tambah-pesanan.blade.php
+// wajib menyediakan <iframe id="cetak-struk-iframe"> tersembunyi (bukan
+// display:none, biar window.print() dari dalamnya tetap jalan di semua browser).
 function triggerPrintStrukRincian() {
     const iframe = document.getElementById('cetak-struk-iframe');
     if (iframe && iframe.contentWindow) {
@@ -157,35 +169,96 @@ function triggerPrintStrukRincian() {
     }
 }
 
+// ============ Uang Diterima & Kembalian (khusus flow F&B mandiri) ============
+function parseRupiahRincian(str) {
+    return parseInt(String(str).replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+function isMetodeBayarTunai() {
+    return ($('#detail-metode-bayar').text() || '').trim().toUpperCase() === 'TUNAI';
+}
+
+function updateStatusTombolCetakRincian() {
+    const btn = $('#btn-cetak-struk');
+
+    if (!isMetodeBayarTunai()) {
+        btn.prop('disabled', false);
+        return;
+    }
+
+    const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
+    const uangDiterima = parseInt($('#rincian-uang-diterima').val(), 10) || 0;
+    const kembalian = uangDiterima - grandTotal;
+
+    $('#rincian-kembalian-preview').text('Rp ' + (kembalian > 0 ? kembalian : 0).toLocaleString('id-ID'));
+    btn.prop('disabled', uangDiterima < grandTotal);
+}
+
+$('#modalDetailPesanan').on('show.bs.modal', function () {
+    $('#rincian-uang-diterima').val('');
+    $('#rincian-kembalian-preview').text('Rp 0');
+    $('#rincian-uang-diterima-section').toggle(isMetodeBayarTunai());
+    updateStatusTombolCetakRincian();
+});
+
+$(document).on('input', '#rincian-uang-diterima', updateStatusTombolCetakRincian);
+
+window.getRincianUangDiterima = function () {
+    if (!isMetodeBayarTunai()) return null;
+    const val = parseInt($('#rincian-uang-diterima').val(), 10);
+    return isNaN(val) ? null : val;
+};
+
+window.validasiRincianPembayaranSiap = function () {
+    if (!isMetodeBayarTunai()) return true;
+
+    const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
+    const uangDiterima = window.getRincianUangDiterima();
+
+    if (uangDiterima === null || uangDiterima < grandTotal) {
+        alert('Uang diterima kurang dari Grand Total. Silakan periksa kembali nominal tunai.');
+        return false;
+    }
+    return true;
+};
+
+// ============ Submit (baru terjadi di sini, bukan pas "Simpan Pesanan") ============
 $(document).on('click', '#btn-cetak-struk', function () {
     const state = window.fnbState;
     const btn = $(this);
 
-    // Titik ekstensi: halaman lain (mis. create.blade.php, alur "Tambah
-    // Booking" yang belum punya id_transaksi) bisa mendaftarkan strategi
-    // submit sendiri lewat window.fnbSubmitOverride, tanpa file ini perlu
-    // tahu detail form/endpoint halaman tersebut. Kalau tidak ada yang
-    // mendaftar, perilaku default di bawah ini (submit ke cetak-struk booking
-    // yang sudah ada) tetap berjalan seperti biasa.
-    if (typeof window.fnbSubmitOverride === 'function') {
-        window.fnbSubmitOverride(btn, state);
-        return;
-    }
-
-    if (!state || !state.bookingId) {
+    if (!state || !Array.isArray(state.items) || state.items.length === 0) {
         alert('Data pesanan tidak ditemukan. Silakan ulangi dari awal.');
         return;
     }
 
+    if (!window.validasiRincianPembayaranSiap()) {
+        return;
+    }
+
+    const customer = (typeof window.fnbManualGetCustomerData === 'function')
+        ? window.fnbManualGetCustomerData()
+        : {};
+
+    if (!customer.nama_pelanggan) {
+        alert('Nama pelanggan wajib diisi.');
+        return;
+    }
+
     const iframe = document.getElementById('cetak-struk-iframe');
+    const originalText = btn.html();
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
 
     $.ajax({
-        url: '/admin/booking/' + state.bookingId + '/cetak-struk',
+        url: "{{ route('admin.fb.transaksi.store') }}",
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         data: {
+            nama_pelanggan: customer.nama_pelanggan,
+            no_telp: customer.no_telp,
+            catatan: customer.catatan,
             metode_pembayaran: state.metodePembayaran,
+            uang_diterima: window.getRincianUangDiterima(),
             items: state.items,
         },
         success: function (res) {
@@ -194,31 +267,25 @@ $(document).on('click', '#btn-cetak-struk', function () {
                 $('#btn-selesai').removeClass('d-none');
 
                 if (iframe) {
-                    // Begitu PDF selesai dimuat di iframe, langsung trigger
-                    // print. Reload halaman ditaruh SETELAH print dialog
-                    // ke-trigger (bukan langsung setelah AJAX sukses),
-                    // supaya dialog print sempat kebuka dulu sebelum
-                    // konteks halaman berubah.
                     iframe.onload = function () {
                         triggerPrintStrukRincian();
-                        location.reload();
                     };
                     iframe.src = res.data.pdf_url;
                 } else {
-                    // Fallback kalau entah kenapa iframe-nya gak ada di
-                    // halaman ini -- tetap buka PDF di tab baru biar admin
-                    // gak mentok tanpa struk sama sekali.
                     window.open(res.data.pdf_url, '_blank');
-                    location.reload();
+                }
+
+                if (typeof window.fnbManualResetForm === 'function') {
+                    window.fnbManualResetForm();
                 }
             }
         },
         error: function (xhr) {
             const msg = xhr.responseJSON?.errors
                 ? Object.values(xhr.responseJSON.errors).flat().join('\n')
-                : 'Gagal mencetak struk. Silakan coba lagi.';
+                : 'Gagal menyimpan pesanan. Silakan coba lagi.';
             alert(msg);
-            btn.prop('disabled', false).html('<i class="fas fa-print mr-1"></i> Cetak Struk');
+            btn.prop('disabled', false).html(originalText);
         }
     });
 });

@@ -107,7 +107,8 @@ body {
                 $namaItemBersih = str_replace('Jam - ', '', $item['nama']);
             @endphp
             <tr>
-                <td class="col-qty">{{ $item['qty'] }}</td>
+                <!-- Nah, di bawah ini ditambahin titik setelah qty -->
+                <td class="col-qty">{{ $item['qty'] }}.</td> 
                 <td class="col-name">{{ $namaItemBersih }}</td>
                 <td class="col-price">{{ number_format($item['subtotal'], 0, ',', '.') }}</td>
             </tr>

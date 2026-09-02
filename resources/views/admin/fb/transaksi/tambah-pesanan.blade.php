@@ -57,6 +57,11 @@
     </form>
 </div>
 
+{{-- Iframe struk disembunyikan tapi tetap "hidup" (bukan display:none)
+     supaya window.print() dari dalam iframe tetap bisa jalan di semua browser.
+     Dibutuhkan oleh triggerPrintStrukRincian() di modal-rincian-fb.blade.php. --}}
+<iframe id="cetak-struk-iframe" style="position:absolute; width:0; height:0; border:0; visibility:hidden;"></iframe>
+
 {{-- PANGGIL FILE MODAL DARI SINI --}}
 @include('admin.bookings.partials.modal-fb')
 @include('admin.bookings.partials.fnb.modal-rincian-fb')
@@ -136,17 +141,36 @@
 
     window.addEventListener('load', function () {
         $(document).ready(function () {
-            
-            // Jembatan khusus dari modal-fb.blade.php
-            window.fnbShowRincianManual = function(cartItems) {
-                
-                // 1. Ambil data dari form input utama
+
+            // Dipanggil oleh modal-rincian-fb.blade.php pas submit (klik
+            // "Cetak Struk") -- gantiin akses langsung ke response.data yang
+            // dulu dipakai, karena submit sekarang terjadi belakangan.
+            window.fnbManualGetCustomerData = function () {
+                return {
+                    nama_pelanggan: $('input[name="nama_pelanggan"]').val(),
+                    no_telp: $('input[name="no_telp"]').val(),
+                    catatan: $('textarea[name="catatan"]').val(),
+                };
+            };
+
+            window.fnbManualResetForm = function () {
+                $('input[name="nama_pelanggan"]').val('');
+                $('input[name="no_telp"]').val('');
+                $('textarea[name="catatan"]').val('');
+            };
+
+            // Jembatan khusus dari modal-fb.blade.php. Sekarang HANYA
+            // menyiapkan tampilan rincian dari data LOKAL (belum submit) --
+            // submit sesungguhnya terjadi di modal-rincian-fb.blade.php pas
+            // klik "Cetak Struk", supaya kasir sempat isi Uang Diterima
+            // dulu sebelum data ini benar-benar dikirim ke server.
+            window.fnbShowRincianManual = function (cartItems) {
+
                 const namaPelanggan = $('input[name="nama_pelanggan"]').val();
                 const noTelp = $('input[name="no_telp"]').val();
-                const catatan = $('textarea[name="catatan"]').val();
                 const metodePembayaran = window.fnbState.metodePembayaran;
 
-                // 2. Validasi agar kasir tidak lupa isi form
+                // Validasi agar kasir tidak lupa isi form
                 if (!namaPelanggan) {
                     Swal.fire('Oops!', 'Nama pelanggan wajib diisi sebelum menyimpan!', 'warning');
                     return;
@@ -156,143 +180,50 @@
                     return;
                 }
 
-                // 3. Susun array keranjang untuk di-lempar ke Controller
-                let itemsToSubmit = [];
-                for (let id in cartItems) {
-                    itemsToSubmit.push({
-                        id_produk: parseInt(id),
-                        jumlah: cartItems[id].qty
-                    });
-                }
+                $('#modalFB').modal('hide');
 
-                // 4. Loading layar
-                Swal.fire({
-                    title: 'Memproses Transaksi...',
-                    text: 'Mohon tunggu sebentar',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
+                setTimeout(function () {
+                    // Isi Modal Detail dari data LOKAL (belum ada dari server)
+                    $('#rincian-kode-sewa').text('Akan digenerate otomatis setelah disimpan');
+                    $('#rincian-nama').text(namaPelanggan);
+                    $('#rincian-no-hp').text(noTelp || '-');
+                    $('#detail-metode-bayar').text(metodePembayaran);
+
+                    // Reset kolom booking (tidak relevan untuk F&B mandiri)
+                    $('#rincian-email, #rincian-ruangan, #rincian-paket, #rincian-waktu-mulai, #rincian-waktu-selesai, #rincian-durasi, #rincian-tipe-hari, #rincian-total-harga').text('-');
+
+                    let itemsHtml = '';
+                    let grandTotal = 0;
+                    for (let id in cartItems) {
+                        let item = cartItems[id];
+                        let subtotal = item.harga * item.qty;
+                        grandTotal += subtotal;
+                        itemsHtml += `
+                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                <span>${item.qty}x ${item.nama}</span>
+                                <span>Rp ${subtotal.toLocaleString('id-ID')}</span>
+                            </div>`;
                     }
-                });
+                    $('#rincian-fnb-items').html(itemsHtml);
+                    $('#rincian-total-fnb').text('Rp ' + grandTotal.toLocaleString('id-ID'));
+                    $('#rincian-grand-total').text('Rp ' + grandTotal.toLocaleString('id-ID'));
 
-                // 5. AJAX Utama
-                $.ajax({
-                    url: "{{ route('admin.fb.transaksi.store') }}", 
-                    type: 'POST',
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        nama_pelanggan: namaPelanggan,
-                        no_telp: noTelp,
-                        catatan: catatan,
-                        metode_pembayaran: metodePembayaran,
-                        items: itemsToSubmit
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.close(); 
-                            
-                            $('#modalFB').modal('hide');
-                            
-                            // Jeda agar animasi mulus
-                            setTimeout(function() {
-                                
-                                // Isi Modal Detail
-                                $('#rincian-kode-sewa').text(response.data.kode_pos);
-                                $('#rincian-nama').text(namaPelanggan);
-                                $('#rincian-no-hp').text(noTelp || '-');
-                                $('#detail-metode-bayar').text(metodePembayaran);
-                                
-                                // Reset kolom booking
-                                $('#rincian-email, #rincian-ruangan, #rincian-paket, #rincian-waktu-mulai, #rincian-waktu-selesai, #rincian-durasi, #rincian-tipe-hari, #rincian-total-harga').text('-');
-                                
-                                let itemsHtml = '';
-                                let grandTotal = 0;
-                                for (let id in cartItems) {
-                                    let item = cartItems[id];
-                                    let subtotal = item.harga * item.qty;
-                                    grandTotal += subtotal;
-                                    itemsHtml += `
-                                        <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
-                                            <span>${item.qty}x ${item.nama}</span>
-                                            <span>Rp ${subtotal.toLocaleString('id-ID')}</span>
-                                        </div>`;
-                                }
-                                $('#rincian-fnb-items').html(itemsHtml);
-                                $('#rincian-total-fnb').text('Rp ' + grandTotal.toLocaleString('id-ID'));
-                                $('#rincian-grand-total').text('Rp ' + grandTotal.toLocaleString('id-ID'));
-                                
-                                $('#rincian-sisa-booking-section').hide();
-                                $('#rincian-fnb-section').show();
-                                
-                                // --- JURUS ANTI-OCTOPUS: Hancurkan Tombol Cetak Lama ---
-                                let oldBtn = document.getElementById('btn-cetak-struk');
-                                if (oldBtn) {
-                                    // Clone tombol untuk memutus urat saraf dari script Booking
-                                    let newBtn = oldBtn.cloneNode(true);
-                                    newBtn.id = 'btn-cetak-struk-fnb'; // Ganti KTP (ID)
-                                    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-                                    
-                                    newBtn.addEventListener('click', function(e) {
-                                        e.preventDefault();
-                                        e.stopPropagation(); // Benteng perlindungan
-                                        cetakStrukLangsung(response.data.pdf_url);
-                                    });
-                                }
-                                // -----------------------------------------------------
+                    $('#rincian-sisa-booking-section').hide();
+                    $('#rincian-fnb-section').show();
 
-                                $('#modalDetailPesanan').modal('show');
-                                
-                                // Bersihkan inputan untuk pembeli berikutnya
-                                $('input[name="nama_pelanggan"]').val('');
-                                $('input[name="no_telp"]').val('');
-                                $('textarea[name="catatan"]').val('');
-                                
-                            }, 400); 
-                        }
-                    },
-                    error: function(xhr) {
-                        let errorMessage = 'Gagal menyimpan pesanan. Silakan coba lagi.';
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            let firstErrorKey = Object.keys(errors)[0];
-                            errorMessage = 'Validasi Ditolak: ' + errors[firstErrorKey][0];
-                        } else {
-                            // 🔹 JURUS MENDETEKSI ERROR ASLI LARAVEL 🔹
-                            errorMessage = xhr.responseJSON && xhr.responseJSON.message 
-                                           ? xhr.responseJSON.message 
-                                           : xhr.responseText;
-                            
-                            // Potong pesan error jika terlalu panjang
-                            if(errorMessage.length > 200) {
-                                errorMessage = errorMessage.substring(0, 200) + '...';
-                            }
-                        }
-                        Swal.fire('Error System!', errorMessage, 'error');
-                    }
-                }); // Penutup $.ajax
+                    // Pastikan tombol cetak dalam keadaan siap-klik (bukan
+                    // "nyangkut" disabled dari percobaan sebelumnya)
+                    $('#btn-cetak-struk').removeClass('d-none')
+                        .prop('disabled', false)
+                        .html('<i class="fas fa-print mr-1"></i> Cetak Struk');
+                    $('#btn-selesai').addClass('d-none');
+
+                    $('#modalDetailPesanan').modal('show');
+
+                }, 400);
             }; // Penutup window.fnbShowRincianManual
 
         }); // Penutup $(document).ready
     }); // Penutup window.addEventListener
-
-
-    // --- FUNGSI CETAK "HANTU" (Tanpa pindah tab) ---
-    function cetakStrukLangsung(url) {
-        let iframe = document.getElementById('frameCetakStruk');
-        if (!iframe) {
-            iframe = document.createElement('iframe'); 
-            iframe.id = 'frameCetakStruk';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe); 
-        }
-
-        iframe.src = url;
-        iframe.onload = function() {
-            setTimeout(function() {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            }, 600);
-        };
-    }
 </script>
 @endpush
