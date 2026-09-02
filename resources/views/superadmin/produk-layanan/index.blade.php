@@ -290,7 +290,8 @@
     }
 
     function addPaketToChart(paketId) {
-        let formData = $('#filter-form form').serialize();
+        let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
+        let formData = form.serialize();
         let colorIndex = serviceChart.data.datasets.length;
 
         $.get(window.location.href, formData + '&add_paket_id=' + paketId + '&color_index=' + colorIndex, function(res) {

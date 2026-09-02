@@ -312,7 +312,8 @@
     }
 
     function addKategoriToChart(kategoriKey) {
-        let formData = $('#filter-form form').serialize();
+        let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
+        let formData = form.serialize();
         let colorIndex = revenueChart.data.datasets.length;
 
         $.get(window.location.href, formData + '&add_kategori_key=' + encodeURIComponent(kategoriKey) + '&color_index=' + colorIndex, function(res) {
