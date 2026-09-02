@@ -375,11 +375,11 @@
 {{-- ═══ VIDEO KESERUAN (DINAMIS DARI DATABASE) ═══ --}}
 <section class="tour-section" style="overflow: hidden; padding: 60px 0;">
     <h2 data-aos="fade-down" class="font-modak text-center" style="color: #472CA1; margin-bottom: 10px; font-size: 2.5rem;">Keseruan Kami</h2>
-    <p class="tour-sub text-center" data-aos="fade-down" data-aos-delay="100" style="color: #f5f5f5; margin-bottom: 40px; padding: 0 15px;">
+    <p class="tour-sub text-center" data-aos="fade-down" data-aos-delay="100" style="color: #472CA1; margin-bottom: 40px; padding: 0 15px;">
         Tonton cuplikan aktivitas seru di Play N Chill
     </p>
 
-    <div class="container-fluid px-4 px-md-5">4
+    <div class="container-fluid px-4 px-md-5">
         <div class="video-slider-wrapper">
             <div class="video-slider-container" id="videoSliderContainer">
                 @forelse($videos as $index => $video)

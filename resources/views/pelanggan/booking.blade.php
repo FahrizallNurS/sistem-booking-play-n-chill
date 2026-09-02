@@ -50,7 +50,7 @@
 <div class="booking-page">
 
     {{-- Judul --}}
-    <h1 class="booking-title">Tentukan Ruangan</h1>
+    <h1 class="booking-title">Booking</h1>
 
     {{-- Tab Filter --}}
     <div class="booking-tabs">
