@@ -21,7 +21,9 @@ class BookingController extends Controller
     {
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
-        $tipe = $request->input('tipe', 'reguler');
+
+        $tipe    = $request->input('tipe', 'reguler');
+        $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
 
         $kategoriMap = [
             'reguler'       => 'REGULAR',
@@ -34,38 +36,58 @@ class BookingController extends Controller
 
         $rooms = MsRuangan::where('kategori', $kategori)
             ->where('is_active', 1)
-            ->get()
-            ->map(function ($room) {
-                $sedangDipakai = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($room) {
-                        $q->where('id_ruangan', $room->id_ruangan);
-                    })
-                    ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
-                    ->where('waktu_mulai', '<=', now())
-                    ->where('waktu_selesai', '>=', now())
-                    ->exists();
+            ->get();
 
-                $room->tersedia = !$sedangDipakai;
-                return $room;
-            });
+        // 3 opsi tanggal cepat: hari ini, besok, lusa — dihitung ulang tiap request
+        $quickDates = collect(range(0, 2))->map(function ($i) {
+            $date = now()->addDays($i);
+            return [
+                'value'   => $date->format('Y-m-d'),
+                'label'   => match ($i) {
+                    0       => 'Hari Ini',
+                    1       => 'Besok',
+                    default => $date->translatedFormat('l'), // nama hari, mis. "Sabtu"
+                },
+                'tanggal_display' => $date->translatedFormat('d M'),
+                'nama_hari'       => $date->translatedFormat('l'),
+            ];
+        });
 
-        return view('pelanggan.booking', compact('rooms', 'tipe'));
+        return view('pelanggan.booking', compact('rooms', 'tipe', 'tanggal', 'quickDates'));
     }
 
     public function paket(Request $request)
     {
-        $roomId = $request->input('room');
-        $tipe   = $request->input('tipe', 'reguler');
+        $roomId  = $request->input('room');
+        $tipe    = $request->input('tipe', 'reguler');
+        $tanggal = $request->input('tanggal');
 
-        $room = MsRuangan::findOrFail($roomId);
+        if (empty($tanggal)) {
+            return redirect()->route('booking')
+                ->with('error', 'Silakan pilih tanggal terlebih dahulu.');
+        }
+
+        $room     = MsRuangan::findOrFail($roomId);
+        $tipeHari = PenetapanHarga::tipeHariFromDate($tanggal);
+
+        $adaPaketSamaSekali = PenetapanHarga::where('id_ruangan', $roomId)
+            ->whereHas('paket', function ($query) {
+                $query->where('is_active', 1);
+            })
+            ->exists();
+
         $penetapanHarga = PenetapanHarga::with('paket.subKategori')
             ->where('id_ruangan', $roomId)
-            ->whereHas('paket', function($query) {
-                $query->where('is_active', 1);  
+            ->where('tipe_hari', $tipeHari)
+            ->whereHas('paket', function ($query) {
+                $query->where('is_active', 1);
             })
             ->get()
             ->groupBy('id_paket');
 
-        return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room', 'penetapanHarga'));
+        return view('pelanggan.booking-paket', compact(
+            'roomId', 'tipe', 'room', 'penetapanHarga', 'tanggal', 'tipeHari', 'adaPaketSamaSekali'
+        ));
     }
 
     public function form(Request $request)
@@ -73,12 +95,17 @@ class BookingController extends Controller
         $roomId  = $request->input('room');
         $tipe    = $request->input('tipe');
         $paketId = $request->input('paket');
-        $tanggal = now()->format('Y-m-d');
-        $room    = MsRuangan::findOrFail($roomId);
-        $paket   = MsPaket::where('id_paket', $paketId)
-        ->where('is_active', 1)  
-        ->firstOrFail();
+        $tanggal = $request->input('tanggal');
 
+        if (empty($tanggal)) {
+            return redirect()->route('booking')
+                ->with('error', 'Silakan pilih tanggal terlebih dahulu.');
+        }
+
+        $room  = MsRuangan::findOrFail($roomId);
+        $paket = MsPaket::where('id_paket', $paketId)
+            ->where('is_active', 1)
+            ->firstOrFail();
 
         $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
             ->where('id_paket', $paketId)
@@ -86,7 +113,9 @@ class BookingController extends Controller
 
         $jamTerpakai = $this->calculateOccupiedSlots($roomId, $tanggal);
 
-        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'penetapanHarga', 'jamTerpakai'));
+        return view('pelanggan.booking-form', compact(
+            'room', 'tipe', 'paket', 'penetapanHarga', 'jamTerpakai', 'tanggal'
+        ));
     }
 
     public function getJamTerpakai(Request $request): JsonResponse

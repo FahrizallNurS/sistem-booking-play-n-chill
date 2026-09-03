@@ -90,15 +90,28 @@
 <div class="paket-hero">
     <h1>Pilih Paket</h1>
     <p>Ruangan: <strong>{{ $room->nama_ruangan }}</strong> | Kategori: <strong>{{ $room->kategori }}</strong></p>
+    <p>Tanggal: <strong>{{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</strong></p>
 </div>
 
 <section class="paket-section section-ps">
     <div class="container">
 
         @if($penetapanHarga->isEmpty())
+        @if(!$adaPaketSamaSekali)
             <div class="alert alert-warning text-center">
                 Belum ada paket tersedia untuk ruangan ini.
             </div>
+        @else
+            <div class="alert alert-warning text-center">
+                <p class="mb-3">
+                    Tidak ada paket yang tersedia untuk tanggal
+                    <strong>{{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</strong> yang Anda pilih.
+                </p>
+                <a href="{{ url('/booking') }}" class="btn-back-ruangan">
+                    Pilih Tanggal & Ruangan Lain
+                </a>
+            </div>
+        @endif
         @else
 
             @php
@@ -158,9 +171,9 @@
                                 </ul>
                             @endif
 
-                            <a href="{{ url('/booking/form?room='.$roomId.'&tipe='.$tipe.'&paket='.$paket->id_paket) }}"
-                               class="btn-pilih-paket">
-                                Pilih Paket
+                            <a href="{{ url('/booking/form?room='.$roomId.'&tipe='.$tipe.'&paket='.$paket->id_paket.'&tanggal='.$tanggal) }}"
+                                class="btn-pilih-paket">
+                                    Pilih Paket
                             </a>
 
                         </div>
@@ -176,11 +189,9 @@
     </div>
 </section>
 
-<div style="background-color: #472CA1; padding: 40px 0; text-align: center;">
-    <a href="{{ url('/booking?tipe='.$tipe) }}" class="btn-back-ruangan">
-        Kembali Pilih Ruangan
-    </a>
-</div>
+<a href="{{ url('/booking?tipe='.$tipe.'&tanggal='.$tanggal) }}" class="btn-back-ruangan">
+    Kembali Pilih Ruangan
+</a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

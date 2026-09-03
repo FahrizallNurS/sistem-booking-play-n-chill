@@ -80,8 +80,11 @@ Route::get('/home', function () {
 
 })->name('pelanggan.home');
 
-Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 Route::get('/booking', [BookingController::class, 'index'])->name('booking');
+Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
+
+//Route untuk menampilkan halaman "Tentang Kami"
+Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
 
 // Route Galeri
 Route::get('/galeri', [GalleryController::class, 'index'])->name('galeri');

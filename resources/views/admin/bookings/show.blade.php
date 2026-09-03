@@ -455,7 +455,7 @@
                     <h5 class="modal-title"><i class="fas fa-print mr-1"></i> Cetak Struk</h5>
                     <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
                 </div>
-                <div class="modal-body">
+                    <div class="modal-body" data-grand-total="{{ (int) ($booking->total_harga - ($booking->jumlah_dp ?? 0)) }}">
                     <p class="mb-3">
                         Booking: <strong>{{ $booking->kode_sewa }}</strong><br>
                         <small class="text-muted">
@@ -464,7 +464,7 @@
                             (mis. DP online lalu dilunasi tunai di kasir).
                         </small>
                     </p>
-                    <div class="form-group mb-0">
+                    <div class="form-group mb-3">
                         <label class="font-weight-bold text-muted small mb-2 d-block">Metode Pembayaran</label>
                         <div class="d-flex" style="gap: 10px;">
                             <button type="button" class="btn btn-outline-secondary flex-fill btn-metode-bayar-struk" data-value="TUNAI">
@@ -475,6 +475,22 @@
                             </button>
                         </div>
                         <input type="hidden" id="inputMetodeBayarStruk" value="">
+                    </div>
+
+                    {{-- Muncul cuma kalau TUNAI dipilih --}}
+                    <div id="struk-uang-diterima-section" class="form-group mb-0" style="display: none;">
+                        <label class="font-weight-bold text-muted small mb-1 d-block">Uang Diterima</label>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Rp</span>
+                            </div>
+                            <input type="number" min="0" step="1" inputmode="numeric"
+                                class="form-control" id="inputUangDiterimaStruk" placeholder="Nominal uang tunai">
+                        </div>
+                        <div class="d-flex justify-content-between" style="font-size: 13px;">
+                            <span class="font-weight-bold text-muted">Kembalian</span>
+                            <span class="font-weight-bold" id="kembalianStrukPreview" style="color: #28a745;">Rp 0</span>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -569,18 +585,49 @@
         }
 
         // ================= Cetak Struk (pilih metode bayar) =================
+        function grandTotalStruk() {
+            return parseInt($('#modalMetodeBayarStruk .modal-body').data('grand-total'), 10) || 0;
+        }
+
+        function updateStatusTombolCetakStruk() {
+            const metode = $('#inputMetodeBayarStruk').val();
+
+            if (!metode) {
+                $('#btn-konfirmasi-cetak-struk').prop('disabled', true);
+                return;
+            }
+
+            if (metode !== 'TUNAI') {
+                $('#btn-konfirmasi-cetak-struk').prop('disabled', false);
+                return;
+            }
+
+            const grandTotal = grandTotalStruk();
+            const uangDiterima = parseInt($('#inputUangDiterimaStruk').val(), 10) || 0;
+            const kembalian = uangDiterima - grandTotal;
+
+            $('#kembalianStrukPreview').text('Rp ' + (kembalian > 0 ? kembalian : 0).toLocaleString('id-ID'));
+            $('#btn-konfirmasi-cetak-struk').prop('disabled', uangDiterima < grandTotal);
+        }
+
         $(document).on('click', '.btn-metode-bayar-struk', function () {
             $('.btn-metode-bayar-struk').removeClass('active-metode');
             $(this).addClass('active-metode');
             $('#inputMetodeBayarStruk').val($(this).data('value'));
-            $('#btn-konfirmasi-cetak-struk').prop('disabled', false);
+            $('#struk-uang-diterima-section').toggle($(this).data('value') === 'TUNAI');
+            updateStatusTombolCetakStruk();
         });
+
+        $(document).on('input', '#inputUangDiterimaStruk', updateStatusTombolCetakStruk);
 
         // Reset pilihan tiap modal dibuka ulang, biar gak kebawa dari
         // percobaan sebelumnya (mis. abis klik Batal).
         $('#modalMetodeBayarStruk').on('show.bs.modal', function () {
             $('.btn-metode-bayar-struk').removeClass('active-metode');
             $('#inputMetodeBayarStruk').val('');
+            $('#inputUangDiterimaStruk').val('');
+            $('#kembalianStrukPreview').text('Rp 0');
+            $('#struk-uang-diterima-section').hide();
             $('#btn-konfirmasi-cetak-struk').prop('disabled', true)
                 .html('<i class="fas fa-print mr-1"></i> Cetak Sekarang');
         });
@@ -629,12 +676,24 @@
             });
         }
 
-        $('#btn-konfirmasi-cetak-struk').on('click', function () {
+               $('#btn-konfirmasi-cetak-struk').on('click', function () {
         const metodePembayaran = $('#inputMetodeBayarStruk').val();
         if (!metodePembayaran) return;
 
+        if (metodePembayaran === 'TUNAI') {
+            const grandTotal = grandTotalStruk();
+            const uangDiterima = parseInt($('#inputUangDiterimaStruk').val(), 10) || 0;
+            if (uangDiterima < grandTotal) {
+                alert('Uang diterima kurang dari total tagihan.');
+                return;
+            }
+        }
+
         const btn = $(this);
         const iframe = document.getElementById('cetak-struk-iframe');
+        const uangDiterima = metodePembayaran === 'TUNAI'
+            ? (parseInt($('#inputUangDiterimaStruk').val(), 10) || 0)
+            : null;
 
         btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
 
@@ -644,6 +703,7 @@
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             data: {
                 metode_pembayaran: metodePembayaran,
+                uang_diterima: uangDiterima,
                 items: [],
             },
             success: function (res) {

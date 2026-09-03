@@ -12,6 +12,11 @@
     min-height: 100vh;
     background-color: transparent;
     padding: 48px 20px 64px;
+
+    /* Aksen lime untuk date-picker & kategori tab.
+       Didefinisikan lokal di sini (fallback) supaya tidak bergantung
+       pada variabel global yang mungkin belum ada di style.css. */
+    --lime: #C6FF3D;
 }
 
 /* ────────────────────────
@@ -26,34 +31,170 @@
 }
 
 /* ────────────────────────
-   FILTER TAB (Reguler / VIP / VVIP)
+   BOOKING CONTROL CARD (Tanggal + Kategori)
 ──────────────────────── */
-.booking-tabs {
+.booking-control-card {
+    background: rgba(255, 255, 255, .08);
+    border: 2px solid rgba(255, 255, 255, .12);
+    border-radius: 20px;
+    padding: 28px 32px;
+    max-width: 960px;
+    margin: 0 auto 32px;
+}
+
+.control-label {
+    font-family: 'Nunito', sans-serif;
+    color: rgba(255, 255, 255, .6);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* Jadwal cepat */
+.date-row {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 25px;
-    margin-bottom: 48px;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
 }
 
-.tab-link {
+.date-quick-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.date-quick-btn {
+    background: rgba(255, 255, 255, .08);
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 10px 18px;
+    min-width: 108px;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .2s;
+}
+
+.date-quick-btn:hover {
+    background: rgba(255, 255, 255, .16);
+    transform: translateY(-2px);
+}
+
+.date-quick-btn.active {
+    background: var(--lime);
+    border-color: var(--lime);
+    color: var(--purple-dark);
+}
+
+.date-quick-label {
+    display: block;
+    font-family: 'Nunito', sans-serif;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    opacity: .75;
+}
+
+.date-quick-btn.active .date-quick-label {
+    opacity: .85;
+}
+
+.date-quick-date {
+    display: block;
     font-family: 'Fredoka One', cursive;
-    color: var(--yellow);
+    font-size: 1.15rem;
+    margin: 2px 0;
+}
+
+.date-quick-day {
+    display: block;
+    font-family: 'Nunito', sans-serif;
+    font-size: .75rem;
+    opacity: .7;
+}
+
+/* Tanggal custom */
+.date-custom-wrap {
+    flex: 1;
+    min-width: 220px;
+}
+
+.date-custom-input {
+    width: 100%;
+    background: rgba(255, 255, 255, .08);
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 12px 16px;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+}
+
+.date-custom-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, .3);
+}
+
+.date-custom-input.active {
+    border-color: var(--lime);
+}
+
+.date-custom-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+/* Kategori row (di dalam control card, bawah date-row) */
+.kategori-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+}
+
+.kategori-tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.kategori-tab {
+    font-family: 'Fredoka One', cursive;
+    padding: 10px 24px;
+    border-radius: 999px;
+    font-size: .95rem;
     text-decoration: none;
-    font-size: 1.3rem;
-    transition: 0.3s;
-    padding: 5px 15px;
-    border-radius: 12px;
+    transition: opacity .2s, transform .2s;
 }
 
-.tab-link:hover {
-    background: rgba(45, 27, 107, .6);
-    color: var(--yellow);
+.kategori-tab:hover {
+    transform: translateY(-2px);
 }
 
-.tab-link.active {
+.kategori-tab.tab-reguler {
+    background: var(--lime);
+    color: var(--purple-dark);
+}
+
+.kategori-tab.tab-private-room {
     background: #2D1B6B;
     color: var(--yellow);
+    border: 1px solid rgba(255, 210, 76, .4);
+}
+
+.kategori-tab:not(.active) {
+    opacity: .45;
+}
+
+.kategori-tab.active {
+    opacity: 1;
 }
 
 /* ────────────────────────
@@ -99,21 +240,6 @@
     transform: translateY(-4px);
     background: rgba(255, 255, 255, .18);
 }
-
-/* Status badge (Tersedia / Penuh) */
-.room-status {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    font-size: .72rem;
-    font-weight: 800;
-    padding: 3px 10px;
-    border-radius: 50px;
-    color: #fff;
-}
-
-.room-status.tersedia { background: #22c55e; }
-.room-status.penuh    { background: #ef4444; }
 
 /* Sofa icon */
 .room-icon {
@@ -182,8 +308,11 @@
 @media (max-width: 768px) {
     .room-grid-booking { grid-template-columns: repeat(2, 1fr); }
     .room-container    { padding: 28px 16px; }
-    .booking-tabs      { gap: 14px; }
-    .tab-link          { font-size: 1.1rem; padding: 6px 18px; }
+
+    .booking-control-card { padding: 22px 20px; }
+    .date-row              { gap: 16px; }
+    .date-quick-btn        { min-width: 92px; padding: 8px 14px; }
+    .kategori-row          { justify-content: center; text-align: center; }
 }
 
 @media (max-width: 480px) {
@@ -194,14 +323,14 @@
     }
 
     /* 🌟 2. PAKSA CARD BERJEJER 2 KE SAMPING (KOTAK KECIL) 🌟 */
-    .room-grid-booking { 
+    .room-grid-booking {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important; /* Kunci jadi 2 kolom */
         gap: 10px !important; /* Jarak antar card diperkecil agar muat */
-        max-width: 100% !important; 
-        margin: 0 !important; 
+        max-width: 100% !important;
+        margin: 0 !important;
     }
-    
+
     .room-container {
         padding: 20px 10px !important; /* Kurangi padding border kuning di HP */
     }
@@ -218,27 +347,20 @@
         border-radius: 8px !important;
     }
 
-    .room-status {
-        font-size: 0.6rem !important;
-        padding: 2px 6px !important;
-        top: 6px !important;
-        right: 6px !important;
-    }
-    
     .room-name {
         font-size: 0.85rem !important;
         margin-bottom: 2px !important;
         /* Potong teks jika nama ruangan terlalu panjang agar tidak merusak layout */
-        white-space: nowrap; 
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    
+
     .room-device {
         font-size: 0.65rem !important;
         margin-bottom: 8px !important;
     }
-    
+
     .btn-booking {
         font-size: 0.75rem !important;
         padding: 6px !important;
@@ -246,22 +368,58 @@
     }
 
     /* 🌟 4. PENYESUAIAN TEKS JUDUL 🌟 */
-    .booking-title { 
-        font-size: 1.8rem !important; 
+    .booking-title {
+        font-size: 1.8rem !important;
     }
-    
+
     .room-container-title {
         font-size: 1.1rem !important;
         text-align: center;
         margin-bottom: 20px !important;
     }
-    
-    .booking-tabs {
+
+    /* 🌟 5. PENYESUAIAN CONTROL CARD DI HP 🌟 */
+    .booking-control-card {
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
+    }
+
+    .date-row {
+        flex-direction: column !important;
+        gap: 14px !important;
+    }
+
+    .date-quick-group {
+        width: 100% !important;
+        justify-content: space-between !important;
         gap: 8px !important;
     }
-    .tab-link {
-        font-size: 0.9rem !important;
-        padding: 6px 12px !important;
+
+    .date-quick-btn {
+        min-width: 0 !important;
+        flex: 1 1 0 !important;
+        padding: 8px 6px !important;
+    }
+
+    .date-quick-date {
+        font-size: 0.95rem !important;
+    }
+
+    .kategori-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    .kategori-tabs {
+        width: 100% !important;
+    }
+
+    .kategori-tab {
+        flex: 1;
+        text-align: center;
+        padding: 8px 14px !important;
+        font-size: 0.85rem !important;
     }
 }
 
