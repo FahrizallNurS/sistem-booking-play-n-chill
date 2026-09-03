@@ -208,7 +208,6 @@
             <span>Play</span> <span style="color: #ffd700;">N Chill</span>
         </div>
 
-        <!-- Timer Waktu Kadaluwarsa -->
          @php
             // Hitung sisa waktu dari created_at + 15 menit vs waktu sekarang
             $waktuKadaluarsa = \Carbon\Carbon::parse($pos->created_at)->addMinutes(15);

@@ -103,6 +103,50 @@ class BookingController extends Controller
         return response()->json(['options' => $options]);
     }
 
+    // ============================================================
+    // AJAX: Cek Ketersediaan Jadwal (Pre-Check Validasi Awal)
+    // ============================================================
+    public function cekJadwal(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ruangan'     => 'required|exists:ms_ruangan,id_ruangan',
+            'waktu_mulai' => 'required|date',
+            'durasi_jam'  => 'required|numeric|min:1'
+        ]);
+
+        $ruanganId  = $request->ruangan;
+        $waktuMulai = \Carbon\Carbon::parse($request->waktu_mulai);
+        
+        // PERBAIKAN: Kita paksa durasi_jam menjadi integer (int)
+        $durasiJam = (int) $request->durasi_jam;
+        $waktuSelesai = $waktuMulai->copy()->addHours($durasiJam);
+
+        // Cek apakah ada jadwal yang tumpang tindih
+        $isBentrok = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ruanganId) {
+                $q->where('id_ruangan', $ruanganId);
+            })
+            ->whereNotIn('status_sewa', ['selesai', 'dibatalkan']) 
+            ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
+                // Logika akurat: Booking lama mulai SEBELUM booking baru selesai 
+                // DAN booking lama selesai SESUDAH booking baru mulai
+                $query->where('waktu_mulai', '<', $waktuSelesai)
+                      ->where('waktu_selesai', '>', $waktuMulai);
+            })
+            ->exists();
+
+        if ($isBentrok) {
+            return response()->json([
+                'tersedia' => false,
+                'pesan'    => 'Jadwal Bentrok! Ruangan ini sudah dipakai pada jam tersebut. Silakan pilih waktu lain Ganteng.'
+            ]);
+        }
+
+        return response()->json([
+            'tersedia' => true,
+            'pesan'    => 'Ruangan tersedia.'
+        ]);
+    }
+
     public function storeManual(Request $request): JsonResponse
     {
         // 1. Definisikan aturan validasi HANYA untuk data yang dikirim dari form

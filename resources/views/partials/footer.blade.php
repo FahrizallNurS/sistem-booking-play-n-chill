@@ -117,7 +117,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="f-brand-container">
-                    <img src="{{ asset('logo/PNCLOGO.jpg') }}" alt="Logo Play N Chill" class="f-logo-round">                   
+                    <img src="{{ asset('img/Logo-PNC01.png') }}" alt="Logo Play N Chill" class="f-logo-round">                   
                     <div>
                         <div class="f-brand-title">Play N Chill</div>
                         <p class="f-tagline">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
@@ -148,7 +148,7 @@
                 <ul class="f-list">
                     <li>
                         <span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span>
-                        <span>+62 857-3532-9227</span>
+                        <span>+62 858-1960-0024</span>
                     </li>
                     <li>
                         <span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span>
@@ -161,18 +161,18 @@
                 </ul>
             </div>
 
-            <!-- BARIS 3 / Kolom 3: Ikuti Kami (Kanan) -->
+            <!-- Kode untuk Social Media -->
             <div class="col-5 col-md-4 ps-1">
                 <div class="f-head">Ikuti Kami</div>
                 <div class="d-flex flex-column">
-                    <a class="soc-btn-box" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" target="_blank">
-                        <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
+                    <a class="soc-btn-box" href="https://www.instagram.com/playnchill.id" target="_blank">
+                        <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> Instagram
                     </a>
-                    <a class="soc-btn-box" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" target="_blank">
-                        <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
+                    <a class="soc-btn-box" href="https://www.tiktok.com/@playnchill.id" target="_blank">
+                        <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> Tiktok
                     </a>
-                    <a class="soc-btn-box" href="https://share.google/fMbFjkoIuMs0P7Mfh" target="_blank">
-                        <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
+                    <a class="soc-btn-box" href="https://www.threads.com/@playnchill.id" target="_blank">
+                        <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Threads
                     </a>
                 </div>
             </div>

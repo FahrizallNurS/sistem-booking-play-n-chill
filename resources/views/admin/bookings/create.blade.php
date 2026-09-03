@@ -159,11 +159,12 @@ $(document).ready(function () {
     const penetapanHargaUrl = "{{ route('admin.booking.penetapan-harga') }}";
     const getPaketUrl = "{{ route('admin.booking.paket-by-ruangan') }}";
     const storeUrl = "{{ route('admin.booking.manual.store') }}";
+    const cekJadwalUrl = "{{ route('admin.booking.cek-jadwal') }}";
     const csrfToken = "{{ csrf_token() }}";
 
-    let selectedPricing = null; // { id_penetapan_harga, durasi_jam, tipe_hari, harga }
+    let selectedPricing = null; 
+    let isJadwalAman = false;
 
-    // Label ramah-pengguna untuk tipe_hari (samakan dengan mapping di struk)
     const tipeHariLabels = {
         'harian':      'Senin - Kamis',
         'akhir_pekan': 'Jumat - Minggu',
@@ -189,6 +190,7 @@ $(document).ready(function () {
         selectedPricing = null;
         $('#id_penetapan_harga').val('');
         $('#waktu_selesai_preview').val('-');
+        isJadwalAman = false; 
 
         const container = $('#durasi-options');
         container.empty();
@@ -237,19 +239,20 @@ $(document).ready(function () {
         const selectPaket = $('#select_paket');
         const containerDurasi = $('#durasi-options');
 
-        // Reset dropdown paket dan opsi durasi
         selectPaket.empty().append('<option value="">Pilih Paket</option>');
         containerDurasi.html('<small class="text-muted">Pilih ruangan &amp; paket terlebih dahulu.</small>');
         selectedPricing = null;
         $('#id_penetapan_harga').val('');
         $('#waktu_selesai_preview').val('-');
+        $('#jadwal-feedback').remove();
+        $('#waktu_mulai').removeClass('is-valid is-invalid');
+        isJadwalAman = false;
 
         if (!idRuangan) {
             selectPaket.prop('disabled', false);
             return;
         }
 
-        // Disable sementara saat loading
         selectPaket.prop('disabled', true).empty().append('<option value="">Memuat paket...</option>');
 
         $.getJSON(getPaketUrl, { ruangan: idRuangan })
@@ -272,7 +275,6 @@ $(document).ready(function () {
             });
     });
 
-    // ================= Fetch kombinasi durasi+tipe_hari+harga saat Paket berubah =================
     $('#select_paket').on('change', muatOpsiDurasi);
 
     // ================= Pilih salah satu opsi durasi =================
@@ -289,11 +291,12 @@ $(document).ready(function () {
 
         $('#id_penetapan_harga').val(selectedPricing.id_penetapan_harga);
         updateWaktuSelesaiPreview();
+        checkJadwalRealtime(); 
     });
 
-    // ================= Preview Waktu Selesai (otomatis dari Waktu Mulai + Durasi) =================
+    // ================= Preview Waktu Selesai =================
     function updateWaktuSelesaiPreview() {
-        const waktuMulai = $('#waktu_mulai').val(); // format: YYYY-MM-DDTHH:mm
+        const waktuMulai = $('#waktu_mulai').val(); 
         if (!waktuMulai || !selectedPricing) {
             $('#waktu_selesai_preview').val('-');
             return;
@@ -309,7 +312,54 @@ $(document).ready(function () {
         $('#waktu_selesai_preview').val(formatted);
     }
 
-    $('#waktu_mulai').on('change', updateWaktuSelesaiPreview);
+    $('#waktu_mulai').on('change', function() {
+        updateWaktuSelesaiPreview();
+        checkJadwalRealtime(); 
+    });
+
+    // ================= FUNGSI CEK JADWAL REAL-TIME =================
+    function checkJadwalRealtime() {
+        const idRuangan = $('#select_ruangan').val();
+        const waktuMulai = $('#waktu_mulai').val();
+        const durasi = selectedPricing ? selectedPricing.durasi_jam : null;
+
+        $('#jadwal-feedback').remove();
+        
+        if (!idRuangan || !waktuMulai || !durasi) {
+            isJadwalAman = false;
+            $('#waktu_mulai').removeClass('is-valid is-invalid');
+            return;
+        }
+
+        const inputContainer = $('#waktu_mulai').parent();
+        const feedbackContainer = $('<div id="jadwal-feedback" class="mt-2" style="font-size: 0.85rem; font-weight: 600;"></div>');
+        inputContainer.append(feedbackContainer);
+        
+        feedbackContainer.html('<span class="text-info"><i class="fas fa-spinner fa-spin mr-1"></i> Mengecek ketersediaan jadwal...</span>');
+        isJadwalAman = false; 
+
+        $.ajax({
+            url: cekJadwalUrl,
+            type: 'GET',
+            data: { ruangan: idRuangan, waktu_mulai: waktuMulai, durasi_jam: durasi },
+            success: function (res) {
+                if (res.tersedia === false) {
+                    feedbackContainer.html('<span class="text-danger"><i class="fas fa-times-circle mr-1"></i> ' + res.pesan + '</span>');
+                    $('#waktu_mulai').addClass('is-invalid').removeClass('is-valid');
+                    isJadwalAman = false;
+                } else {
+                    feedbackContainer.html('<span class="text-success"><i class="fas fa-check-circle mr-1"></i> Jadwal tersedia dan aman digunakan.</span>');
+                    $('#waktu_mulai').addClass('is-valid').removeClass('is-invalid');
+                    isJadwalAman = true;
+                }
+            },
+            error: function () {
+                feedbackContainer.html('<span class="text-danger"><i class="fas fa-exclamation-triangle mr-1"></i> Gagal terhubung ke server.</span>');
+                $('#waktu_mulai').removeClass('is-valid is-invalid');
+                isJadwalAman = false;
+            }
+        });
+    }
 
     // ================= Alert helper =================
     function tampilkanAlert(type, message) {
@@ -346,6 +396,10 @@ $(document).ready(function () {
             tampilkanAlert('danger', 'Silakan isi waktu mulai.');
             return false;
         }
+        if (!isJadwalAman) {
+            tampilkanAlert('danger', 'Jadwal yang dipilih bentrok. Silakan ganti Waktu Mulai dengan jam yang tersedia.');
+            return false;
+        }
         if (!$('#metode_pembayaran').val()) {
             tampilkanAlert('danger', 'Silakan pilih metode pembayaran (Tunai / QRIS).');
             return false;
@@ -353,7 +407,7 @@ $(document).ready(function () {
         return true;
     }
 
-    // ================= Isi preview modal rincian dari data form saat ini =================
+    // ================= Isi preview modal rincian =================
     function isiModalRincian() {
         const namaRuangan = $('#select_ruangan option:selected').text();
         const namaPaket   = $('#select_paket option:selected').text();
@@ -381,13 +435,6 @@ $(document).ready(function () {
         $('#detail-metode-bayar').text($('#metode_pembayaran').val());
     }
 
-    // ================= Status "sudah tersimpan" untuk modal rincian =================
-    // Admin bisa buat beberapa booking berturut-turut di halaman ini tanpa
-    // refresh (lihat resetForm()). Flag ini yang membedakan klik pertama
-    // pada "Cetak Struk" (submit booking baru) dari klik berikutnya pada
-    // tombol yang sama setelah labelnya berubah jadi "Cetak Ulang" (print
-    // ulang saja, jangan submit dobel). Direset tiap kali admin mulai alur
-    // booking baru lagi.
     let bookingSudahTersimpan = false;
 
     function resetRincianModalState() {
@@ -396,23 +443,16 @@ $(document).ready(function () {
         $('#btn-cetak-struk').html('<i class="fas fa-print mr-1"></i> Cetak Struk').prop('disabled', false);
     }
 
+    // ================= Tombol Buat Booking =================
     $('#btnBookingTanpaFnb').on('click', function () {
-        if (!validasiForm()) return;
+        if (!validasiForm()) return; 
 
-        // Pastikan tidak ada sisa item F&B / status "sudah tersimpan" dari
-        // booking sebelumnya di halaman yang sama.
         window.fnbState = null;
         resetRincianModalState();
-
         isiModalRincian();
         $('#modalDetailPesanan').modal('show');
     });
 
-    // ================= Snapshot data form, dipakai modal F&B saat dibuka dari halaman ini =================
-    // modal-fb.blade.php dipakai bersama index.blade.php (tambah F&B ke booking
-    // yang SUDAH ada di database, datanya dari data-* attribute baris tabel).
-    // Di halaman ini booking belum tersimpan, jadi kita sediakan data ringkasan
-    // dari form yang sedang diisi lewat fungsi global ini.
     window.fnbGetFormSnapshot = function () {
         const waktuMulaiRaw = $('#waktu_mulai').val();
         let waktuMulaiFormatted = '-';
@@ -435,25 +475,18 @@ $(document).ready(function () {
             durasi: selectedPricing ? selectedPricing.durasi_jam : '-',
             tipeHari: selectedPricing ? labelTipeHari(selectedPricing.tipe_hari) : '-',
             totalHarga: selectedPricing ? (parseInt(selectedPricing.harga, 10) || 0) : 0,
-            sisaBayar: 0, // booking manual selalu full payment, tidak ada sisa
+            sisaBayar: 0, 
             metodeBayar: $('#metode_pembayaran').val() || '-',
         };
     };
 
-    // ================= Tombol "Tambahkan pesanan F&B" =================
     $('#btnTambahFnb').on('click', function () {
         if (!validasiForm()) return;
         resetRincianModalState();
-
-        // Tandai eksplisit: modal F&B ini dibuka dari form "Tambah Booking",
-        // supaya modal-fb.blade.php tahu harus mewarisi metode bayar dari
-        // form ini dan menyembunyikan pilihan metode bayar manual.
         window.fnbContext = 'booking-form';
-
         $('#modalFB').modal('show');
     });
 
-    // ================= Fungsi trigger print dari iframe =================
     function triggerPrintStruk() {
         const iframe = document.getElementById('cetak-struk-iframe');
         if (iframe && iframe.contentWindow) {
@@ -462,15 +495,13 @@ $(document).ready(function () {
         }
     }
 
-        window.fnbSubmitOverride = function (btnCetak, fnbState) {
-
+    window.fnbSubmitOverride = function (btnCetak, fnbState) {
         if (bookingSudahTersimpan) {
             triggerPrintStruk();
             return;
         }
 
-        if (typeof window.validasiRincianPembayaranSiap === 'function'
-            && !window.validasiRincianPembayaranSiap()) {
+        if (typeof window.validasiRincianPembayaranSiap === 'function' && !window.validasiRincianPembayaranSiap()) {
             return;
         }
 
@@ -488,9 +519,7 @@ $(document).ready(function () {
             id_penetapan_harga: $('#id_penetapan_harga').val(),
             waktu_mulai: $('#waktu_mulai').val(),
             metode_pembayaran: $('#metode_pembayaran').val(),
-            uang_diterima: (typeof window.getRincianUangDiterima === 'function')
-                ? window.getRincianUangDiterima()
-                : null,
+            uang_diterima: (typeof window.getRincianUangDiterima === 'function') ? window.getRincianUangDiterima() : null,
             catatan: $('#catatan').val(),
             items: items,
         };
@@ -499,26 +528,16 @@ $(document).ready(function () {
             url: storeUrl,
             type: 'POST',
             data: payload,
-
             success: function (response) {
                 tampilkanAlert('success', 'Pesanan berhasil dibuat!');
-
                 const pdfUrl = response.data.pdf_url;
                 const iframe = document.getElementById('cetak-struk-iframe');
 
-                // Kembalikan tombol ke keadaan siap-klik (sebelumnya tombol
-                // "nyangkut" di state disabled/"Menyimpan..." karena tidak
-                // pernah di-reset di sini)
                 btnCetak.html('<i class="fas fa-print mr-1"></i> Cetak Struk').prop('disabled', false);
 
                 if (pdfUrl) {
-                    // Begitu PDF selesai dimuat di iframe, langsung trigger print
                     iframe.onload = function () {
                         triggerPrintStruk();
-
-                        // Langsung tampilkan "Selesai" begitu dialog print kebuka,
-                        // gak gantung ke onafterprint yang perilakunya gak konsisten
-                        // antar browser (bisa fire walau user klik Cancel).
                         $('#btn-selesai').removeClass('d-none');
                         $('#btn-cetak-struk').html('<i class="fas fa-print mr-1"></i> Cetak Ulang');
                     };
@@ -526,13 +545,9 @@ $(document).ready(function () {
                 }
 
                 bookingSudahTersimpan = true;
-
-                // Booking sudah tersimpan — bersihkan form & state F&B supaya
-                // siap dipakai untuk booking berikutnya begitu modal ditutup.
                 resetForm();
                 window.fnbState = null;
             },
-
             error: function (xhr) {
                 btnCetak.html(originalText).prop('disabled', false);
 
@@ -560,6 +575,9 @@ $(document).ready(function () {
         $('.btn-payment-option').removeClass('active-payment');
         $('#metode_pembayaran').val(''); $('#catatan').val('');
         selectedPricing = null;
+        isJadwalAman = false;
+        $('#jadwal-feedback').remove();
+        $('#waktu_mulai').removeClass('is-valid is-invalid');
     }
 
 });

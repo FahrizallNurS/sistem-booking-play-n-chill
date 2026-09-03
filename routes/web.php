@@ -310,6 +310,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('booking.penetapan-harga');
         Route::post('/booking/manual', [AdminBookingController::class, 'storeManual'])
             ->name('booking.manual.store');
+        Route::get('/booking/cek-jadwal', [AdminBookingController::class, 'cekJadwal'])->name('booking.cek-jadwal');
 
         Route::get('/booking/{id}', [AdminBookingController::class, 'show'])->name('booking.show');
         Route::delete('/booking/{id}', [AdminBookingController::class, 'destroy'])->name('booking.destroy');
