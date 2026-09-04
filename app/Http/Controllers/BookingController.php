@@ -46,7 +46,7 @@ class BookingController extends Controller
                 'label'   => match ($i) {
                     0       => 'Hari Ini',
                     1       => 'Besok',
-                    default => $date->translatedFormat('l'), // nama hari, mis. "Sabtu"
+                    default => $date->translatedFormat('l'),
                 },
                 'tanggal_display' => $date->translatedFormat('d M'),
                 'nama_hari'       => $date->translatedFormat('l'),
@@ -70,13 +70,19 @@ class BookingController extends Controller
         $room     = MsRuangan::findOrFail($roomId);
         $tipeHari = PenetapanHarga::tipeHariFromDate($tanggal);
 
-        $adaPaketSamaSekali = PenetapanHarga::where('id_ruangan', $roomId)
+        // FIX KRITIS: pakai currentPrices() supaya penetapan harga LAMA (histori,
+        // sisa dari admin update harga) tidak ikut ditampilkan ke pelanggan.
+        // Tanpa ini, paket yang sama bisa muncul dobel dengan harga berbeda
+        // setiap kali admin mengubah harga suatu paket.
+        $adaPaketSamaSekali = PenetapanHarga::currentPrices()
+            ->where('id_ruangan', $roomId)
             ->whereHas('paket', function ($query) {
                 $query->where('is_active', 1);
             })
             ->exists();
 
-        $penetapanHarga = PenetapanHarga::with('paket.subKategori')
+        $penetapanHarga = PenetapanHarga::currentPrices()
+            ->with('paket.subKategori')
             ->where('id_ruangan', $roomId)
             ->where('tipe_hari', $tipeHari)
             ->whereHas('paket', function ($query) {
@@ -107,7 +113,11 @@ class BookingController extends Controller
             ->where('is_active', 1)
             ->firstOrFail();
 
-        $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
+        // FIX KRITIS: sama seperti di atas — currentPrices() wajib ada,
+        // kalau tidak, tombol durasi yang sama bisa muncul dobel dengan
+        // harga lama vs harga baru setelah admin update harga.
+        $penetapanHarga = PenetapanHarga::currentPrices()
+            ->where('id_ruangan', $roomId)
             ->where('id_paket', $paketId)
             ->get();
 
@@ -339,7 +349,6 @@ class BookingController extends Controller
     // --- FUNGSI BARU UNTUK SKENARIO HANYA PESAN F&B (MANDIRI) ---
     public function checkoutFb(Request $request)
     {
-        // 🔹 TAMBAHKAN PENGECEKAN LOGIN DI SINI 🔹
         if (!Auth::check()) {
             return redirect('/login')->with('error', 'Silakan login terlebih dahulu untuk melanjutkan pesanan.');
         }
@@ -357,7 +366,7 @@ class BookingController extends Controller
 
         $pos = TrPos::create([
             'id_transaksi'   => null,
-            'id_pengguna'    => Auth::user()->id_pengguna, // Karena sudah dicek di atas, ini pasti aman
+            'id_pengguna'    => Auth::user()->id_pengguna,
             'total_pos'      => $totalFb,
             'status_pesanan' => 'Menunggu',
             'sumber_pesanan' => 'Online',
@@ -374,7 +383,6 @@ class BookingController extends Controller
                 'subtotal'     => $item['price'] * $item['qty'],
             ]);
 
-            // PENGURANGAN STOK OTOMATIS (yang baru saja kita tambahkan sebelumnya)
             $produk = \App\Models\MsProduk::find($item['id']);
             if ($produk) {
                 $produk->decrement('stock', $item['qty']);

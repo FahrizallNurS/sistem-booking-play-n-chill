@@ -239,36 +239,6 @@ body {
     .hero-slide-img { height: 300px; }
 }
 
-/* =========================================
-   PENGATURAN LOGO & TEKS FOOTER
-   ========================================= */
-
-/* 1 & 2. Penataan Logo Bundar di Samping Teks Tagline */
-.f-brand-container {
-    display: flex;
-    align-items: center;    /* Menjaga logo & teks sejajar tengah secara vertikal */
-    gap: 15px;              /* Jarak horizontal konstan antara logo dan teks */
-    width: 100%;
-}
-
-.f-logo-round {
-    width: 60px;            /* Ukuran diameter logo bundar */
-    height: 60px;           /* Harus sama dengan width agar bulat sempurna */
-    border-radius: 50%;     /* Memotong gambar menjadi lingkaran */
-    object-fit: cover;      /* Menjaga gambar di dalam lingkaran tetap proporsional */
-    flex-shrink: 0;         /* Mencegah logo terdistorsi atau mengecil saat ruang menyempit */
-    border: 2px solid rgba(255, 255, 255, 0.2); /* Frame tipis agar logo terlihat bersih */
-}
-
-/* Reset spesifik untuk teks tagline di dalam container logo */
-.f-brand-container .f-tagline {
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.65);
-    line-height: 1.5;
-    margin-top: 0 !important;   /* Menghapus margin atas bawaan agar sejajar dengan center logo */
-    max-width: 100% !important; /* Memaksimalkan pemanfaatan ruang sisa di sebelah logo */
-}
-
 /* 3. Sinkronisasi Jarak (Gap) Antara Header (.f-head) dengan Elemen di Bawahnya */
 footer .f-head {
     margin-bottom: 12px !important; /* Memastikan gap bawah setiap judul f-head bernilai sama persis */
@@ -290,6 +260,7 @@ footer .f-list {
         row-gap: 1.5rem !important;  /* Jarak vertikal seragam antar section di perangkat mobile */
     }
 }
+
 /* ==========================================================================
    BEST PRACTICE UI: LOGO + NAMA BRAND + TAGLINE (FOOTER)
    ========================================================================== */

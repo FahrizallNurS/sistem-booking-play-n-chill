@@ -31,9 +31,9 @@
 
 /* SECTION */
 .paket-section {
-    border-radius: 40px 40px 0 0;
-    padding: 30px 15px 100px;
-    margin: -30px 0 0 0;
+    border-radius: 40px;
+    padding: 30px 15px 60px;
+    margin: -30px 0 30px 0;
     position: relative;
     z-index: 1;
 }
@@ -47,6 +47,18 @@
     font-size: 3rem;
     text-align: center;
     margin-bottom: 40px;
+}
+
+/* ══════════════════════════════════════════
+   EMPTY STATE ALERT
+   Merapikan jarak & lebar box "Tidak ada paket tersedia"
+   supaya tidak menggantung di tengah whitespace besar.
+   ══════════════════════════════════════════ */
+.paket-section .alert {
+    max-width: 600px;
+    margin: 20px auto 40px;
+    padding: 30px 25px;
+    border-radius: 16px;
 }
 
 /* ══════════════════════════════════════════
@@ -288,7 +300,13 @@
     box-shadow: 0 6px 18px rgba(232,107,50,0.4);
 }
 
-/* TOMBOL KEMBALI PILIH RUANGAN */
+/* ══════════════════════════════════════════
+   TOMBOL KEMBALI PILIH RUANGAN
+   Dipakai di 2 tempat: (1) di dalam alert empty-state — sudah
+   center karena parent .alert text-align:center; (2) berdiri
+   sendiri di akhir halaman — diberi margin biar tidak nempel
+   ke tepi body dan punya jarak yang jelas dari konten di atasnya.
+   ══════════════════════════════════════════ */
 .btn-back-ruangan {
     display: inline-block;
     background-color: #C8E600;
@@ -304,6 +322,12 @@
     transition: transform 0.2s ease,
                 box-shadow 0.2s ease,
                 background-color 0.2s ease;
+}
+
+/* Jarak khusus untuk versi yang berdiri sendiri di akhir halaman
+   (di luar .alert, langsung anak dari <body>) */
+body > .btn-back-ruangan {
+    margin: 40px 0 50px 24px;
 }
 
 .btn-back-ruangan:hover {
@@ -344,6 +368,10 @@
         width: 260px;
         min-width: 260px;
     }
+
+    body > .btn-back-ruangan {
+        margin: 30px 0 40px 16px;
+    }
 }
 
 /* Mobile Kecil */
@@ -360,24 +388,23 @@
         width: 240px;
         min-width: 240px;
     }
+
+    body > .btn-back-ruangan {
+        padding: 12px 30px;
+        font-size: 1rem;
+        margin: 24px 0 32px 16px;
+    }
 }
 
+/* Heading subkategori (mis. "Lainnya") — ungu tua di atas section putih,
+   dengan aksen hijau lime senada tombol "Kembali Pilih Ruangan" */
 .subkategori-heading {
-    color: white;
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 2rem 0 1rem;
-    padding-left: 0.5rem;
-    border-left: 4px solid #a3e635;
-}
-
-.subkategori-heading {
-    color: #2d1b69;           /* ungu tua, kontras di atas section putih */
+    color: #2d1b69;
     font-size: 1.4rem;
     font-weight: 700;
     margin: 2rem 0 1rem;
     padding-left: 0.75rem;
-    border-left: 4px solid #a3e635;  /* aksen hijau lime, senada tombol "Kembali Pilih Ruangan" */
+    border-left: 4px solid #a3e635;
 }
 
 .subkategori-heading:first-of-type {
