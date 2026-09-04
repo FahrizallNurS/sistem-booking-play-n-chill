@@ -230,9 +230,7 @@ class BookingController extends Controller
                 ]);
             }
 
-            do {
-                    $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-            } while (TrTransaksi::where('kode_sewa', $kode)->exists());
+            $kode = TrTransaksi::generateKodeSewa();
 
             $jumlahDp  = null;
             $sisaBayar = 0;
@@ -422,7 +420,7 @@ class BookingController extends Controller
         ]);
 
         $noWa = "6285735329227"; 
-        $noPesanan = "FNBPNC-" . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT);
+        $noPesanan = "FNB" . TrTransaksi::PREFIX_KODE_SEWA . "-" . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT);
         $pesan = "Halo Admin Play N Chill, saya ingin konfirmasi pembayaran QRIS untuk F&B dengan Nomor Pesanan: *{$noPesanan}*.\n\nBerikut saya lampirkan bukti transfernya.";
         
         $waUrl = "https://wa.me/{$noWa}?text=" . urlencode($pesan);
