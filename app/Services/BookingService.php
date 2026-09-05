@@ -26,6 +26,7 @@ class BookingService
             $ph = PenetapanHarga::where('id_penetapan_harga', $data['id_penetapan_harga'])
                 ->where('id_ruangan', $data['id_ruangan'])
                 ->where('id_paket', $data['id_paket'])
+                ->currentPrices()
                 ->first();
 
             if (!$ph) {

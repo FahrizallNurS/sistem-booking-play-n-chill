@@ -73,8 +73,8 @@
             <div class="form-group">
                 <label>Status</label>
                 <select name="is_active" class="form-control">
-                    <option value="1">Aktif</option>
-                    <option value="0">Nonaktif</option>
+                    <option value="1" {{ old('is_active', '1') == '1' ? 'selected' : '' }}>Aktif</option>
+                    <option value="0" {{ old('is_active') == '0' ? 'selected' : '' }}>Nonaktif</option>
                 </select>
             </div>
 
@@ -85,9 +85,12 @@
                 <label>Kategori Ruangan</label>
                 <select id="kategori_select" class="form-control">
                     <option value="">-- Pilih Kategori --</option>
-                    <option value="REGULAR">Regular</option>
-                    <option value="PRIVATE-ROOM">Private Room</option>
+                    <option value="REGULAR" {{ old('kategori_dipilih') === 'REGULAR' ? 'selected' : '' }}>Regular</option>
+                    <option value="PRIVATE-ROOM" {{ old('kategori_dipilih') === 'PRIVATE-ROOM' ? 'selected' : '' }}>Private Room</option>
                 </select>
+                {{-- Field bantu, bukan bagian dari validasi server — cuma dipakai
+                     untuk merepopulasi kategori & daftar ruangan kalau validasi gagal. --}}
+                <input type="hidden" name="kategori_dipilih" id="kategori_dipilih_hidden" value="{{ old('kategori_dipilih') }}">
             </div>
 
             <div class="form-group">
@@ -95,28 +98,35 @@
                 <div id="ruangan_container" class="border rounded p-2" style="min-height:50px">
                     <small class="text-muted">Pilih kategori dulu...</small>
                 </div>
+                @error('ruangan_ids')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="form-group">
                 <label>Tipe Hari</label>
                 <select name="tipe_hari" class="form-control">
                     <option value="">-- Pilih Hari --</option>
-                    <option value="harian">Harian (Senin - Jumat)</option>
-                    <option value="akhir_pekan">Akhir Pekan (Sabtu - Minggu)</option>
-                    <option value="liburan">Liburan</option>
+                    <option value="harian" {{ old('tipe_hari') === 'harian' ? 'selected' : '' }}>Harian (Senin - Jumat)</option>
+                    <option value="akhir_pekan" {{ old('tipe_hari') === 'akhir_pekan' ? 'selected' : '' }}>Akhir Pekan (Sabtu - Minggu)</option>
+                    <option value="liburan" {{ old('tipe_hari') === 'liburan' ? 'selected' : '' }}>Liburan</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label>Durasi (jam) <small class="text-muted">yang akan dibuka</small></label>
                 <div id="pricing_container">
+                    @php $oldDurasi = old('durasi_jam', ['']); @endphp
+                    @foreach($oldDurasi as $d)
                     <div class="pricing-row d-flex align-items-center mb-2">
                         <input type="number" class="form-control durasi-input mr-2"
-                            name="durasi_jam[]" placeholder="Durasi (jam)" min="1" style="max-width: 200px;">
+                            name="durasi_jam[]" placeholder="Durasi (jam)" min="1" style="max-width: 200px;"
+                            value="{{ $d }}">
                         <button type="button" class="btn btn-danger btn-hapus-pricing">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
+                    @endforeach
                 </div>
                 <button type="button" id="btn_tambah_pricing" class="btn btn-secondary btn-sm">
                     <i class="fas fa-plus"></i> Tambah Durasi
@@ -128,6 +138,9 @@
                 <div id="matrix_container">
                     <small class="text-muted">Pilih ruangan & isi durasi dulu untuk menampilkan tabel harga...</small>
                 </div>
+                @error('sku_conflict')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
 
             <hr>
@@ -157,8 +170,34 @@
     subKategoriSelect.addEventListener('change', toggleSubKategoriBaru);
     toggleSubKategoriBaru();
 
+    // ============ ESCAPE HELPER (cegah XSS saat render innerHTML) ============
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
     // ============ STATE MATRIKS HARGA & SKU ============
+    // Diisi awal dari old('harga')/old('sku') supaya kalau validasi gagal,
+    // admin tidak perlu isi ulang seluruh matrix dari nol.
     let matrixValues = {}; // { [durasi]: { [ruanganId]: { harga: '', sku: '' } } }
+
+    (function seedMatrixFromOld() {
+        const oldHarga = @json(old('harga', []));
+        const oldSku = @json(old('sku', []));
+
+        Object.keys(oldHarga).forEach(ruanganId => {
+            Object.keys(oldHarga[ruanganId]).forEach(durasi => {
+                if (!matrixValues[durasi]) matrixValues[durasi] = {};
+                matrixValues[durasi][ruanganId] = {
+                    harga: oldHarga[ruanganId][durasi] ?? '',
+                    sku: (oldSku[ruanganId] && oldSku[ruanganId][durasi]) ?? '',
+                };
+            });
+        });
+    })();
+
+    const oldRuanganIds = @json(old('ruangan_ids', [])).map(String);
 
     function getCheckedRuangans() {
         return Array.from(document.querySelectorAll('#ruangan_container input[type="checkbox"]:checked'))
@@ -203,12 +242,12 @@
         let html = '<div class="table-responsive"><table class="table table-bordered table-sm align-middle">';
         html += '<thead class="thead-light"><tr><th style="min-width:80px">Durasi</th>';
         ruangans.forEach(r => {
-            html += `<th style="min-width:220px">${r.nama}</th>`;
+            html += `<th style="min-width:220px">${escapeHtml(r.nama)}</th>`;
         });
         html += '</tr></thead><tbody>';
 
         durasiList.forEach(durasi => {
-            html += `<tr><td class="align-middle font-weight-bold">${durasi} jam</td>`;
+            html += `<tr><td class="align-middle font-weight-bold">${escapeHtml(durasi)} jam</td>`;
             ruangans.forEach(r => {
                 const existing = (matrixValues[durasi] && matrixValues[durasi][r.id]) || { harga: '', sku: '' };
                 html += `
@@ -216,11 +255,11 @@
                         <input type="text" inputmode="numeric"
                             name="harga[${r.id}][${durasi}]"
                             class="form-control form-control-sm matrix-harga mb-1"
-                            placeholder="Harga (Rp)" value="${existing.harga}">
+                            placeholder="Harga (Rp)" value="${escapeHtml(existing.harga)}">
                         <input type="text"
                             name="sku[${r.id}][${durasi}]"
                             class="form-control form-control-sm matrix-sku"
-                            placeholder="SKU" maxlength="10" value="${existing.sku}">
+                            placeholder="SKU" maxlength="10" value="${escapeHtml(existing.sku)}">
                     </td>`;
             });
             html += '</tr>';
@@ -255,6 +294,8 @@
     // ============ KATEGORI -> LOAD RUANGAN ============
     document.getElementById('kategori_select').addEventListener('change', function() {
         const kategori = this.value;
+        document.getElementById('kategori_dipilih_hidden').value = kategori;
+
         const container = document.getElementById('ruangan_container');
         container.innerHTML = '<small class="text-muted">Loading...</small>';
 
@@ -276,12 +317,13 @@
                     return;
                 }
                 data.forEach(r => {
+                    const checked = oldRuanganIds.includes(String(r.id_ruangan)) ? 'checked' : '';
                     container.innerHTML += `
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox"
-                                name="ruangan_ids[]" value="${r.id_ruangan}" id="ruangan_${r.id_ruangan}">
+                                name="ruangan_ids[]" value="${r.id_ruangan}" id="ruangan_${r.id_ruangan}" ${checked}>
                             <label class="form-check-label" for="ruangan_${r.id_ruangan}">
-                                ${r.nama_ruangan}
+                                ${escapeHtml(r.nama_ruangan)}
                             </label>
                         </div>
                     `;
@@ -308,6 +350,18 @@
                 e.target.closest('.pricing-row').remove();
                 refreshMatrix();
             }
+        }
+    });
+
+    // ============ REPOPULASI SAAT VALIDASI GAGAL ============
+    // Kalau ada kategori tersimpan dari submit sebelumnya, trigger ulang
+    // fetch ruangan-nya supaya checkbox & matrix ke-render dengan state lama.
+    window.addEventListener('DOMContentLoaded', function () {
+        if (subKategoriSelect.value) {
+            toggleSubKategoriBaru();
+        }
+        if (document.getElementById('kategori_select').value) {
+            document.getElementById('kategori_select').dispatchEvent(new Event('change'));
         }
     });
 </script>

@@ -127,7 +127,7 @@ class SATinjauLaporanController extends Controller
         };
 
 
-        $totalBooking      = $bookingRaw->count();
+        $totalBooking = $bookingRaw->whereIn('status_sewa', ['selesai', 'dibatalkan'])->count();
         $bookingSelesai    = $bookingRaw->where('status_sewa', 'selesai')->count();
         $bookingDibatalkan = $bookingRaw->where('status_sewa', 'dibatalkan')->count();
         $pendapatanBooking = (float) $bookingRaw->where('status_sewa', 'selesai')->sum('total_harga');

@@ -95,6 +95,7 @@ class BookingController extends Controller
 
         $options = PenetapanHarga::where('id_ruangan', $request->ruangan)
             ->where('id_paket', $request->paket)
+            ->currentPrices()
             ->orderBy('durasi_jam')
             ->get(['id_penetapan_harga', 'durasi_jam', 'tipe_hari', 'harga', 'sku']);
 

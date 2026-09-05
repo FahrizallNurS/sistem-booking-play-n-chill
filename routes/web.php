@@ -80,8 +80,6 @@ Route::get('/home', function () {
 
 })->name('pelanggan.home');
 
-Route::get('/booking', [BookingController::class, 'index'])->name('booking');
-Route::get('/booking/paket', [BookingController::class, 'paket'])->name('booking.paket');
 
 //Route untuk menampilkan halaman "Tentang Kami"
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang-kami');
@@ -289,11 +287,15 @@ Route::middleware(['auth'])->group(function () {
         
         Route::delete('/paket/penetapan/{id}', [PaketController::class, 'destroyPenetapan'])
             ->name('paket.penetapan.destroy');
+        Route::patch('/paket/penetapan/{id}', [PaketController::class, 'updatePenetapanInline'])
+            ->name('paket.penetapan.update');
+        Route::post('/paket/{id}/penetapan-harga', [PaketController::class, 'storePenetapanHarga'])
+            ->name('paket.penetapan.store');
         Route::patch('/paket/{id}/toggle-aktif', [PaketController::class, 'toggleAktif'])
             ->name('paket.toggle-aktif');
-        Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])
-            ->name('kategori.ruangan');
-        
+        Route::post('/paket/{id}/penetapan-modal', [PaketController::class, 'storePenetapanModal'])
+             ->name('paket.penetapan.storeModal');
+                
         Route::resource('paket', PaketController::class);
                 
         Route::resource('layanan', LayananController::class);
