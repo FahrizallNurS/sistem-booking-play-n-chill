@@ -28,4 +28,10 @@ class MsProduk extends Model
     {
         return $this->belongsTo(MsSubKategoriProduk::class, 'ms_sub_kategori_produk_id_sub_kategori_produk', 'id_sub_kategori_produk');
     }
+
+    // Relasi ke detail transaksi POS untuk menghitung Best Seller
+    public function detailTransaksi()
+    {
+        return $this->hasMany(TrPosDetail::class, 'id_produk', 'id_produk');
+    }
 }

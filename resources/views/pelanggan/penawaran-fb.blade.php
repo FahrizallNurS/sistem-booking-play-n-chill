@@ -15,235 +15,388 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
-        body {
-            background-color: var(--purple-dark);
-            position: relative;
-            min-height: 100vh;
-            margin: 0;
-            padding-top: 85px; 
-        }
-        body::before {
-            content: "";
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('{{ asset("images/bg-segitiga.png") }}');
-            background-repeat: no-repeat; background-size: cover;
-            background-position: center; opacity: 0.8; z-index: -1;
-        }
-        .navbar.fixed-top {
-            position: fixed !important; top: 0 !important; width: 100% !important;
-            z-index: 1030 !important; background: rgb(255, 255, 255);
-        }
 
-        /* ═══ PERBAIKAN: Judul Responsif (Sama Persis Menu F&B) ═══ */
+       body {
+        background-color: var(--purple-dark);
+        position: relative;
+        min-height: 100vh;
+        margin: 0;
+        padding-top: 85px; 
+        overflow-x: clip; 
+        width: 100%;
+    }
+
+    body::before {
+        content: "";
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        right: 0; 
+        bottom: 0; 
+        background-image: url('{{ asset("images/bg-segitiga.png") }}');
+        background-repeat: no-repeat; 
+        background-size: cover;
+        background-position: center; 
+        opacity: 0.8; 
+        z-index: -1;
+    }
+
         .hero-title {
             font-size: 3.5rem;
             letter-spacing: 1px;
             line-height: 1.2;
         }
+
         @media (max-width: 768px) {
-            .hero-title { font-size: 2rem; line-height: 1.1; }
+            .hero-title {
+                font-size: 2rem; 
+                line-height: 1.1; 
+            }
         }
+
         @media (max-width: 480px) {
-            .hero-title { font-size: 1.65rem; line-height: 1.1; }
+            .hero-title {
+                font-size: 1.65rem; 
+                line-height: 1.1; 
+            }
         }
 
-        /* ═══ Card Menu F&B (Sama Persis 100% dengan Menu F&B) ═══ */
-       .fb-card {
-        background-color: #2b0054;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        transition: transform 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid rgba(255,255,255,0.05);
-    }
-    .fb-card:hover {
-        transform: translateY(-8px);
-    }
-    .fb-img-wrapper {
-        position: relative;
-        height: 180px;
-        overflow: hidden;
-    }
-    .fb-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-    }
-    .fb-card:hover .fb-img {
-        transform: scale(1.05);
-    }
-    .fb-price {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background-color: #ffd700;
-        color: #2b0054;
-        font-weight: 800;
-        font-size: 0.8rem;
-        padding: 4px 12px;
-        border-radius: 20px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    .fb-body {
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-    .fb-badge {
-        background-color: rgba(255, 215, 0, 0.1);
-        color: #ffd700;
-        font-size: 0.65rem;
-        padding: 4px 10px;
-        border-radius: 4px;
-        display: inline-block;
-        margin-bottom: 12px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        width: fit-content;
-    }
-    .fb-title {
-        color: white;
-        font-weight: bold;
-        font-size: 1.15rem;
-        margin-bottom: 8px;
-    }
-    .fb-desc {
-        color: #bca0e5;
-        font-size: 0.85rem;
-        line-height: 1.5;
-        margin-bottom: 20px;
-        flex-grow: 1;
-    }
-    .fb-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: auto;
-    }
-    .fb-status {
-        color: #8a73ba;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    .fb-add-btn {
-        background-color: #ffd700;
-        color: #2b0054;
-        border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.2rem;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    .fb-add-btn:hover {
-        transform: scale(1.1);
-        background-color: #ffea00;
-    }
+        .fb-card {
+            background-color: #2b0054;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-        /* Filter Style (Tengah & Seragam) */
+        .fb-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .fb-img-wrapper {
+            position: relative;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+        }
+
+        .fb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.5s ease;
+        }
+
+        .fb-card:hover .fb-img {
+            transform: scale(1.05);
+        }
+
+        .fb-price {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background-color: #ffd700;
+            color: #2b0054;
+            font-weight: 800;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .fb-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .fb-badge {
+            background-color: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            width: fit-content;
+        }
+
+        .fb-title {
+            color: white;
+            font-weight: bold;
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+        }
+
+        .fb-desc {
+            color: #bca0e5;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .fb-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .fb-status {
+            color: #8a73ba;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .fb-add-btn {
+            background-color: #ffd700;
+            color: #2b0054;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .fb-add-btn:hover {
+            transform: scale(1.1);
+            background-color: #ffea00;
+        }
+
         .filter-btn {
-            background-color: #3a2377; color: #d8b8ff;
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px;
-            padding: 8px 24px; font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease;
+            background-color: #3a2377; 
+            color: #d8b8ff;
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 50px;
+            padding: 8px 24px; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            transition: all 0.3s ease;
         }
-        .filter-btn:hover, .filter-btn.active { background-color: #ffd700; color: #2b0054; border-color: #ffd700; }
 
-        /* ═══ POPUP KERANJANG MELAYANG (KAPSUL) ═══ */
+        .filter-btn:hover, .filter-btn.active { 
+            background-color: #ffd700; 
+            color: #2b0054; 
+            border-color: #ffd700; 
+        }
+
         .floating-cart-pill {
-            position: fixed; bottom: 30px; right: 30px; z-index: 1040;
-            background-color: #40288c; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; 
-            padding: 12px 24px 12px 18px; display: flex; align-items: center; gap: 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); cursor: pointer;
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            z-index: 1040;
+            background-color: #40288c; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 50px; 
+            padding: 12px 24px 12px 18px; 
+            display: flex; 
+            align-items: center; 
+            gap: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            cursor: pointer;
             transition: transform 0.3s ease, background-color 0.3s ease;
             font-family: 'Nunito', sans-serif;
         }
-        .floating-cart-pill:hover { transform: translateY(-5px) scale(1.03); background-color: #4a2e9e; }
-        .cart-icon-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
-        .cart-icon-wrapper svg { width: 32px; height: 32px; color: #ffd700; }
-        .cart-badge-new {
-            position: absolute; top: -4px; right: -8px; background-color: #ffd700; color: #2b0054;
-            font-weight: 800; font-size: 0.75rem; width: 22px; height: 22px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; border: 2px solid #40288c;
-        }
-        .cart-text-wrapper { display: flex; flex-direction: column; justify-content: center; }
-        .cart-item-count { color: #ffffff; font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
-        .cart-total-price { color: #ffd700; font-weight: 800; font-size: 1rem; line-height: 1.2; }
 
-        /* ═══ BOTTOM SHEET KERANJANG (OFFCANVAS) ═══ */
+        .floating-cart-pill:hover { 
+            transform: translateY(-5px) scale(1.03); 
+            background-color: #4a2e9e; 
+        }
+
+        .cart-icon-wrapper { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .cart-icon-wrapper svg { 
+            width: 32px; 
+            height: 32px; 
+            color: #ffd700; 
+        }
+
+        .cart-badge-new {
+            position: absolute; 
+            top: -4px; 
+            right: -8px; 
+            background-color: #ffd700; 
+            color: #2b0054;
+            font-weight: 800; 
+            font-size: 0.75rem; 
+            width: 22px; 
+            height: 22px; 
+            border-radius: 50%;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            border: 2px solid #40288c;
+        }
+
+        .cart-text-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
+
+        .cart-item-count { 
+            color: #ffffff; 
+            font-weight: 700; 
+            font-size: 0.95rem; 
+            line-height: 1.2; 
+        }
+
+        .cart-total-price { 
+            color: #ffd700; 
+            font-weight: 800; 
+            font-size: 1rem; 
+            line-height: 1.2; 
+        }
+
         .custom-bottom-sheet {
-            background-color: #2b1b54 !important; border-top-left-radius: 24px; border-top-right-radius: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1); height: auto !important; max-height: 60vh; font-family: 'Nunito', sans-serif;
+            background-color: #2b1b54 !important; 
+            border-top-left-radius: 24px; 
+            border-top-right-radius: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1); 
+            height: auto !important; 
+            max-height: 60vh; 
+            font-family: 'Nunito', sans-serif;
         }
-        .custom-bottom-sheet .offcanvas-header { padding: 24px 24px 16px 24px; }
-        .custom-bottom-sheet .offcanvas-body { padding: 0 24px 24px 24px; }
-        .btn-close-custom { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.8; }
+
+        .custom-bottom-sheet .offcanvas-header { 
+            padding: 24px 24px 16px 24px; 
+        }
+
+        .custom-bottom-sheet .offcanvas-body { 
+            padding: 0 24px 24px 24px; 
+        }
+
+        .btn-close-custom { 
+            filter: invert(1) grayscale(100%) brightness(200%); 
+            opacity: 0.8; 
+        }
+
         .btn-qty-control {
-            background-color: rgba(255, 255, 255, 0.1); color: #ffffff; border: none; width: 28px; height: 28px;
-            border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s;
+            background-color: rgba(255, 255, 255, 0.1); 
+            color: #ffffff; 
+            border: none; 
+            width: 28px; 
+            height: 28px;
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            transition: 0.2s;
         }
-        .btn-qty-control:hover { background-color: rgba(255, 255, 255, 0.2); }
+
+        .btn-qty-control:hover { 
+            background-color: rgba(255, 255, 255, 0.2); 
+        }
+
         .btn-checkout-orange {
-            background-color: #ff7a00; color: #ffffff; font-weight: 800; border-radius: 50px;
-            padding: 14px; border: none; font-size: 1.05rem; transition: transform 0.2s;
+            background-color: #ff7a00; 
+            color: #ffffff; 
+            font-weight: 800; 
+            border-radius: 50px;
+            padding: 14px; 
+            border: none; 
+            font-size: 1.05rem; 
+            transition: transform 0.2s;
         }
-        .btn-checkout-orange:hover { background-color: #e06b00; transform: scale(1.02); color: #ffffff; }
-        .divider-custom { border-color: rgba(255, 255, 255, 0.1); margin: 20px 0; }
+
+        .btn-checkout-orange:hover { 
+            background-color: #e06b00; 
+            transform: scale(1.02); 
+            color: #ffffff; 
+        }
+
+        .divider-custom { 
+            border-color: rgba(255, 255, 255, 0.1); 
+            margin: 20px 0; 
+        }
 
         @media (max-width: 576px) {
-            .floating-cart-pill { bottom: 25px; right: 20px; padding: 10px 20px 10px 14px; gap: 12px; }
-            .cart-icon-wrapper svg { width: 28px; height: 28px; }
-            .cart-item-count { font-size: 0.85rem; }
-            .cart-total-price { font-size: 0.9rem; }
-            .cart-badge-new { width: 20px; height: 20px; font-size: 0.7rem; }
+            .floating-cart-pill { 
+                bottom: 25px; 
+                right: 20px; 
+                padding: 10px 20px 10px 14px; 
+                gap: 12px; 
+            }
+            .cart-icon-wrapper svg { 
+                width: 28px; 
+                height: 28px; 
+            }
+            .cart-item-count { 
+                font-size: 0.85rem; 
+            }
+            .cart-total-price { 
+                font-size: 0.9rem; 
+            }
+            .cart-badge-new { 
+                width: 20px; 
+                height: 20px; 
+                font-size: 0.7rem; 
+            }
         }
 
-        /* ═══ TOMBOL LEWATI (KAPSUL) ═══ */
         .floating-skip-pill {
             position: fixed; 
             bottom: 30px; 
             right: 30px; 
             z-index: 1040;
-            background-color: transparent; 
-            color: #ffd700;
-            border: 2px solid #ffd700; 
+            background-color: #40288c; 
+            color: #ffffff; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 50px; 
             padding: 12px 24px; 
             font-weight: 700;
             font-size: 1rem;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.3s ease;
             font-family: 'Nunito', sans-serif;
-            display: flex; /* Aktif saat keranjang kosong */
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+        
+        .floating-skip-pill svg {
+            color: #ffd700;
+            transition: transform 0.3s ease;
         }
         
         .floating-skip-pill:hover { 
-            transform: translateY(-5px); 
-            background-color: rgba(255, 255, 255, 0.1); 
+            transform: translateY(-5px) scale(1.03); 
+            background-color: #4a2e9e; 
             color: #ffffff;
-            border-color: #ffffff;
+        }
+        
+        .floating-skip-pill:hover svg {
+            transform: translateX(4px); 
         }
 
-        /* Menyembunyikan elemen secara default via class jika diperlukan */
-        .d-none-custom { display: none !important; }
+        .d-none-custom { 
+            display: none !important; 
+        }
 
-        /* ═══ TOMBOL HAPUS ITEM ═══ */
         .btn-delete-item {
-            color: #ff6b6b; /* Warna merah pastel agar cocok di background gelap */
+            color: #ff6b6b;
             background: none;
             border: none;
             padding: 0;
@@ -255,20 +408,35 @@
             transition: color 0.2s;
             margin-top: 8px;
         }
+        
         .btn-delete-item:hover {
             color: #ff4c4c;
+        }
+
+        .navbar.fixed-top {
+            position: fixed !important; 
+            top: 0 !important; 
+            width: 100% !important;
+            z-index: 1030 !important; 
+            background: rgb(255, 255, 255);
+            backdrop-filter: blur(10px); 
         }
 
     </style>
 </head>
 <body>
 
-{{-- NAVBAR --}}
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand p-0" href="{{ url('/') }}">
             <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
         </a>
+        
+        {{-- INI DIA YANG HILANG: Tombol Hamburger Menu untuk tampilan HP --}}
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
         <div class="collapse navbar-collapse justify-content-end" id="navMain">
             <ul class="navbar-nav align-items-center gap-1">
                 <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Home</a></li>
@@ -281,17 +449,14 @@
     </div>
 </nav>
 
-{{-- AREA KONTEN UTAMA --}}
 <div class="container mt-2 mt-md-5 mb-5 pb-5">
     
-    {{-- IMPLEMENTASI: Menggunakan class hero-title agar font size 100% sama dengan menu-fb --}}
     <div class="text-center" data-aos="fade-down">
         <h1 class="font-modak mb-3 hero-title" style="color: #ffd700;">
             Menu<br class="d-block d-sm-none"> Favoritmu
         </h1>
     </div>
 
-    {{-- KODE PENDETEKSI ERROR LARAVEL --}}
     @if ($errors->any())
         <div class="alert alert-danger mx-auto mt-3" style="border-radius: 10px; font-size: 0.9rem; max-width: 600px;">
             <ul class="mb-0 ps-3">
@@ -302,7 +467,6 @@
         </div>
     @endif
 
-    {{-- ================= 1. REKOMENDASI (HANYA 2 MENU BEST SELLER) ================= --}}
     <div class="mb-4 mt-5" data-aos="fade-up">
         <h3 class="text-white fw-bold mb-1" style="font-family: 'Nunito', sans-serif; font-size: 1.15rem;">
             Rekomendasi Food & Beverage
@@ -311,44 +475,40 @@
     </div>
 
     <div class="row g-4 mb-5">
-        {{-- Card 1 (Ukuran col-lg-3 memastikan lebar card identik dengan Menu F&B) --}}
+        @foreach($produks->take(2) as $item)
         <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
             <div class="fb-card">
                 <div class="fb-img-wrapper">
-                    <img src="{{ asset('images/menu/french-fries.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                    <span class="fb-price">Rp 35.000</span>
+                    @if($item->foto)
+                        <img src="{{ asset('uploads/fb/' . $item->foto) }}" alt="{{ $item->nama_produk }}" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
+                    @else
+                        <div class="fb-img d-flex align-items-center justify-content-center" style="background-color: #f3f4f6;">
+                            <i class="fas fa-utensils text-muted" style="font-size: 2rem;"></i>
+                        </div>
+                    @endif
+                    <span class="fb-price">Rp {{ number_format($item->harga_jual, 0, ',', '.') }}</span>
                 </div>
                 <div class="fb-body">
                     <span class="fb-badge">BEST SELLER</span>
-                    <h5 class="fb-title">French Fries & Nuggets</h5>
+                    <h5 class="fb-title">{{ $item->nama_produk }}</h5>
                     <div class="fb-footer">
-                        <span class="fb-status">In Stock</span>
-                        <button class="fb-add-btn add-to-cart-btn" data-id="1" data-name="French Fries & Nuggets" data-price="35000" data-img="{{ asset('images/menu/french-fries.jpg') }}">+</button>
+                        <span class="fb-status">{{ $item->stock > 0 ? 'In Stock' : 'Out Stock' }}</span>
+                        @if($item->stock > 0)
+                            <button class="fb-add-btn add-to-cart-btn" 
+                                data-id="{{ $item->id_produk }}" 
+                                data-name="{{ $item->nama_produk }}" 
+                                data-price="{{ $item->harga_jual }}" 
+                                data-img="{{ $item->foto ? asset('uploads/fb/' . $item->foto) : asset('images/gaming.jpg') }}">+</button>
+                        @else
+                            <button class="fb-add-btn bg-secondary text-white" disabled style="cursor: not-allowed;">-</button>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
-        
-        {{-- Card 2 --}}
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="fb-card">
-                <div class="fb-img-wrapper">
-                    <img src="{{ asset('images/menu/katsu.jpg') }}" alt="Menu" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                    <span class="fb-price">Rp 48.000</span>
-                </div>
-                <div class="fb-body">
-                    <span class="fb-badge">BEST SELLER</span>
-                    <h5 class="fb-title">Chicken Katsu Rice</h5>
-                    <div class="fb-footer">
-                        <span class="fb-status">In Stock</span>
-                        <button class="fb-add-btn add-to-cart-btn" data-id="4" data-name="Chicken Katsu Rice" data-price="48000" data-img="{{ asset('images/menu/katsu.jpg') }}">+</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endforeach
     </div>
 
-   {{-- ================= 2. MENU LAINNYA & FILTER (SUDAH DINAMIS) ================= --}}
     <div class="mb-4 mt-5" data-aos="fade-up">
         <h3 class="text-white fw-bold mb-1" style="font-family: 'Nunito', sans-serif; font-size: 1.15rem;">
             Menu Lainnya
@@ -356,11 +516,9 @@
         <div style="width: 60px; height: 3px; background-color: #ffd700; border-radius: 2px;"></div>
     </div>
 
-    {{-- FILTER KATEGORI DINAMIS --}}
     <div class="d-flex justify-content-center flex-wrap mb-5 gap-2 gap-md-3" data-aos="fade-up" data-aos-delay="100">
         <button class="filter-btn active" data-filter="semua">Semua</button>
         @php
-            // Mengambil daftar nama kategori unik dari data produk
             $kategoriUnik = $produks->pluck('subKategori.kategori_produk')->filter()->unique();
         @endphp
         
@@ -369,9 +527,8 @@
         @endforeach
     </div>
 
-    {{-- DAFTAR PRODUK DINAMIS DARI DATABASE --}}
     <div class="row g-4" id="dynamic-product-list">
-        @forelse($produks as $produk)
+        @forelse($produks->skip(2) as $produk)
             <div class="col-12 col-md-6 col-lg-3 product-item" data-kategori="{{ $produk->subKategori->kategori_produk ?? 'Lainnya' }}" data-aos="fade-up" data-aos-delay="100">
                 <div class="fb-card">
                     <div class="fb-img-wrapper">
@@ -411,7 +568,6 @@
 
 </div>
 
-<!-- 1. Tombol Lewati (Tampil saat 0 item) -->
 <button type="button" id="floatingSkipBtn" class="floating-skip-pill" onclick="document.getElementById('skipForm').submit();" data-aos="zoom-in" data-aos-delay="400">
     Nanti Saja
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -419,7 +575,6 @@
     </svg>
 </button>
 
-<!-- 2. Cart Pill Asli (Disembunyikan saat 0 item) -->
 <div id="floatingCartPill" class="floating-cart-pill d-none-custom" data-bs-toggle="offcanvas" data-bs-target="#cartBottomSheet" aria-controls="cartBottomSheet">
     <div class="cart-icon-wrapper">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -442,14 +597,12 @@
     
    <div class="offcanvas-body d-flex flex-column">
         
-        {{-- Area Daftar Pesanan Cart --}}
         <div id="cartItemsArea" class="flex-grow-1 overflow-auto" style="scrollbar-width: none;">
             <div class="text-center text-muted mt-4" id="emptyCartMessage">
                 <p style="font-size: 0.9rem; color: #bca0e5 !important;">Belum ada menu yang ditambahkan</p>
             </div>
         </div>
 
-        {{-- Area Rincian Harga & Tombol Checkout JIKA ADA BARANG --}}
         <div class="mt-auto pt-2" id="cartTotalsArea" style="display: none;">
             <hr class="divider-custom">
             <div class="d-flex justify-content-between mb-2">
@@ -477,7 +630,6 @@
             </form>
         </div>
 
-        {{-- Tombol Checkout JIKA KERANJANG KOSONG (Lewati F&B) --}}
         <div class="mt-auto pt-2" id="emptyCartAction" style="display: block;">
             <form id="skipForm" action="{{ route('booking.store') }}" method="POST">
                 @csrf
@@ -522,7 +674,6 @@
         const totalItemValue = document.getElementById('totalItemValue');
         const totalValue = document.getElementById('totalValue');
 
-        // Deklarasi ID untuk kedua tombol melayang
         const floatingSkipBtn = document.getElementById('floatingSkipBtn');
         const floatingCartPill = document.getElementById('floatingCartPill');
 
@@ -545,7 +696,6 @@
             if (pillTotal) pillTotal.innerText = 'Rp 0';
             if (cartDataInput) cartDataInput.value = '[]';
 
-            // Logika UI Floating Button (TAMPILKAN SKIP, SEMBUNYIKAN CART)
             if (floatingSkipBtn) floatingSkipBtn.style.display = 'flex';
             if (floatingCartPill) {
                 floatingCartPill.classList.add('d-none-custom');
@@ -553,7 +703,6 @@
             }
             
         } else {
-            // Tampilan jika keranjang ADA ISINYA
             if (totalsArea) totalsArea.style.display = 'block';
             if (emptyCartAction) emptyCartAction.style.display = 'none';
             
@@ -603,7 +752,6 @@
             
             if (cartDataInput) cartDataInput.value = JSON.stringify(cart); 
 
-            // Logika UI Floating Button (SEMBUNYIKAN SKIP, TAMPILKAN CART)
             if (floatingSkipBtn) floatingSkipBtn.style.display = 'none';
             if (floatingCartPill) {
                 floatingCartPill.classList.remove('d-none-custom');
@@ -612,7 +760,6 @@
         }
     }
 
-    // Fungsi untuk menambah/mengurangi kuantitas
     window.changeQty = function(id, change) {
         const itemIndex = cart.findIndex(i => i.id == id);
         if (itemIndex > -1) {
@@ -624,13 +771,11 @@
         }
     };
 
-    // Fungsi baru untuk menghapus item langsung
     window.removeItem = function(id) {
         cart = cart.filter(item => item.id != id);
         updateCartUI();
     };
 
-    // Event listener untuk tombol add to cart
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault(); 
@@ -651,10 +796,8 @@
         });
     });
 
-    // ═══ LOGIKA FILTER KATEGORI ═══
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Hapus status aktif dari semua tombol, berikan ke tombol yang diklik
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
@@ -662,7 +805,6 @@
             const items = document.querySelectorAll('.product-item');
             
             items.forEach(item => {
-                // Tampilkan jika kategorinya cocok atau sedang memilih "semua"
                 if(filter === 'semua' || item.getAttribute('data-kategori') === filter) {
                     item.style.display = 'block';
                 } else {

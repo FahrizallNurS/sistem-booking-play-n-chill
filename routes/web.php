@@ -89,7 +89,12 @@ Route::get('/galeri', [GalleryController::class, 'index'])->name('galeri');
 
 // Route Menu F&B
 Route::get('/menu-fb', function () {
-    $produks = \App\Models\MsProduk::with('subKategori')->where('is_active', 1)->get();
+    $produks = \App\Models\MsProduk::with('subKategori')
+        ->where('is_active', 1)
+        ->withSum('detailTransaksi', 'jumlah') 
+        ->orderByDesc('detail_transaksi_sum_jumlah') 
+        ->get();
+        
     return view('pelanggan.menu-fb', compact('produks'));
 });
 
@@ -100,7 +105,12 @@ Route::get('/payment-fb/confirm/{id}', [App\Http\Controllers\BookingController::
 
 // Route Penawaran F&B
 Route::get('/booking/penawaran-fb', function () {
-    $produks = \App\Models\MsProduk::with('subKategori')->where('is_active', 1)->get();
+    $produks = \App\Models\MsProduk::with('subKategori')
+        ->where('is_active', 1)
+        ->withSum('detailTransaksi', 'jumlah')
+        ->orderByDesc('detail_transaksi_sum_jumlah')
+        ->get();
+        
     return view('pelanggan.penawaran-fb', compact('produks'));
 });
 
