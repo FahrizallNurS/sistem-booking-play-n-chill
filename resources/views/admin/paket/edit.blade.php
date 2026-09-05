@@ -100,12 +100,15 @@
 {{-- CARD 2: TABEL PENETAPAN HARGA AKTIF (PENGGANTI CARD 3 LAMA) --}}
 {{-- ============================================================ --}}
 <div class="card mt-3">
-    <div class="card-header bg-info d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">📋 Penetapan Harga yang Berlaku Saat Ini</h5>
-        <button type="button" class="btn btn-light btn-sm font-weight-bold" data-toggle="modal" data-target="#modalTambahPenetapan">
-            <i class="fas fa-plus text-primary"></i> Tambah Harga
-        </button>
+    <div class="card-header bg-info">
+    <h3 class="card-title mt-1">📋 Penetapan Harga yang Berlaku Saat Ini</h3>
+    <div class="card-tools">
+            <button type="button" class="btn btn-light btn-sm font-weight-bold" data-toggle="modal" data-target="#modalTambahPenetapan">
+                <i class="fas fa-plus text-primary"></i> Tambah Harga
+            </button>
+        </div>
     </div>
+    
     <div class="card-body">
         
         @if($errors->has('kombinasi'))
@@ -113,79 +116,79 @@
         @endif
 
         @if($paket->penetapanHarga->count() > 0)
-            <table class="table table-bordered table-sm table-hover">
-                <thead class="thead-light">
-                    <tr>
-                        <th width="5%">#</th>
-                        <th>Ruangan</th>
-                        <th>Tipe Hari</th>
-                        <th>Durasi</th>
-                        <th>Harga</th>
-                        <th>SKU</th>
-                        <th width="15%">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($paket->penetapanHarga as $index => $ph)
-                        @php $sudahDipakai = $ph->transaksis()->exists(); @endphp
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm table-hover">
+                    <thead class="thead-light">
                         <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <span class="badge badge-primary">
-                                    {{ $ph->ruangan->nama_ruangan ?? '-' }}
-                                </span>
-                            </td>
-                            <td>
-                                @if($ph->tipe_hari == 'harian')
-                                    <span class="badge badge-success">Harian</span>
-                                @elseif($ph->tipe_hari == 'akhir_pekan')
-                                    <span class="badge badge-warning">Akhir Pekan</span>
-                                @else
-                                    <span class="badge badge-danger">Liburan</span>
-                                @endif
-                            </td>
-                            <td>{{ $ph->durasi_jam }} jam</td>
-                            <td><strong>Rp {{ number_format($ph->harga, 0, ',', '.') }}</strong></td>
-                            <td>{{ $ph->sku ?? '-' }}</td>
-                            <td>
-                                {{-- Tombol Edit sekarang selau sama, gak peduli udah dipakai transaksi atau belum --}}
-                                <button type="button" class="btn btn-info btn-sm btn-edit-inline"
-                                    data-id="{{ $ph->id_penetapan_harga }}"
-                                    data-ruangan="{{ $ph->ruangan->nama_ruangan ?? '-' }}"
-                                    data-tipe-hari="{{ $ph->tipe_hari }}"
-                                    data-durasi="{{ $ph->durasi_jam }}"
-                                    data-harga="{{ $ph->harga }}"
-                                    data-sku="{{ $ph->sku }}">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-
-                                @if($sudahDipakai)
-                                    <button class="btn btn-secondary btn-sm" disabled title="Tidak bisa dihapus (ada transaksi)">
-                                        <i class="fas fa-lock"></i>
-                                    </button>
-                                @else
-                                    <form action="{{ route('admin.paket.penetapan.destroy', $ph->id_penetapan_harga) }}"
-                                        method="POST" class="d-inline form-hapus-penetapan">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
+                            <th width="5%">#</th>
+                            <th>Ruangan</th>
+                            <th>Tipe Hari</th>
+                            <th>Durasi</th>
+                            <th>Harga</th>
+                            <th>SKU</th>
+                            <th width="15%">Aksi</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach($paket->penetapanHarga as $index => $ph)
+                            @php $sudahDipakai = $ph->transaksis()->exists(); @endphp
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <span class="badge badge-primary">
+                                        {{ $ph->ruangan->nama_ruangan ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($ph->tipe_hari == 'harian')
+                                        <span class="badge badge-success">Harian</span>
+                                    @elseif($ph->tipe_hari == 'akhir_pekan')
+                                        <span class="badge badge-warning">Akhir Pekan</span>
+                                    @else
+                                        <span class="badge badge-danger">Liburan</span>
+                                    @endif
+                                </td>
+                                <td>{{ $ph->durasi_jam }} jam</td>
+                                <td><strong>Rp {{ number_format($ph->harga, 0, ',', '.') }}</strong></td>
+                                <td>{{ $ph->sku ?? '-' }}</td>
+                                <td>
+                                    {{-- Tombol Edit sekarang selalu sama, gak peduli udah dipakai transaksi atau belum --}}
+                                    <button type="button" class="btn btn-info btn-sm btn-edit-inline"
+                                        data-id="{{ $ph->id_penetapan_harga }}"
+                                        data-ruangan="{{ $ph->ruangan->nama_ruangan ?? '-' }}"
+                                        data-tipe-hari="{{ $ph->tipe_hari }}"
+                                        data-durasi="{{ $ph->durasi_jam }}"
+                                        data-harga="{{ $ph->harga }}"
+                                        data-sku="{{ $ph->sku }}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+
+                                    @if($sudahDipakai)
+                                        <button class="btn btn-secondary btn-sm" disabled title="Tidak bisa dihapus (ada transaksi)">
+                                            <i class="fas fa-lock"></i>
+                                        </button>
+                                    @else
+                                        <form action="{{ route('admin.paket.penetapan.destroy', $ph->id_penetapan_harga) }}"
+                                            method="POST" class="d-inline form-hapus-penetapan">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @else
             <div class="alert alert-warning mb-0">
                 <i class="fas fa-exclamation-triangle"></i>
                 Belum ada penetapan harga untuk paket ini. Silakan klik "Tambah Harga".
             </div>
         @endif
-    </div>
-</div>
 
 {{-- ============================================================ --}}
 {{-- MODAL: TAMBAH PENETAPAN HARGA BARU --}}
@@ -218,9 +221,9 @@
                         <label>Tipe Hari</label>
                         <select name="tipe_hari" class="form-control" required>
                             <option value="">-- Pilih Hari --</option>
-                            <option value="harian" {{ old('tipe_hari') === 'harian' ? 'selected' : '' }}>Harian (Senin - Jumat)</option>
-                            <option value="akhir_pekan" {{ old('tipe_hari') === 'akhir_pekan' ? 'selected' : '' }}>Akhir Pekan (Sabtu - Minggu)</option>
-                            <option value="liburan" {{ old('tipe_hari') === 'liburan' ? 'selected' : '' }}>Liburan</option>
+                            <option value="harian" {{ old('tipe_hari') === 'harian' ? 'selected' : '' }}>Harian (Senin - Kamis)</option>
+                            <option value="akhir_pekan" {{ old('tipe_hari') === 'akhir_pekan' ? 'selected' : '' }}>Akhir Pekan (Jumat - Minggu)</option>
+                            <option value="liburan" {{ old('tipe_hari') === 'liburan' ? 'selected' : '' }}>Liburan (Senin - Minggu, sepanjang periode aktif)</option>
                         </select>
                     </div>
 
@@ -253,7 +256,7 @@
 
 
 {{-- ============================================================ --}}
-{{-- MODAL: EDIT PENETAPAN HARGA IN-PLACE --}}
+{{-- MODAL: EDIT PENETAPAN HARGA (Harga saja, Ruangan/Tipe Hari/SKU read-only) --}}
 {{-- ============================================================ --}}
 <div class="modal fade" id="modalEditPenetapan" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -261,22 +264,22 @@
             <form id="formEditPenetapan" method="POST">
                 @csrf
                 @method('PATCH')
-                <input type="hidden" name="editing_id" id="modalEditingId">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Penetapan Harga</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Edit Harga</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-3">
-                        <span class="badge badge-primary" id="modalEditRuangan"></span>
-                        <span id="modalEditTipeHariLabel"></span> — <span id="modalEditDurasi"></span> jam
-                    </p>
+                    <div class="alert alert-light border">
+                        <strong>Ruangan:</strong> <span id="modalEditRuangan"></span><br>
+                        <strong>Tipe Hari:</strong> <span id="modalEditTipeHariLabel"></span><br>
+                        <strong>Durasi:</strong> <span id="modalEditDurasi"></span> jam
+                    </div>
 
                     <div class="form-group">
-                        <label>Harga (Rp)</label>
+                        <label>Harga Baru (Rp)</label>
                         <input type="text" inputmode="numeric" name="harga" id="modalEditHarga"
                             class="form-control @error('harga') is-invalid @enderror" required>
                         @error('harga')
@@ -285,17 +288,13 @@
                     </div>
 
                     <div class="form-group mb-0">
-                        <label>SKU</label>
-                        <input type="text" name="sku" id="modalEditSku" maxlength="10"
-                            class="form-control @error('sku') is-invalid @enderror" required>
-                        @error('sku')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <label>SKU (Tidak dapat diubah)</label>
+                        <input type="text" id="modalEditSku" class="form-control bg-light" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    <button type="submit" class="btn btn-info">Update Harga</button>
                 </div>
             </form>
         </div>

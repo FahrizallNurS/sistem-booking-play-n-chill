@@ -107,9 +107,9 @@
                 <label>Tipe Hari</label>
                 <select name="tipe_hari" class="form-control">
                     <option value="">-- Pilih Hari --</option>
-                    <option value="harian" {{ old('tipe_hari') === 'harian' ? 'selected' : '' }}>Harian (Senin - Jumat)</option>
-                    <option value="akhir_pekan" {{ old('tipe_hari') === 'akhir_pekan' ? 'selected' : '' }}>Akhir Pekan (Sabtu - Minggu)</option>
-                    <option value="liburan" {{ old('tipe_hari') === 'liburan' ? 'selected' : '' }}>Liburan</option>
+                    <option value="harian" {{ old('tipe_hari') === 'harian' ? 'selected' : '' }}>Harian (Senin - Kamis)</option>
+                    <option value="akhir_pekan" {{ old('tipe_hari') === 'akhir_pekan' ? 'selected' : '' }}>Akhir Pekan (Jumat - Minggu)</option>
+                    <option value="liburan" {{ old('tipe_hari') === 'liburan' ? 'selected' : '' }}>Liburan (Senin - Minggu, sepanjang periode aktif)</option>
                 </select>
             </div>
 

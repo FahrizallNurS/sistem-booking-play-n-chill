@@ -84,7 +84,11 @@ class BookingController extends Controller
         $penetapanHarga = PenetapanHarga::currentPrices()
             ->with('paket.subKategori')
             ->where('id_ruangan', $roomId)
-            ->where('tipe_hari', $tipeHari)
+            ->where(function ($q) use ($tipeHari) {
+
+                $q->where('tipe_hari', $tipeHari)
+                ->orWhere('tipe_hari', 'liburan');
+            })
             ->whereHas('paket', function ($query) {
                 $query->where('is_active', 1);
             })
