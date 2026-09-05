@@ -77,7 +77,7 @@
                         
                         {{-- Area Upload --}}
                         <div class="mb-4 flex-grow-1 d-flex flex-column">
-                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Foto Produk</label>
+                            <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Foto Produk (Ratio 4/3)</label>
                             <div class="upload-area flex-grow-1 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden" id="uploadContainer" onclick="document.getElementById('fileUpload').click()">
                                 <div id="defaultUploadContent" class="text-center d-flex flex-column align-items-center">
                                     <i class="fas fa-upload mb-3" style="font-size: 3rem; color: #9ca3af;"></i>

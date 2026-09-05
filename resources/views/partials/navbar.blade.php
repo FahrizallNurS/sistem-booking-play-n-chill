@@ -3,7 +3,7 @@
     <div class="container-fluid px-4">
 
         <a class="navbar-brand p-0" href="{{ url('/') }}">
-            <img src="{{ asset('images/logo_dumb.png') }}" alt="Play N Chill" height="48">
+            <img src="{{ asset('gambar/Logo-PNC01.png') }}" alt="Play N Chill" height="48">
         </a>
 
         <button class="navbar-toggler border-0 shadow-none" type="button"

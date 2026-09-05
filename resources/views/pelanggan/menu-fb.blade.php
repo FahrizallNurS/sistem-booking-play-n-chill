@@ -164,17 +164,19 @@
     .fb-card:hover {
         transform: translateY(-8px);
     }
-    .fb-img-wrapper {
+   .fb-img-wrapper {
         position: relative;
-        height: 180px;
+        aspect-ratio: 4 / 3; /* Menjaga bentuk kotak tidak terlalu pipih di HP */
         overflow: hidden;
     }
     .fb-img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: cover; /* Kembalikan ke cover agar gambar penuh menyentuh sudut */
+        object-position: center; /* KUNCI RAHASIA: Memastikan crop otomatis selalu mengambil bagian paling tengah gambar */
         transition: transform 0.5s ease;
     }
+
     .fb-card:hover .fb-img {
         transform: scale(1.05);
     }
