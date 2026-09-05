@@ -55,7 +55,9 @@ class LaporanController extends Controller
 
         // --- Booking: filter tanggal pakai waktu_mulai ---
         $bookingQuery = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
-            ->whereBetween('waktu_mulai', [$start, $end]);
+            ->whereBetween('waktu_mulai', [$start, $end])
+            // Ubah kolom ke huruf kecil (lowercase) lalu cocokkan dengan 'selesai'
+            ->whereRaw('LOWER(status_sewa) = ?', ['selesai']); 
 
         if ($sumber) {
             $bookingQuery->where('sumber_booking', $sumber);
@@ -66,7 +68,9 @@ class LaporanController extends Controller
 
         // --- F&B: filter tanggal pakai created_at (tr_pos tidak punya waktu_mulai) ---
         $fnbQuery = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
-            ->whereBetween('created_at', [$start, $end]);
+            ->whereBetween('created_at', [$start, $end])
+            // Ubah kolom ke huruf kecil (lowercase) lalu cocokkan dengan 'selesai'
+            ->whereRaw('LOWER(status_pesanan) = ?', ['selesai']);
 
         if ($sumber) {
             $fnbQuery->where('sumber_pesanan', $sumber);

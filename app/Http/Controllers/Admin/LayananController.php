@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MsRuangan;
-use App\Models\MsPaket;
-use App\Models\PenetapanHarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -57,13 +55,6 @@ class LayananController extends Controller
             ->with('success', 'Ruangan berhasil ditambahkan!');
     }
 
-    public function show($id)
-    {
-        $ruangan = MsRuangan::with(['penetapanHarga.paket'])->findOrFail($id);
-        $pakets  = MsPaket::where('is_active', 1)->get();
-        return view('admin.layanan.show', compact('ruangan', 'pakets'));
-    }
-
     public function edit($id)
     {
         $ruangan = MsRuangan::findOrFail($id);
@@ -107,45 +98,6 @@ class LayananController extends Controller
 
         $status = $ruangan->is_active ? 'diaktifkan' : 'dinonaktifkan';
         return back()->with('success', "Ruangan berhasil {$status}!");
-    }
-
-    public function storePenetapanHarga(Request $request, $id)
-    {
-        $request->validate([
-            'id_paket'   => 'required|exists:ms_paket,id_paket',
-            'tipe_hari'  => 'required|in:harian,akhir_pekan,liburan',
-            'durasi_jam' => 'required|integer|min:1',
-            'harga'      => 'required|integer|min:0',
-        ]);
-
-        $exists = PenetapanHarga::where('id_ruangan', $id)
-            ->where('id_paket', $request->id_paket)
-            ->where('tipe_hari', $request->tipe_hari)
-            ->where('durasi_jam', $request->durasi_jam)
-            ->exists();
-
-        if ($exists) {
-            return back()->withErrors([
-                'durasi_jam' => 'Penetapan harga dengan kombinasi ini sudah ada.',
-            ]);
-        }
-
-        PenetapanHarga::create([
-            'id_ruangan' => $id,
-            'id_paket'   => $request->id_paket,
-            'tipe_hari'  => $request->tipe_hari,
-            'durasi_jam' => $request->durasi_jam,
-            'harga'      => $request->harga,
-        ]);
-
-        return redirect()->route('admin.layanan.show', $id)
-            ->with('success', 'Penetapan harga berhasil ditambahkan!');
-    }
-
-    public function destroyPenetapanHarga($id)
-    {
-        PenetapanHarga::findOrFail($id)->delete();
-        return back()->with('success', 'Penetapan harga berhasil dihapus!');
     }
 
     public function getRuanganByKategori($kategori)
