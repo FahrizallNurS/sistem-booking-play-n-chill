@@ -26,6 +26,7 @@ class BookingService
             $ph = PenetapanHarga::where('id_penetapan_harga', $data['id_penetapan_harga'])
                 ->where('id_ruangan', $data['id_ruangan'])
                 ->where('id_paket', $data['id_paket'])
+                ->currentPrices()
                 ->first();
 
             if (!$ph) {
@@ -75,10 +76,8 @@ class BookingService
                 ]);
             }
 
-            do {
-                $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-            } while (TrTransaksi::where('kode_sewa', $kode)->exists());
-
+            $kode = TrTransaksi::generateKodeSewa();
+            
            $transaksi = TrTransaksi::create([
                 'id_penetapan_harga' => $ph->id_penetapan_harga,
                 'id_pengguna'        => $user->id_pengguna,

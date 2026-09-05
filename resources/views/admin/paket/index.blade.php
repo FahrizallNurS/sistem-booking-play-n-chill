@@ -12,6 +12,10 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Daftar Paket</h3>
@@ -52,7 +56,7 @@
                                 @if($paket->is_active)
                                     <span class="badge badge-success">Aktif</span>
                                 @else
-                                    <span class="badge badge-secondary">Nonaktif</span>  {{-- ganti dari badge-danger --}}
+                                    <span class="badge badge-secondary">Nonaktif</span>
                                 @endif
                             </td>
                             <td>
@@ -63,7 +67,6 @@
                                 
                                 {{-- Tombol Toggle Status --}}
                                 @if($paket->is_active)
-                                    {{-- Paket Aktif - Tampilkan tombol Nonaktifkan --}}
                                     <form action="{{ route('admin.paket.toggle-aktif', $paket->id_paket) }}" 
                                         method="POST" 
                                         style="display:inline">
@@ -76,7 +79,6 @@
                                         </button>
                                     </form>
                                 @else
-                                    {{-- Paket Nonaktif - Tampilkan tombol Aktifkan --}}
                                     <form action="{{ route('admin.paket.toggle-aktif', $paket->id_paket) }}" 
                                         method="POST" 
                                         style="display:inline">
@@ -90,16 +92,18 @@
                                     </form>
                                 @endif
 
-                                @php
-                                    $punya_transaksi = $paket->penetapanHarga->flatMap->transaksis->isNotEmpty();
-                                @endphp
-
+                                {{--
+                                    FIX: $paket->punya_transaksi sekarang dihitung di controller
+                                    berdasarkan SEMUA penetapan harga (current + historical),
+                                    bukan cuma yang currentPrices(). Jadi modal yang muncul di
+                                    sini sudah konsisten dengan pengecekan di destroy().
+                                --}}
                                 <button type="button" class="btn btn-danger btn-sm"
                                     data-toggle="modal"
-                                    data-target="{{ $punya_transaksi ? '#modalBlokHapus' . $paket->id_paket : '#modalHapus' . $paket->id_paket }}">
+                                    data-target="{{ $paket->punya_transaksi ? '#modalBlokHapus' . $paket->id_paket : '#modalHapus' . $paket->id_paket }}">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
-                                @if($punya_transaksi)
+                                @if($paket->punya_transaksi)
                                     <div class="modal fade" id="modalBlokHapus{{ $paket->id_paket }}" tabindex="-1" role="dialog">
                                         <div class="modal-dialog modal-dialog-centered" role="document">
                                             <div class="modal-content">

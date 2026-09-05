@@ -320,7 +320,7 @@ window.addEventListener('load', function () {
             $('#rincian-durasi').text((fnbBookingData.durasi || '-') + ' Jam');
             $('#rincian-tipe-hari').text(fnbBookingData.tipeHari || '-');
             $('#rincian-total-harga').text('Rp ' + fnbBookingData.totalHarga.toLocaleString('id-ID'));
-            $('#detail-metode-bayar').text(fnbBookingData.metodeBayar || '-');
+            $('#detail-metode-bayar').text(fnbMetodePembayaran || '-');
 
             let itemsHtml = '';
             Object.values(fnbCart).forEach(function (item) {

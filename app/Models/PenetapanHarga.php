@@ -60,4 +60,16 @@ class PenetapanHarga extends Model
             ->orderBy('id_penetapan_harga', 'desc')
             ->first();
     }
+
+        public static function tipeHariFromDate($tanggal)
+    {
+        $carbon = $tanggal instanceof \Carbon\Carbon
+            ? $tanggal
+            : \Carbon\Carbon::parse($tanggal);
+
+        // dayOfWeekIso: 1 = Senin ... 7 = Minggu
+        return in_array($carbon->dayOfWeekIso, [1, 2, 3, 4])
+            ? 'harian'
+            : 'akhir_pekan';
+    }
 }

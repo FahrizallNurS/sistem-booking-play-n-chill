@@ -21,7 +21,9 @@ class BookingController extends Controller
     {
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
-        $tipe = $request->input('tipe', 'reguler');
+
+        $tipe    = $request->input('tipe', 'reguler');
+        $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
 
         $kategoriMap = [
             'reguler'       => 'REGULAR',
@@ -34,38 +36,68 @@ class BookingController extends Controller
 
         $rooms = MsRuangan::where('kategori', $kategori)
             ->where('is_active', 1)
-            ->get()
-            ->map(function ($room) {
-                $sedangDipakai = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($room) {
-                        $q->where('id_ruangan', $room->id_ruangan);
-                    })
-                    ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
-                    ->where('waktu_mulai', '<=', now())
-                    ->where('waktu_selesai', '>=', now())
-                    ->exists();
+            ->get();
 
-                $room->tersedia = !$sedangDipakai;
-                return $room;
-            });
+        // 3 opsi tanggal cepat: hari ini, besok, lusa — dihitung ulang tiap request
+        $quickDates = collect(range(0, 2))->map(function ($i) {
+            $date = now()->addDays($i);
+            return [
+                'value'   => $date->format('Y-m-d'),
+                'label'   => match ($i) {
+                    0       => 'Hari Ini',
+                    1       => 'Besok',
+                    default => $date->translatedFormat('l'),
+                },
+                'tanggal_display' => $date->translatedFormat('d M'),
+                'nama_hari'       => $date->translatedFormat('l'),
+            ];
+        });
 
-        return view('pelanggan.booking', compact('rooms', 'tipe'));
+        return view('pelanggan.booking', compact('rooms', 'tipe', 'tanggal', 'quickDates'));
     }
 
     public function paket(Request $request)
     {
-        $roomId = $request->input('room');
-        $tipe   = $request->input('tipe', 'reguler');
+        $roomId  = $request->input('room');
+        $tipe    = $request->input('tipe', 'reguler');
+        $tanggal = $request->input('tanggal');
 
-        $room = MsRuangan::findOrFail($roomId);
-        $penetapanHarga = PenetapanHarga::with('paket.subKategori')
+        if (empty($tanggal)) {
+            return redirect()->route('booking')
+                ->with('error', 'Silakan pilih tanggal terlebih dahulu.');
+        }
+
+        $room     = MsRuangan::findOrFail($roomId);
+        $tipeHari = PenetapanHarga::tipeHariFromDate($tanggal);
+
+        // FIX KRITIS: pakai currentPrices() supaya penetapan harga LAMA (histori,
+        // sisa dari admin update harga) tidak ikut ditampilkan ke pelanggan.
+        // Tanpa ini, paket yang sama bisa muncul dobel dengan harga berbeda
+        // setiap kali admin mengubah harga suatu paket.
+        $adaPaketSamaSekali = PenetapanHarga::currentPrices()
             ->where('id_ruangan', $roomId)
-            ->whereHas('paket', function($query) {
-                $query->where('is_active', 1);  
+            ->whereHas('paket', function ($query) {
+                $query->where('is_active', 1);
+            })
+            ->exists();
+
+        $penetapanHarga = PenetapanHarga::currentPrices()
+            ->with('paket.subKategori')
+            ->where('id_ruangan', $roomId)
+            ->where(function ($q) use ($tipeHari) {
+
+                $q->where('tipe_hari', $tipeHari)
+                ->orWhere('tipe_hari', 'liburan');
+            })
+            ->whereHas('paket', function ($query) {
+                $query->where('is_active', 1);
             })
             ->get()
             ->groupBy('id_paket');
 
-        return view('pelanggan.booking-paket', compact('roomId', 'tipe', 'room', 'penetapanHarga'));
+        return view('pelanggan.booking-paket', compact(
+            'roomId', 'tipe', 'room', 'penetapanHarga', 'tanggal', 'tipeHari', 'adaPaketSamaSekali'
+        ));
     }
 
     public function form(Request $request)
@@ -73,20 +105,31 @@ class BookingController extends Controller
         $roomId  = $request->input('room');
         $tipe    = $request->input('tipe');
         $paketId = $request->input('paket');
-        $tanggal = now()->format('Y-m-d');
-        $room    = MsRuangan::findOrFail($roomId);
-        $paket   = MsPaket::where('id_paket', $paketId)
-        ->where('is_active', 1)  
-        ->firstOrFail();
+        $tanggal = $request->input('tanggal');
 
+        if (empty($tanggal)) {
+            return redirect()->route('booking')
+                ->with('error', 'Silakan pilih tanggal terlebih dahulu.');
+        }
 
-        $penetapanHarga = PenetapanHarga::where('id_ruangan', $roomId)
+        $room  = MsRuangan::findOrFail($roomId);
+        $paket = MsPaket::where('id_paket', $paketId)
+            ->where('is_active', 1)
+            ->firstOrFail();
+
+        // FIX KRITIS: sama seperti di atas — currentPrices() wajib ada,
+        // kalau tidak, tombol durasi yang sama bisa muncul dobel dengan
+        // harga lama vs harga baru setelah admin update harga.
+        $penetapanHarga = PenetapanHarga::currentPrices()
+            ->where('id_ruangan', $roomId)
             ->where('id_paket', $paketId)
             ->get();
 
         $jamTerpakai = $this->calculateOccupiedSlots($roomId, $tanggal);
 
-        return view('pelanggan.booking-form', compact('room', 'tipe', 'paket', 'penetapanHarga', 'jamTerpakai'));
+        return view('pelanggan.booking-form', compact(
+            'room', 'tipe', 'paket', 'penetapanHarga', 'jamTerpakai', 'tanggal'
+        ));
     }
 
     public function getJamTerpakai(Request $request): JsonResponse
@@ -201,9 +244,7 @@ class BookingController extends Controller
                 ]);
             }
 
-            do {
-                    $kode = 'PNC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
-            } while (TrTransaksi::where('kode_sewa', $kode)->exists());
+            $kode = TrTransaksi::generateKodeSewa();
 
             $jumlahDp  = null;
             $sisaBayar = 0;
@@ -312,7 +353,6 @@ class BookingController extends Controller
     // --- FUNGSI BARU UNTUK SKENARIO HANYA PESAN F&B (MANDIRI) ---
     public function checkoutFb(Request $request)
     {
-        // 🔹 TAMBAHKAN PENGECEKAN LOGIN DI SINI 🔹
         if (!Auth::check()) {
             return redirect('/login')->with('error', 'Silakan login terlebih dahulu untuk melanjutkan pesanan.');
         }
@@ -330,7 +370,7 @@ class BookingController extends Controller
 
         $pos = TrPos::create([
             'id_transaksi'   => null,
-            'id_pengguna'    => Auth::user()->id_pengguna, // Karena sudah dicek di atas, ini pasti aman
+            'id_pengguna'    => Auth::user()->id_pengguna,
             'total_pos'      => $totalFb,
             'status_pesanan' => 'Menunggu',
             'sumber_pesanan' => 'Online',
@@ -347,7 +387,6 @@ class BookingController extends Controller
                 'subtotal'     => $item['price'] * $item['qty'],
             ]);
 
-            // PENGURANGAN STOK OTOMATIS (yang baru saja kita tambahkan sebelumnya)
             $produk = \App\Models\MsProduk::find($item['id']);
             if ($produk) {
                 $produk->decrement('stock', $item['qty']);
@@ -393,7 +432,7 @@ class BookingController extends Controller
         ]);
 
         $noWa = "6285735329227"; 
-        $noPesanan = "FNBPNC-" . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT);
+        $noPesanan = "FNB" . TrTransaksi::PREFIX_KODE_SEWA . "-" . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT);
         $pesan = "Halo Admin Play N Chill, saya ingin konfirmasi pembayaran QRIS untuk F&B dengan Nomor Pesanan: *{$noPesanan}*.\n\nBerikut saya lampirkan bukti transfernya.";
         
         $waUrl = "https://wa.me/{$noWa}?text=" . urlencode($pesan);

@@ -145,11 +145,10 @@
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-9">
 
-                {{-- PERUBAHAN 1: Menambahkan 'novalidate' agar tooltip browser mati --}}
                 <form action="{{ url('/booking/penawaran-fb') }}" method="GET" novalidate>
 
                     <input type="hidden" name="id_penetapan_harga" :value="selectedPricing ? selectedPricing.id_penetapan_harga : ''">
-                    <input type="hidden" name="tanggal" :value="tanggal">
+                    <input type="hidden" name="tanggal" value="{{ $tanggal }}">
                     <input type="hidden" name="waktu_mulai" :value="confirmedTime">
                     <input type="hidden" name="opsi_pembayaran" :value="paymentMethod">
 
@@ -171,32 +170,28 @@
                     {{-- TANGGAL --}}
                     <div class="booking-card">
                         <span class="section-badge">Tanggal</span>
-                        <input type="date"
-                            x-model="tanggal"
-                            @change="updateJamTerpakai()"
-                            min="{{ now()->format('Y-m-d') }}"
-                            class="form-control mt-2">
+                        <p class="text-white fw-bold mt-2 mb-0" style="font-size: 1.05rem;">
+                            <i class="fas fa-calendar-alt me-2" style="color: var(--yellow);"></i>
+                            {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('l, d F Y') }}
+                        </p>
                     </div>
 
                     {{-- WAKTU --}}
                     <div class="booking-card">
                         <span class="section-badge">Waktu</span>
+                        
+                        {{-- Teks statis operasional --}}
                         <div class="text-white-50 small mb-2 mt-1" x-show="tanggal">
                             <i class="fas fa-clock"></i>
-                            <span x-text="(() => {
-                                const [y, m, d] = tanggal.split('-').map(Number);
-                                const h = new Date(y, m - 1, d).getDay();
-                                if (h === 0 || h === 6) return 'Jam operasional: 10.00 – 00.00';
-                                if (h === 5) return 'Jam operasional: 13.00 – 00.00';
-                                return 'Jam operasional: 14.00 – 22.00';
-                            })()"></span>
+                            <span>Jam operasional: 10.00 – 01.00</span>
                         </div>
 
+                        {{-- Tambahan slot waktu 00.00 dan 00.30 --}}
                         @php
                             $times = ['10.00','10.30','11.00','11.30','12.00','12.30','13.00','13.30',
                             '14.00','14.30','15.00','15.30','16.00','16.30','17.00','17.30',
                             '18.00','18.30','19.00','19.30','20.00','20.30','21.00','21.30',
-                            '22.00','22.30','23.00','23.30'];
+                            '22.00','22.30','23.00','23.30','00.00'];
                         @endphp
 
                         <div class="time-grid">
@@ -262,7 +257,6 @@
                             </div>
                         </div>
 
-                        {{-- PERUBAHAN 2: Menambahkan x-model dan memunculkan error custom --}}
                         <div x-show="paymentMethod === 'dp'" class="mt-3" x-cloak>
                             <label class="text-white small mb-1">Jumlah DP (Rp)</label>
                             <input type="number" name="jumlah_dp" class="form-control"
@@ -271,7 +265,6 @@
                                 :class="{'is-invalid': isDpError}"
                                 :max="selectedPricing ? selectedPricing.harga : ''">
                             
-                            {{-- Pesan Peringatan Custom --}}
                             <div x-show="isDpError" class="text-danger mt-1 fw-bold" style="font-size: 0.85rem;" x-cloak>
                                 <i class="fas fa-exclamation-triangle"></i> Jumlah DP tidak boleh melebihi total harga paket (Rp <span x-text="totalHarga"></span>)!
                             </div>
@@ -331,10 +324,9 @@
 
                         <div class="row mt-4 g-3">
                             <div class="col-6">
-                                <a href="{{ url('/booking/penawaran-fb') }}" class="btn-action btn-secondary-action w-100">Kembali</a>
+                                <a href="{{ url('/booking/paket?room='.$room->id_ruangan.'&tipe='.$tipe.'&tanggal='.$tanggal) }}" class="btn-action btn-secondary-action w-100">Kembali</a>
                             </div>
                             <div class="col-6">
-                                {{-- PERUBAHAN 3: Disable tombol submit jika ada error DP --}}
                                 <button type="submit"
                                     :disabled="!confirmedTime || !selectedPricing || isDpError"
                                     class="btn-action btn-primary-action w-100">
@@ -358,16 +350,14 @@ function bookingForm() {
         confirmedTime: '',
         selectedPricing: null,
         paymentMethod: 'full',
-        tanggal: "{{ now()->format('Y-m-d') }}",
+        tanggal: "{{ $tanggal }}",
         jamTerpakai: @json($jamTerpakai ?? []),
         roomId: {{ $room->id_ruangan }},
-        
-        // PERUBAHAN 4: State baru untuk melacak DP dan Error-nya
-        dpAmount: '', 
-        
+
+        dpAmount: '',
+
         get isDpError() {
             if (this.paymentMethod === 'dp' && this.selectedPricing) {
-                // Jika input DP lebih besar dari harga aslinya, maka Error!
                 return Number(this.dpAmount) > Number(this.selectedPricing.harga);
             }
             return false;
@@ -396,24 +386,28 @@ function bookingForm() {
             
             if (tanggalDate.getTime() === hariIni.getTime()) {
                 const normalized = slot.replace('.', ':');
-                const [jamSlot, menitSlot] = normalized.split(':').map(Number);
+                let [jamSlot, menitSlot] = normalized.split(':').map(Number);
+                
+                // FIX: Logika jam melewati tengah malam (00:xx dan 01:xx)
+                // Jika jam kurang dari jam buka (misal 10 pagi), anggap sebagai jam + 24 (hari berikutnya)
+                if (jamSlot < 10) {
+                    jamSlot += 24;
+                }
+                
                 const slotMenit = jamSlot * 60 + menitSlot;
-                const sekarangMenit = now.getHours() * 60 + now.getMinutes();
+                
+                // Sesuaikan juga jam saat ini (jika user booking saat larut malam)
+                let jamSekarang = now.getHours();
+                if (jamSekarang < 10) {
+                    jamSekarang += 24;
+                }
+                
+                const sekarangMenit = jamSekarang * 60 + now.getMinutes();
+                
                 if (slotMenit <= sekarangMenit) return true;
             }
 
             return false;
-        },
-
-        async updateJamTerpakai() {
-            this.confirmedTime = '';
-            try {
-                const res = await fetch('/booking/jam-terpakai?room=' + this.roomId + '&tanggal=' + this.tanggal);
-                const data = await res.json();
-                this.jamTerpakai = data.terpakai;
-            } catch(e) {
-                console.error('Gagal fetch jam terpakai', e);
-            }
         }
     }
 }
