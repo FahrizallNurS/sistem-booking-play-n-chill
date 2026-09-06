@@ -57,10 +57,7 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('admin.layanan.show', $ruangan->id_ruangan) }}"
-                                    class="btn btn-info btn-sm">
-                                    <i class="fas fa-eye"></i> Detail
-                                </a>
+
                                 <button type="button" class="btn btn-warning btn-sm btn-edit"
                                     data-id="{{ $ruangan->id_ruangan }}"
                                     data-nama="{{ $ruangan->nama_ruangan }}"
