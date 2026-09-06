@@ -266,6 +266,7 @@ class BookingController extends Controller
                 'status_sewa'        => 'ditahan',
                 'status_pembayaran'  => $request->opsi_pembayaran === 'full' ? 'menunggu' : 'dp',
                 'sisa_bayar'         => $sisaBayar,
+                'metode_pembayaran'  => strtoupper($request->input('metode_pembayaran', 'QRIS')),
                 'sumber_booking'      => 'Online',
             ]);
 
@@ -277,12 +278,13 @@ class BookingController extends Controller
                     $totalFb += ($item['price'] * $item['qty']);
                 }
 
-                $pos = TrPos::create([
-                    'id_transaksi'   => $transaksi->id_transaksi,
-                    'id_pengguna'    => Auth::user()->id_pengguna, 
-                    'sumber_pesanan' => 'Online',                  
-                    'total_pos'      => $totalFb,
-                    'status_pesanan' => 'Menunggu', 
+               $pos = TrPos::create([
+                    'id_transaksi'      => $transaksi->id_transaksi,
+                    'id_pengguna'       => Auth::user()->id_pengguna, 
+                    'sumber_pesanan'    => 'Online',                  
+                    'total_pos'         => $totalFb,
+                    'status_pesanan'    => 'Menunggu', 
+                    'metode_pembayaran' => strtoupper($request->input('metode_pembayaran', 'QRIS')), // <--- Tambahkan baris ini
                 ]);
 
                foreach ($keranjangFb as $item) {
@@ -368,14 +370,14 @@ class BookingController extends Controller
             $totalFb += ($item['price'] * $item['qty']);
         }
 
-        $pos = TrPos::create([
-            'id_transaksi'   => null,
-            'id_pengguna'    => Auth::user()->id_pengguna,
-            'total_pos'      => $totalFb,
-            'status_pesanan' => 'Menunggu',
-            'sumber_pesanan' => 'Online',
-            'catatan'        => $request->catatan,
-            'metode_pembayaran' => $request->metode_pembayaran,
+       $pos = TrPos::create([
+            'id_transaksi'      => null,
+            'id_pengguna'       => Auth::user()->id_pengguna,
+            'total_pos'         => $totalFb,
+            'status_pesanan'    => 'Menunggu',
+            'sumber_pesanan'    => 'Online',
+            'catatan'           => $request->catatan,
+            'metode_pembayaran' => strtoupper($request->input('metode_pembayaran', 'QRIS')), 
         ]);
 
         foreach ($keranjangFb as $item) {

@@ -20,15 +20,20 @@ class MetodePembayaranController extends Controller
         $jenisFilter = strtolower($request->input('jenis', 'semua'));
 
         // =======================================================
-        // 2. LOGIKA DYNAMIC DATE
+        // 2. LOGIKA DYNAMIC DATE (DIPERBAIKI)
         // =======================================================
+        // Perbaikan: Mengecek empty() agar tidak error saat request tanggal kosong
         if ($periode === 'harian') {
-            $val = $request->input('tanggal', Carbon::now()->format('Y-m-d'));
+            $val = $request->input('tanggal');
+            if (empty($val)) $val = Carbon::now()->format('Y-m-d');
+            
             $baseDateStart = Carbon::parse($val);
             $queryStart = $baseDateStart->copy()->startOfDay();
             $queryEnd   = $baseDateStart->copy()->endOfDay();
         } elseif ($periode === 'mingguan') {
-            $val = $request->input('minggu', Carbon::now()->format('Y-\WW')); 
+            $val = $request->input('minggu');
+            if (empty($val)) $val = Carbon::now()->format('Y-\WW'); 
+            
             $baseDateStart = Carbon::now();
             if (preg_match('/^(\d{4})-W(\d{2})$/', $val, $matches)) {
                 $baseDateStart->setISODate($matches[1], $matches[2]);
@@ -36,24 +41,28 @@ class MetodePembayaranController extends Controller
             $queryStart = $baseDateStart->copy()->startOfWeek();
             $queryEnd   = $baseDateStart->copy()->endOfWeek();
         } else {
-            $val = $request->input('bulan', Carbon::now()->format('Y-m'));
+            $val = $request->input('bulan');
+            if (empty($val)) $val = Carbon::now()->format('Y-m');
+            
             $baseDateStart = Carbon::parse($val . '-01'); 
             $queryStart = $baseDateStart->copy()->startOfMonth();
             $queryEnd   = $baseDateStart->copy()->endOfMonth();
         }
 
         // =======================================================
-        // 3. QUERY DATA TRANSAKSI
+        // 3. QUERY DATA TRANSAKSI (DIPERBAIKI)
         // =======================================================
+        // Perbaikan: Menggunakan whereIn untuk menangkap 'Lunas', 'lunas', atau 'LUNAS'
         $trxQuery = TrTransaksi::whereBetween('created_at', [$queryStart, $queryEnd])
             ->whereNotIn('status_sewa', ['Batal', 'Dibatalkan'])
-            ->where('status_pembayaran', 'lunas'); 
+            ->whereIn('status_pembayaran', ['lunas', 'Lunas', 'LUNAS']); 
             
         $posQuery = TrPos::whereBetween('created_at', [$queryStart, $queryEnd])
             ->whereNotIn('status_pesanan', ['Dibatalkan'])
-            ->where('status_pembayaran', 'lunas'); 
+            ->whereIn('status_pembayaran', ['lunas', 'Lunas', 'LUNAS']); 
 
         if ($jenisFilter !== 'semua') {
+            // Perbaikan: Gunakan uppercase statis
             $trxQuery->where('metode_pembayaran', strtoupper($jenisFilter));
             $posQuery->where('metode_pembayaran', strtoupper($jenisFilter));
         }
@@ -62,7 +71,7 @@ class MetodePembayaranController extends Controller
         $poses = $posQuery->get();
 
         // =======================================================
-        // 4. HITUNG RINGKASAN & TABEL
+        // 4. HITUNG RINGKASAN & TABEL (DIPERBAIKI)
         // =======================================================
         $methodStats = [
             'QRIS'  => ['count' => 0, 'revenue' => 0],
@@ -70,7 +79,8 @@ class MetodePembayaranController extends Controller
         ];
 
         foreach ($trxs as $trx) {
-            $m = strtoupper($trx->metode_pembayaran ?? '');
+            // Perbaikan: Tambahkan fungsi trim() untuk membuang spasi liar
+            $m = trim(strtoupper($trx->metode_pembayaran ?? ''));
             if (isset($methodStats[$m])) {
                 $methodStats[$m]['count']++;
                 $methodStats[$m]['revenue'] += $trx->total_harga;
@@ -78,7 +88,8 @@ class MetodePembayaranController extends Controller
         }
 
         foreach ($poses as $pos) {
-            $m = strtoupper($pos->metode_pembayaran ?? '');
+            // Perbaikan: Tambahkan fungsi trim() untuk membuang spasi liar
+            $m = trim(strtoupper($pos->metode_pembayaran ?? ''));
             if (isset($methodStats[$m])) {
                 $methodStats[$m]['count']++;
                 $methodStats[$m]['revenue'] += $pos->total_pos;
@@ -129,7 +140,7 @@ class MetodePembayaranController extends Controller
         }
 
         // =======================================================
-        // 5. DATA GRAFIK
+        // 5. DATA GRAFIK (DIPERBAIKI)
         // =======================================================
         $chartLabels = [];
         $chartDatasets = [];
@@ -170,12 +181,14 @@ class MetodePembayaranController extends Controller
                     $chartLabels[] = $step['label'];
                 }
 
-              $sumTrx = $trxs->filter(function($t) use ($m, $step) {
-                return strtoupper($t->metode_pembayaran ?? '') === $m && $step['filter'](Carbon::parse($t->created_at));
+                // Perbaikan: Trim ditambahkan di dalam filter grafik
+                $sumTrx = $trxs->filter(function($t) use ($m, $step) {
+                    return trim(strtoupper($t->metode_pembayaran ?? '')) === $m && $step['filter'](Carbon::parse($t->created_at));
                 })->sum('total_harga');
 
+                // Perbaikan: Trim ditambahkan di dalam filter grafik
                 $sumPos = $poses->filter(function($p) use ($m, $step) {
-                    return strtoupper($p->metode_pembayaran ?? '') === $m && $step['filter'](Carbon::parse($p->created_at));
+                    return trim(strtoupper($p->metode_pembayaran ?? '')) === $m && $step['filter'](Carbon::parse($p->created_at));
                 })->sum('total_pos');
 
                 $dataArr[] = $sumTrx + $sumPos;

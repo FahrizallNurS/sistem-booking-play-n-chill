@@ -329,7 +329,7 @@ class BookingController extends Controller
     // ============================================================
     // SELESAI
     // ============================================================
-    public function selesai($id)
+   public function selesai($id)
     {
         $booking = TrTransaksi::findOrFail($id);
 
@@ -339,14 +339,15 @@ class BookingController extends Controller
         }
 
         $booking->update([
-            'status_sewa' => 'selesai',
-            'id_admin'    => auth()->id(),
+            'status_sewa'       => 'selesai',
+            'status_pembayaran' => 'lunas', // <-- Wajib ditambahkan
+            'sisa_bayar'        => 0,       // <-- Wajib ditambahkan
+            'id_admin'          => auth()->id(),
         ]);
 
         return redirect()->route('admin.booking.show', $id)
-            ->with('success', 'Booking ditandai selesai.');
+            ->with('success', 'Booking ditandai selesai dan otomatis lunas.');
     }
-
     // ============================================================
     // BATALKAN
     // ============================================================
