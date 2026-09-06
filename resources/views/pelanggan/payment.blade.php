@@ -26,6 +26,10 @@
             .payment-wrapper {
                 padding: 24px 16px; 
             }
+            .qr-box img {
+                width: 200px;
+                height: 200px;
+            }
         }
 
         .timer-bar {
@@ -57,6 +61,13 @@
             border-radius: 50px; padding: 14px; border: none; transition: 0.2s;
         }
         .btn-full-white:hover { background-color: #f0f0f0; color: #352285; }
+
+        .qr-box img {
+            width: 240px;
+            height: 240px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -245,7 +256,7 @@
 
             <div class="text-center">
                 <div class="qr-box shadow">
-                    <img src="{{ asset('images/qris.jpeg') }}" class="img-fluid" alt="QR Code QRIS" style="width: 180px; height: 180px; object-fit: cover;">
+                    <img src="{{ asset('images/qris_play_n_chill_hd.png') }}" class="img-fluid" alt="QR Code QRIS">
                 </div>
             </div>
 

@@ -431,7 +431,7 @@ class BookingController extends Controller
             'status_pembayaran' => 'sudah-bayar'
         ]);
 
-        $noWa = "6285735329227"; 
+        $noWa = "6285819600024"; 
         $noPesanan = "FNB" . TrTransaksi::PREFIX_KODE_SEWA . "-" . str_pad($pos->id_pos, 3, '0', STR_PAD_LEFT);
         $pesan = "Halo Admin Play N Chill, saya ingin konfirmasi pembayaran QRIS untuk F&B dengan Nomor Pesanan: *{$noPesanan}*.\n\nBerikut saya lampirkan bukti transfernya.";
         

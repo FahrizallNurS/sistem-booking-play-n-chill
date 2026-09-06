@@ -223,7 +223,7 @@
 
                         {{-- WA Button — hanya kalau masih menunggu --}}
                         @if($booking->status_sewa === 'ditahan')
-                            <a href="https://wa.me/6282234323950?text=Halo min👋🏻, saya mau konfirmasi booking {{ $booking->kode_sewa }}"
+                            <a href="https://wa.me/6285819600024?text=Halo min👋🏻, saya mau konfirmasi booking {{ $booking->kode_sewa }}"
                                 class="btn-wa-confirm mt-4 d-block text-center">
                                 KONFIRMASI PEMBAYARAN
                                 <i class="fa-brands fa-whatsapp fs-5 ms-2 text-success"></i>

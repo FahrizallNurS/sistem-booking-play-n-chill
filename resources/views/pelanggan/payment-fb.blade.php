@@ -89,10 +89,10 @@
             margin-bottom: 15px;
         }
         .qr-box img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 4px;
+            width: 240px;  /* Ukuran diperbesar */
+            height: 240px; /* Ukuran diperbesar */
+            object-fit: contain; /* Memastikan QR code utuh tidak terpotong */
+            border-radius: 8px;
         }
         .qris-text {
             color: #111;
@@ -223,7 +223,7 @@
 
         <div class="qr-container shadow">
             <div class="qr-box">
-                <img src="{{ asset('images/qris.jpeg') }}" alt="QR Code QRIS">
+                <img src="{{ asset('images/qris_play_n_chill_hd.png') }}" alt="QR Code QRIS">
             </div>
             <div class="qris-text">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">

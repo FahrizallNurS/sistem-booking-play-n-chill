@@ -218,7 +218,7 @@
                 {{-- Tombol aksi --}}
                 @if($bookingAktif->status_pembayaran !== 'lunas')
                 <div class="d-flex gap-3 mt-3 flex-wrap">
-                    <a href="https://wa.me/6285735329227?text=Halo admin, saya ingin konfirmasi pembayaran booking {{ $bookingAktif->kode_sewa }}"
+                    <a href="https://wa.me/6285819600024?text=Halo admin, saya ingin konfirmasi pembayaran booking {{ $bookingAktif->kode_sewa }}"
                         class="btn-bayar">
                         <i class="fab fa-whatsapp me-2"></i> Konfirmasi Pembayaran
                     </a>

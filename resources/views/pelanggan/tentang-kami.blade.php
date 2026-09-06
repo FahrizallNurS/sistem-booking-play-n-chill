@@ -214,7 +214,6 @@
             margin-bottom: 50px;
         }
 
-
         @media (max-width: 767px) {
             .hero-section {
                 padding: 70px 16px 30px;
@@ -259,16 +258,11 @@
         <div class="badge-location">Play N Chill</div>
 
         <h1 class="main-title">
-            Istirahat Total di
-            <span class="text-purple-light">Level</span>
-            Maksimal
+            Hiburan <span class="text-purple-light">3-in-1</span> dalam Satu Lokasi
         </h1>
 
         <p class="description-text">
-            Di Play N Chill, kami percaya waktu luang itu berharga.
-            Kami hadir bukan cuma sebagai tempat main,
-            tapi sebagai tempat kamu bersembunyi sejenak dari rutinitas
-            dan benar-benar menikmati waktu untuk dirimu sendiri.
+            Play N Chill adalah pusat hiburan generasi muda dengan konsep 3-in-1 experience. Kami menggabungkan serunya bermain PlayStation, karaoke, dan nyamannya nonton bareng ke dalam satu tempat yang sama!
         </p>
     </div>
 
@@ -277,16 +271,12 @@
             <div class="custom-card">
                 <h3 class="fw-bold mb-4">
                     <span class="orange-line"></span>
-                    Lahir dari Rasa Bosan
+                    Solusi Melepas Penat
                 </h3>
 
                 <p class="description-text"
                    style="margin-left: 0; text-align: left; max-width: 100%;">
-                    Play N Chill hadir di Madiun sebagai tempat hiburan all-in-one
-                    yang berbeda dari yang lain.
-                    Kami bukan sekadar tempat main biasa,
-                    kami adalah ruang di mana kamu bisa benar-benar melepas penat
-                    dan menikmati waktu terbaikmu.
+                    Kami hadir sebagai solusi bagi kamu yang mencari tempat hiburan berkualitas untuk melepas penat atau sekadar bersenang-senang. Mulai dari quality time berdua bersama pasangan, seru-seruan bareng bestie, hingga kumpul rame-rame bareng teman se-circle, ruang kami didesain khusus agar kamu bebas beraktivitas tanpa takut bosan.
                 </p>
             </div>
         </div>
@@ -294,64 +284,60 @@
 
     <div class="text-center mt-5 pt-5">
 
-        <h2 class="section-title">Kenapa Harus Kami?</h2>
-        <p class="sub-title">Pengalaman gaming premium yang berbeda</p>
+        <h2 class="section-title">Fasilitas & Layanan Kami</h2>
+        <p class="sub-title">Pengalaman hiburan lengkap untuk segala suasana</p>
 
         <div class="features-scroll-wrap">
 
             <div class="custom-card"
-                 style="background-image: url('{{ asset('images/privateroom.jpg') }}');">
+                 style="background-image: url('{{ asset('images/Reguler-Area.png') }}');">
                 <div class="card-icon-box">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-couch"></i>
                 </div>
 
-                <h5 class="fw-bold">Privasi Mutlak</h5>
+                <h5 class="fw-bold">Pilihan Ruang Nyaman</h5>
 
                 <p class="small opacity-75">
-                    Semua ruangan kami dirancang agar kamu bisa menikmati waktu
-                    tanpa gangguan siapapun.
+                    Tersedia Reguler Area dengan beanbag, kipas hingga VIP Room lengkap dengan AC, sofa, soundbar dan 4K TV. Semuanya bebas kamu pilih!
                 </p>
             </div>
 
             <div class="custom-card"
-                 style="background-image: url('{{ asset('images/gaming.jpg') }}');">
+                 style="background-image: url('{{ asset('images/Playstations.png') }}');">
                 <div class="card-icon-box">
                     <i class="fas fa-gamepad"></i>
                 </div>
 
-                <h5 class="fw-bold">Gaming Terkini</h5>
+                <h5 class="fw-bold">PlayStation Experience</h5>
 
                 <p class="small opacity-75">
-                    Rasakan sensasi bermain di konsol PS3 hingga PS5 terbaru
-                    dengan layar 4K dan audio maksimal.
+                    Rasakan sensasi mabar dengan konsol terkini, dimanjakan oleh ketajaman layar 4K dan audio yang menggelegar.
                 </p>
             </div>
 
             <div class="custom-card"
-                 style="background-image: url('{{ asset('images/cinema.jpg') }}');">
+                 style="background-image: url('{{ asset('images/Private-Movie.png') }}');">
                 <div class="card-icon-box">
                     <i class="fas fa-tv"></i>
                 </div>
 
-                <h5 class="fw-bold">Private Bioskop</h5>
+                <h5 class="fw-bold">Private Movie/Netflix</h5>
 
                 <p class="small opacity-75">
-                    Nonton film favorit dalam ruangan privat
-                    dengan layar besar dan suara cinema.
+                    Nonton film atau series favoritmu dalam suasana privat yang super cozy, layaknya bioskop pribadi.
                 </p>
             </div>
 
             <div class="custom-card"
-                 style="background-image: url('{{ asset('images/karaoke.jpg') }}');">
+                 style="background-image: url('{{ asset('images/Private-Karaoke.png') }}');">
                 <div class="card-icon-box">
                     <i class="fas fa-microphone"></i>
                 </div>
 
-                <h5 class="fw-bold">Karaoke Seru</h5>
+                <h5 class="fw-bold">Private Karaoke</h5>
 
                 <p class="small opacity-75">
-                    Ajak teman atau keluarga bernyanyi bareng
-                    di ruang karaoke privat kami.
+                    Pilih lagu andalanmu dan nyanyi sepuasnya bareng teman atau keluarga tanpa khawatir mengganggu orang lain.
                 </p>
             </div>
 

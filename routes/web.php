@@ -114,6 +114,11 @@ Route::get('/booking/penawaran-fb', function () {
     return view('pelanggan.penawaran-fb', compact('produks'));
 });
 
+// ==============================================================================================================================
+// Route Halaman Utama Booking Pelanggan (Yang sempat hilang)
+Route::get('/booking', [App\Http\Controllers\BookingController::class, 'index'])->name('booking');
+// ===============================================================================================================================
+
 Route::get('/aktivasi-akun', function () {
     return view('auth.verify-email');
 })->name('aktivasi.notice');
