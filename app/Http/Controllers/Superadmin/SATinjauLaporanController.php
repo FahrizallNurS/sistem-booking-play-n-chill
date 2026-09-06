@@ -63,8 +63,10 @@ class SATinjauLaporanController extends Controller
         $jenisTransaksi  = $request->input('jenis_transaksi', 'semua');
         $statusTransaksi = $request->input('status_transaksi', ''); // '' = Semua, 'dibatalkan' = Dibatalkan
 
+        // Booking difilter berdasarkan waktu_selesai (tanggal sesi benar-benar kelar main),
+        // bukan created_at, supaya konsisten dengan standar "closing" di halaman analitik lain.
         $bookingRaw = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
-            ->whereBetween('created_at', [$start, $end])
+            ->whereBetween('waktu_selesai', [$start, $end])
             ->latest('waktu_mulai')
             ->get()
             ->map(function ($item) {
@@ -135,9 +137,10 @@ class SATinjauLaporanController extends Controller
         $totalFnb      = $fnbRaw->count();
         $fnbSelesai    = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'selesai')->count();
         $fnbDibatalkan = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'dibatalkan')->count();
-        $pendapatanFnb = (float) $fnbRaw->filter(
-            fn ($item) => in_array($item->status_pembayaran, ['sudah-bayar', 'lunas'])
-        )->sum('total_pos');
+        // Pendapatan F&B wajib dua-duanya (status_pesanan Selesai DAN pembayaran lunas),
+        // pakai closure $isFnbSelesai yang sama supaya konsisten dengan filter tabel di atas
+        // (sebelumnya cuma cek status_pembayaran, jadi bisa beda angka dengan jumlah baris "Selesai").
+        $pendapatanFnb = (float) $fnbRaw->filter($isFnbSelesai)->sum('total_pos');
 
         $totalPelanggan = User::where('role', 'pelanggan')->count();
         $totalAdmin     = User::where('role', 'admin')->count();

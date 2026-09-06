@@ -24,11 +24,11 @@
         <div class="col-12">
             <x-filter-card id="filter-form" :action="url()->current()">
                 <x-filter-select name="periode" label="PERIODE" :options="['harian' => 'Harian', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan']" width="col-md-2 col-sm-6" default="harian"/>
-                
+
                 <x-filter-dynamic-date width="col-md-4 col-sm-6" />
-                
+
                 <x-filter-select name="kategori" label="KATEGORI" :options="$kategoriOptions" width="col-md-3 col-sm-6"/>
-                <x-filter-select name="sub_kategori" label="SUB KATEGORI" :options="$subKategoriOptions" width="col-md-3 col-sm-6"/>    
+                <x-filter-select name="sub_kategori" label="SUB KATEGORI" :options="$subKategoriOptions" width="col-md-3 col-sm-6"/>
             </x-filter-card>
         </div>
     </div>
@@ -56,7 +56,7 @@
         </div>
     </div>
 
-    {{-- BARIS 3: TABEL DATA PRODUK (DIKEMBALIKAN KE KODE ASLIMU) --}}
+    {{-- BARIS 3: TABEL DATA PRODUK --}}
     <div class="row mt-4">
         <div class="col-12">
             <x-table>
@@ -67,19 +67,20 @@
                         <th class="py-3 border-0 text-muted" style="font-size: 11px;">NAMA PRODUK</th>
                         <th class="py-3 border-0 text-muted" style="font-size: 11px;">KATEGORI PRODUK</th>
                         <th class="py-3 border-0 text-muted" style="font-size: 11px;">SUB.KATEGORI PRODUK</th>
-                        <th class="py-3 border-0 text-muted text-right" style="font-size: 11px;">HARGA BELI</th>
-                        <th class="py-3 border-0 text-muted text-right" style="font-size: 11px;">HARGA JUAL</th>
-                        <th class="py-3 border-0 text-muted" style="font-size: 11px;">SKU</th>
-                        <th class="py-3 border-0 text-muted text-center" style="font-size: 11px;">STOCK</th>
                         <th class="py-3 border-0 text-muted text-center" style="font-size: 11px;">STATUS</th>
+                        <th class="py-3 border-0 text-muted text-right" style="font-size: 11px;">TOTAL PENDAPATAN</th>
+                        <th class="py-3 border-0 text-muted text-center" style="font-size: 11px;">KONTRIBUSI %</th>
+                        <th class="py-3 border-0 text-muted text-right" style="font-size: 11px;">RATA-RATA/TRX</th>
+                        <th class="py-3 border-0 text-muted text-center" style="font-size: 11px;">STOCK</th>
                     </tr>
                 </x-slot>
 
                 <tbody id="fnb-table-body">
                     @if(isset($tableData) && count($tableData) > 0)
+                        @php $startNum = ($tableData->currentPage() - 1) * $tableData->perPage() + 1; @endphp
                         @foreach($tableData as $index => $row)
                             <tr>
-                                <td class="px-4 text-muted py-2" style="font-size: 13px;">{{ $index + 1 }}</td>
+                                <td class="px-4 text-muted py-2" style="font-size: 13px;">{{ $startNum + $index }}</td>
                                 <td class="py-2">
                                     @if (!empty($row['foto']))
                                         <img src="{{ $row['foto'] }}"
@@ -97,13 +98,18 @@
                                 <td class="text-dark font-weight-bold py-2" style="font-size: 13px;">{{ $row['nama'] }}</td>
                                 <td class="text-muted py-2" style="font-size: 13px;">{{ $row['kategori'] }}</td>
                                 <td class="text-muted py-2" style="font-size: 13px;">{{ $row['sub_kategori'] }}</td>
-                                <td class="text-muted text-right py-2" style="font-size: 13px;">Rp. {{ number_format($row['harga_beli'], 2, ',', '.') }}</td>
-                                <td class="text-muted text-right py-2" style="font-size: 13px;">Rp. {{ number_format($row['harga_jual'], 2, ',', '.') }}</td>
-                                <td class="text-muted py-2" style="font-size: 13px;">{{ $row['sku'] }}</td>
-                                <td class="text-muted text-center py-2" style="font-size: 13px;">{{ $row['stock'] }}</td>
                                 <td class="text-center py-2">
                                     <x-badge :variant="$statusBadgeVariant[$row['status']] ?? 'secondary'" :label="$row['status']" />
                                 </td>
+                                <td class="text-right font-weight-bold py-2" style="font-size: 13px;">Rp {{ number_format($row['total'], 0, ',', '.') }}</td>
+                                <td class="text-center py-2" style="width: 150px;">
+                                    <div class="progress" style="height:6px;">
+                                        <div class="progress-bar" style="width:{{ $row['persen'] }}%; background-color: #f97316;"></div>
+                                    </div>
+                                    <span class="font-weight-bold" style="font-size: 12px;">{{ $row['persen'] }}%</span>
+                                </td>
+                                <td class="text-right text-muted py-2" style="font-size: 13px;">Rp {{ number_format($row['rata'], 0, ',', '.') }}</td>
+                                <td class="text-muted text-center py-2" style="font-size: 13px;">{{ $row['stock'] }}</td>
                             </tr>
                         @endforeach
                     @else
@@ -112,13 +118,13 @@
                 </tbody>
 
                 <x-slot name="footer">
-                    <span id="footer-info" class="text-muted" style="font-size: 13px;">Menampilkan 1 hingga {{ count($tableData ?? []) }} dari {{ count($tableData ?? []) }} entri</span>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-light border text-muted">Sebelumnya</button>
-                        <button class="btn btn-sm btn-primary" style="background-color: #6f42c1; border-color: #6f42c1;">1</button>
-                        <button class="btn btn-sm btn-light border text-muted">Selanjutnya</button>
+                    <span id="pagination-info" class="text-muted" style="font-size: 13px;">
+                        Menampilkan {{ $tableData->firstItem() ?? 0 }} hingga {{ $tableData->lastItem() ?? 0 }} dari {{ $tableData->total() }} entri
+                    </span>
+                    <div id="pagination-links">
+                        {{ $tableData->links('pagination::bootstrap-4') }}
                     </div>
-                </x-slot>   
+                </x-slot>
             </x-table>
         </div>
     </div>
@@ -159,13 +165,13 @@ label {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/id.min.js"></script>
 
 <script>
-    let allProduks = @json($allProduks ?? []); 
+    let allProduks = @json($allProduks ?? []);
     const initialLabels = @json($chartLabels ?? []);
     const initialDatasets = @json($chartDatasets ?? []);
     const initialSuggestedMax = {{ $suggestedMax ?? 0 }};
 
     let fnbChart;
-    let addCardOpen = false; 
+    let addCardOpen = false;
 
     function formatDatasets(rawDatasets) {
         return rawDatasets.map((item) => ({
@@ -178,7 +184,7 @@ label {
             pointRadius: 0,
             pointHoverRadius: 6,
             pointHitRadius: 10,
-            produk_id: item.id_produk 
+            produk_id: item.id_produk
         }));
     }
 
@@ -286,7 +292,6 @@ label {
     }
 
     function addProdukToChart(produkId) {
-        // Ambil elemen form yang benar
         let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
         let formData = form.serialize();
         let colorIndex = fnbChart.data.datasets.length;
@@ -383,10 +388,10 @@ $(document).ready(function() {
     });
 
     $(document).on('submit', '#filter-form, #filter-form form', function(e) {
-        e.preventDefault(); 
-        
+        e.preventDefault();
+
         let form = $(this).is('form') ? $(this) : $(this).find('form');
-        if(form.length === 0) form = $(this); 
+        if(form.length === 0) form = $(this);
 
         let btn = form.find('button[type="submit"]');
         let origBtn = btn.html();
@@ -401,22 +406,42 @@ $(document).ready(function() {
                 fnbChart.data.labels = res.labels;
                 fnbChart.data.datasets = formatDatasets(res.datasets);
                 fnbChart.options.scales.y.suggestedMax = res.suggestedMax;
-                
+
                 if (res.allProduks) allProduks = res.allProduks;
-                
+
                 fnbChart.update();
                 addCardOpen = false;
                 renderLegends();
-                
-                if(res.html !== undefined) {
-                    $('#fnb-table-body').html(res.html);
-                    $('#footer-info').text('Menampilkan 1 hingga ' + res.total + ' dari ' + res.total + ' entri');
+
+                // Tabel & pagination ikut di-refresh (reset ke halaman 1) sesuai filter baru
+                if (res.table) {
+                    $('#fnb-table-body').html(res.table.html);
+                    $('#pagination-links').html(res.table.pagination);
+                    $('#pagination-info').text(res.table.info);
                 }
             }
             btn.html(origBtn).prop('disabled', false);
         }).fail(function() {
             alert('Terjadi kesalahan saat memuat data filter.');
             btn.html(origBtn).prop('disabled', false);
+        });
+    });
+
+    // Pagination tabel tanpa reload halaman
+    $(document).on('click', '#pagination-links a', function(e) {
+        e.preventDefault();
+        let url = $(this).attr('href');
+
+        let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
+        let formData = form.serialize();
+        url += (url.includes('?') ? '&' : '?') + formData;
+
+        $.get(url, function(res) {
+            if (res.html) {
+                $('#fnb-table-body').html(res.html);
+                $('#pagination-links').html(res.pagination);
+                $('#pagination-info').text(res.info);
+            }
         });
     });
 });

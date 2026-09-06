@@ -36,7 +36,7 @@
             <x-card>
                 {{-- FIX: Judul harus teks murni agar komponen x-card tidak rusak --}}
                 <x-slot name="title">Grafik Penjualan Layanan</x-slot>
-                
+
                 <x-slot name="header">
                     <div id="chart-header-legend" class="chart-legend-wrap d-none d-md-flex align-items-center" style="font-size: 12px;"></div>
                 </x-slot>
@@ -67,6 +67,9 @@
                                 <th class="py-3 border-0 text-muted" style="font-size: 11px;">HARGA JUAL</th>
                                 <th class="py-3 border-0 text-muted text-center" style="font-size: 11px;">SATUAN JAM</th>
                                 <th class="py-3 border-0 text-muted" style="font-size: 11px;">SKU</th>
+                                <th class="py-3 border-0 text-muted text-right" style="font-size: 11px;">TOTAL PENDAPATAN</th>
+                                <th class="py-3 border-0 text-muted text-center" style="font-size: 11px;">KONTRIBUSI %</th>
+                                <th class="py-3 border-0 text-muted text-right" style="font-size: 11px;">RATA-RATA/TRX</th>
                             </tr>
                         </thead>
                         <tbody id="table-body">
@@ -74,12 +77,29 @@
                             @foreach($tableData as $index => $row)
                                 <tr>
                                     <td class="px-4 text-muted py-3" style="font-size: 13px;">{{ $startNum + $index }}</td>
-                                    <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">{{ $row->paket }}</td>
-                                    <td class="text-muted py-3" style="font-size: 13px;">{{ $row->kategori }}</td>
-                                    <td class="text-muted py-3" style="font-size: 13px;">{{ $row->sub }}</td>
-                                    <td class="text-muted py-3" style="font-size: 13px;">Rp {{ number_format($row->harga, 0, ',', '.') }}</td>
-                                    <td class="text-muted py-3 text-center" style="font-size: 13px;">{{ $row->jam }}</td>
-                                    <td class="text-muted py-3" style="font-size: 13px;">{{ $row->sku }}</td>
+                                    <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">{{ $row['paket'] }}</td>
+                                    <td class="text-muted py-3" style="font-size: 13px;">{{ $row['kategori'] }}</td>
+                                    <td class="text-muted py-3" style="font-size: 13px;">{{ $row['sub'] }}</td>
+                                    <td class="text-muted py-3" style="font-size: 13px;">Rp {{ number_format($row['harga'], 0, ',', '.') }}</td>
+                                    <td class="text-muted py-3 text-center" style="font-size: 13px;">{{ $row['jam'] }}</td>
+                                    <td class="text-muted py-3" style="font-size: 13px;">{{ $row['sku'] }}</td>
+                                    <td class="text-right font-weight-bold py-3" style="font-size: 13px;">Rp {{ number_format($row['total'], 0, ',', '.') }}</td>
+                                    <td class="text-center py-3" style="width: 150px;">
+                                        <div class="progress" style="height:6px;">
+                                            @php
+                                                $fixedColors = config('category-colors.kategori_ruangan');
+                                                $barColor = '#6f42c1';
+                                                if ($row['kategori'] === 'REGULAR' && $fixedColors) {
+                                                    $barColor = $fixedColors['regular']['color'];
+                                                } elseif ($row['kategori'] === 'PRIVATE-ROOM' && $fixedColors) {
+                                                    $barColor = $fixedColors['private_room']['color'];
+                                                }
+                                            @endphp
+                                            <div class="progress-bar" style="width:{{ $row['persen'] }}%; background-color: {{ $barColor }};"></div>
+                                        </div>
+                                        <span class="font-weight-bold" style="font-size: 12px;">{{ $row['persen'] }}%</span>
+                                    </td>
+                                    <td class="text-right text-muted py-3" style="font-size: 13px;">Rp {{ number_format($row['rata'], 0, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -383,11 +403,11 @@
         // 5. AJAX FILTER & PAGINATION
         $(document).on('submit', '#filter-form, #filter-form form', function(e) {
             e.preventDefault();
-            
+
             // Pastikan kita menangkap elemen <form> yang benar
             let form = $(this).is('form') ? $(this) : $(this).find('form');
-            if(form.length === 0) form = $(this); 
-            
+            if(form.length === 0) form = $(this);
+
             let btn = form.find('button[type="submit"]');
             let origBtn = btn.html();
 
@@ -401,12 +421,12 @@
                     serviceChart.data.labels = res.labels;
                     serviceChart.data.datasets = formatDatasets(res.datasets);
                     serviceChart.options.scales.y.suggestedMax = res.suggestedMax;
-                    
+
                     // PENTING: Update array Paket yang tersedia untuk Dropdown search
                     if (res.allPakets) {
                         allPakets = res.allPakets;
                     }
-                    
+
                     // PENTING: Update Tabel data
                     if (res.table) {
                         $('#table-body').html(res.table.html);
@@ -426,10 +446,10 @@
         $(document).on('click', '#pagination-links a', function(e) {
             e.preventDefault();
             let url = $(this).attr('href');
-            
+
             let form = $('#filter-form').is('form') ? $('#filter-form') : $('#filter-form form');
             let formData = form.serialize();
-            
+
             let paketIds = getActivePaketIds();
             let requestData = formData + '&paket_ids=' + paketIds.join(',');
             url += (url.includes('?') ? '&' : '?') + requestData;
