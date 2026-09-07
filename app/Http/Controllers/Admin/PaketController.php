@@ -252,28 +252,25 @@ class PaketController extends Controller
     {
         $penetapan = PenetapanHarga::findOrFail($id);
 
-        // Hanya validasi harga, karena SKU read-only
-        $validated = $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'harga' => 'required|string',
         ]);
+        $validator->validateWithBag('editHarga'); // <-- bag terpisah
+        $validated = $validator->validated();
 
         $harga = (int) str_replace('.', '', $validated['harga']);
 
         if ($penetapan->transaksis()->exists()) {
-            // SILENT INSERT: Bikin baris baru (sebagai currentPrices), baris lama jadi history
             PenetapanHarga::create([
                 'id_paket'   => $penetapan->id_paket,
                 'id_ruangan' => $penetapan->id_ruangan,
                 'tipe_hari'  => $penetapan->tipe_hari,
                 'durasi_jam' => $penetapan->durasi_jam,
-                'sku'        => $penetapan->sku, // SKU tetap menggunakan yang lama
+                'sku'        => $penetapan->sku,
                 'harga'      => $harga,
             ]);
         } else {
-            // NORMAL UPDATE: Karena belum pernah ada transaksi
-            $penetapan->update([
-                'harga' => $harga,
-            ]);
+            $penetapan->update(['harga' => $harga]);
         }
 
         return back()->with('success', 'Harga berhasil diupdate!');
@@ -284,18 +281,19 @@ class PaketController extends Controller
     {
         $paket = MsPaket::findOrFail($id);
 
-        $validated = $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'id_ruangan' => 'required|exists:ms_ruangan,id_ruangan',
             'tipe_hari'  => 'required|in:harian,akhir_pekan,liburan',
             'durasi_jam' => 'required|integer|min:1',
             'harga'      => 'required|string',
             'sku'        => 'required|string|max:10',
         ]);
+        $validator->validateWithBag('tambahHarga'); // <-- bag terpisah
+        $validated = $validator->validated();
 
         $harga = (int) str_replace('.', '', $validated['harga']);
         $sku = trim($validated['sku']);
 
-        // CEK 1: Mencegah Kombinasi Dobel (di harga yang aktif)
         $kombinasiAda = PenetapanHarga::currentPrices()
             ->where('id_paket', $paket->id_paket)
             ->where('id_ruangan', $validated['id_ruangan'])
@@ -305,22 +303,17 @@ class PaketController extends Controller
 
         if ($kombinasiAda) {
             return back()
-                ->withErrors(['kombinasi' => 'Kombinasi Ruangan, Hari, dan Durasi ini sudah ada. Silakan gunakan tombol Edit pada tabel.'])
+                ->withErrors(['kombinasi' => 'Kombinasi Ruangan, Hari, dan Durasi ini sudah ada. Silakan gunakan tombol Edit pada tabel.'], 'tambahHarga')
                 ->withInput();
         }
 
-        // CEK 2: Mencegah SKU kembar (hanya ngecek di harga yang sedang aktif)
-        $skuBentrok = PenetapanHarga::currentPrices()
-            ->where('sku', $sku)
-            ->exists();
-
+        $skuBentrok = PenetapanHarga::currentPrices()->where('sku', $sku)->exists();
         if ($skuBentrok) {
             return back()
-                ->withErrors(['sku' => "SKU \"{$sku}\" sudah dipakai di sistem. Gunakan SKU lain."])
+                ->withErrors(['sku' => "SKU \"{$sku}\" sudah dipakai di sistem. Gunakan SKU lain."], 'tambahHarga')
                 ->withInput();
         }
 
-        // AMAN, Lakukan Insert
         PenetapanHarga::create([
             'id_paket'   => $paket->id_paket,
             'id_ruangan' => $validated['id_ruangan'],
@@ -332,6 +325,7 @@ class PaketController extends Controller
 
         return back()->with('success', 'Penetapan harga baru berhasil ditambahkan!');
     }
+
 
     private function resolveSubKategori(Request $request): int
     {

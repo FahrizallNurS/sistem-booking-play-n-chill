@@ -320,13 +320,15 @@
             if (res.success && res.dataset) {
                 let formatted = formatDatasets([res.dataset])[0];
                 revenueChart.data.datasets.push(formatted);
-                if (res.suggestedMax) revenueChart.options.scales.y.suggestedMax = res.suggestedMax;
+
+                let newMax = Math.max(...formatted.data, 0) * 1.1;
+                let current = revenueChart.options.scales.y.suggestedMax || 0;
+                revenueChart.options.scales.y.suggestedMax = Math.max(current, res.suggestedMax || 0, newMax);
+
                 addCardOpen = false;
                 revenueChart.update();
                 renderLegends();
             } else {
-                // Kategori sudah tidak match filter aktif (mis. filter baru saja diganti) -> batalkan diam-diam,
-                // renderLegends() akan otomatis menampilkan opsi yang sudah ter-update.
                 addCardOpen = false;
                 renderLegends();
             }
