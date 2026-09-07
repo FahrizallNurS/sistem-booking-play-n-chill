@@ -15,8 +15,8 @@ class AnalisisPendapatanController extends Controller
     private $colorPalette = ['#8b5cf6', '#0ea5e9', '#eab308', '#ec4899', '#14b8a6', '#f97316'];
 
     /**
-     * IDENTIK dengan ProdukLayananController@getDateRange.
-     * Sengaja disalin persis supaya perilaku filter periode konsisten di semua halaman analitik.
+     * Jam operasional venue: 10:00 - 01:00 (lewat tengah malam).
+     * Disamakan dengan ProdukFnbController::getDateRange, sebelumnya pakai 06:00-23:59.
      */
     private function getDateRange(Request $request): array
     {
@@ -44,41 +44,42 @@ class AnalisisPendapatanController extends Controller
             $tanggalInput = $request->input('tanggal') ?? $request->input('rentang_tanggal');
 
             if ($tanggalInput && str_contains($tanggalInput, ' - ')) {
+                // Custom range multi-hari: granularitas per-tanggal di buildAxes(),
+                // jam operasional tidak relevan di sini.
                 $dates = explode(' - ', $tanggalInput);
                 try {
                     $start = Carbon::parse(trim($dates[0]))->startOfDay();
                     $end   = Carbon::parse(trim($dates[1]))->endOfDay();
                 } catch (\Exception $e) {
-                    $start = Carbon::today()->setTime(6, 0, 0);
-                    $end   = Carbon::today()->setTime(23, 59, 59);
+                    $start = Carbon::today()->setTime(10, 0, 0);
+                    $end   = Carbon::tomorrow()->setTime(1, 59, 59);
                 }
             } elseif ($tanggalInput) {
                 try {
-                    $start = Carbon::parse($tanggalInput)->setTime(6, 0, 0);
-                    $end   = Carbon::parse($tanggalInput)->setTime(23, 59, 59);
+                    $start = Carbon::parse($tanggalInput)->setTime(10, 0, 0);
+                    $end   = Carbon::parse($tanggalInput)->addDay()->setTime(1, 59, 59);
                 } catch (\Exception $e) {
-                    $start = Carbon::today()->setTime(6, 0, 0);
-                    $end   = Carbon::today()->setTime(23, 59, 59);
+                    $start = Carbon::today()->setTime(10, 0, 0);
+                    $end   = Carbon::tomorrow()->setTime(1, 59, 59);
                 }
             } else {
-                $start = Carbon::today()->setTime(6, 0, 0);
-                $end   = Carbon::today()->setTime(23, 59, 59);
+                $start = Carbon::today()->setTime(10, 0, 0);
+                $end   = Carbon::tomorrow()->setTime(1, 59, 59);
             }
         }
 
         return [$start, $end, $periode];
     }
 
-    /**
-     * IDENTIK dengan ProdukLayananController@buildAxes.
-     */
     private function buildAxes($start, $end, $periode): array
     {
         $labels = [];
         $slots = [];
 
         if ($periode === 'harian') {
-            for ($i = 0; $i < 24; $i++) {
+            // Jam operasional: 10:00 - 01:00 (lewat tengah malam)
+            $hours = array_merge(range(10, 23), [0, 1]);
+            foreach ($hours as $i) {
                 $hour = str_pad($i, 2, '0', STR_PAD_LEFT);
                 $labels[] = $hour . ':00';
                 $slots[$hour] = 0;
@@ -109,14 +110,6 @@ class AnalisisPendapatanController extends Controller
         return $periode === 'harian' ? 400000 : 1000000;
     }
 
-    /**
-     * Daftar master kategori:
-     *  - 2 baris fixed dari sisi booking (ENUM ms_ruangan.kategori): Regular, Private Room
-     *  - N baris dinamis dari sisi F&B: distinct kategori_produk yang is_active di ms_sub_kategori_produk
-     *
-     * 'key' dipakai sebagai identifier unik di chart, pengganti id_paket pada ProdukLayananController.
-     * Format: "ruangan:REGULAR" | "ruangan:PRIVATE-ROOM" | "produk:<kategori_produk>"
-     */
     private function getKategoriMasterList(): array
     {
         $list = [
@@ -158,10 +151,6 @@ class AnalisisPendapatanController extends Controller
         return $this->colorPalette[$colorIndex % count($this->colorPalette)];
     }
 
-    /**
-     * Satu baris dataset chart untuk 1 kategori (booking ATAU F&B), mengikuti sumbu waktu buildAxes().
-     * Analog dengan ProdukLayananController@fetchDatasetForPaket.
-     */
     private function fetchDatasetForKategori(string $kategoriKey, $start, $end, $periode, $colorIndex, array $masterList)
     {
         $meta = $this->findKategoriMeta($kategoriKey, $masterList);
@@ -173,8 +162,6 @@ class AnalisisPendapatanController extends Controller
         [$type, $value] = explode(':', $kategoriKey, 2);
 
         if ($type === 'ruangan') {
-            // Pendapatan booking murni sewa (tr_transaksi.total_harga), TIDAK termasuk POS yang menempel
-            // ke booking tsb -- POS tersebut sudah dihitung sendiri di kategori F&B agar tidak double count.
             $rows = DB::table('tr_transaksi')
                 ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
                 ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
@@ -184,8 +171,6 @@ class AnalisisPendapatanController extends Controller
                 ->select('tr_transaksi.total_harga as nominal', 'tr_transaksi.waktu_mulai as waktu')
                 ->get();
         } else {
-            // Pendapatan F&B dihitung per-item (subtotal) supaya 1 nota lintas kategori terpecah benar,
-            // bukan dari tr_pos.total_pos (yang merupakan total keseluruhan nota).
             $rows = DB::table('tr_pos_detail')
                 ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
                 ->join('ms_produk', 'tr_pos_detail.id_produk', '=', 'ms_produk.id_produk')
@@ -223,10 +208,6 @@ class AnalisisPendapatanController extends Controller
         ];
     }
 
-    /**
-     * Agregat total per kategori dalam rentang waktu (dipakai untuk ranking chart default & kolom tabel).
-     * Return: [ 'ruangan:REGULAR' => ['trx' => x, 'total' => y], 'produk:Minuman' => [...], ... ]
-     */
     private function getAggregatePerKategori($start, $end): array
     {
         $result = [];
@@ -244,7 +225,6 @@ class AnalisisPendapatanController extends Controller
             $result['ruangan:' . $row->kategori] = ['trx' => (int) $row->trx, 'total' => (float) $row->total];
         }
 
-        // COUNT(DISTINCT tr_pos.id_pos): 1 nota = 1 transaksi, meski isi >1 item kategori yang sama.
         $produk = DB::table('tr_pos_detail')
             ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
             ->join('ms_produk', 'tr_pos_detail.id_produk', '=', 'ms_produk.id_produk')
@@ -266,14 +246,6 @@ class AnalisisPendapatanController extends Controller
         return $result;
     }
 
-    /**
-     * Kategori yang BOLEH muncul sebagai opsi "Tambah Pembanding" pada rentang waktu ini:
-     *  1. Kalau filter dropdown "kategori" diisi spesifik (bukan "semua"), sempitkan hanya ke kategori itu.
-     *  2. Kategori yang total pendapatannya 0 pada rentang waktu terpilih disembunyikan dari opsi
-     *     (tidak ada gunanya ditawarkan sebagai pembanding kalau datanya kosong).
-     * Dropdown filter "kategori" sendiri TETAP pakai $masterList penuh (lihat pemanggilnya),
-     * supaya user tetap bisa pindah ke kategori lain meski datanya kosong di rentang ini.
-     */
     private function getAvailableKategoriList(Request $request, array $masterList, array $aggregate): array
     {
         $list = $masterList;
@@ -287,13 +259,6 @@ class AnalisisPendapatanController extends Controller
         }));
     }
 
-    /**
-     * Kategori yang tampil default di chart: top-4 by revenue DARI $availableList (yang sudah
-     * disesuaikan dengan filter kategori & rentang waktu) -- analog resolvePaketIds().
-     * Kalau client kirim state lama (kategori_keys) tapi sudah tidak match filter baru sama sekali
-     * (misal user baru ganti filter kategori), state lama dibuang dan jatuh ke default top revenue,
-     * supaya chart tidak menampilkan kategori yang kontradiktif dengan filter aktif.
-     */
     private function resolveKategoriKeys(Request $request, array $availableList): array
     {
         $availableKeys = array_column($availableList, 'key');
@@ -308,15 +273,9 @@ class AnalisisPendapatanController extends Controller
             }
         }
 
-        // $availableList sudah terurut by revenue desc (lihat pemanggilnya)
         return array_slice($availableKeys, 0, 4);
     }
 
-    /**
-     * Data tabel: 1 baris per kategori (2 fixed booking + N dinamis F&B), dipaginate.
-     * Persentase kontribusi dihitung terhadap grand total SEMUA kategori pada rentang waktu terpilih
-     * (bukan cuma yang tampil di halaman saat ini / bukan cuma yang lolos filter kategori).
-     */
     private function getKategoriTableData(Request $request, array $masterList, array $aggregate)
     {
         $grandTotal = array_sum(array_column($aggregate, 'total'));
@@ -381,17 +340,13 @@ class AnalisisPendapatanController extends Controller
         $suggestedMax = $this->getSuggestedMax($periode);
         $masterList = $this->getKategoriMasterList();
 
-        // Aggregate dihitung SEKALI di awal, dipakai bareng oleh tabel, ranking chart, dan opsi pembanding.
         $aggregate = $this->getAggregatePerKategori($start, $end);
         uasort($aggregate, fn($a, $b) => $b['total'] <=> $a['total']);
 
-        // Kategori yang boleh jadi opsi pembanding: sudah disempitkan sesuai filter "kategori" +
-        // dibuang yang revenue-nya 0 di rentang waktu ini, lalu diurutkan mengikuti urutan $aggregate.
         $availableList = $this->getAvailableKategoriList($request, $masterList, $aggregate);
         $order = array_flip(array_keys($aggregate));
         usort($availableList, fn($a, $b) => ($order[$a['key']] ?? PHP_INT_MAX) <=> ($order[$b['key']] ?? PHP_INT_MAX));
 
-        // 1. HANDLER AJAX: Pagination tabel tanpa reload
         if ($request->ajax() && $request->has('page') && !$request->has('add_kategori_key')) {
             $tableData = $this->getKategoriTableData($request, $masterList, $aggregate);
 
@@ -408,9 +363,6 @@ class AnalisisPendapatanController extends Controller
             ]);
         }
 
-        // 2. HANDLER AJAX: Menambah pembanding ke grafik
-        // Ditolak kalau kategori yang mau ditambah sudah tidak match filter aktif saat ini
-        // (mis. race condition: user ganti filter kategori tepat saat request add_kategori_key jalan).
         if ($request->ajax() && $request->has('add_kategori_key')) {
             $availableKeys = array_column($availableList, 'key');
             if (!in_array($request->add_kategori_key, $availableKeys)) {
@@ -422,14 +374,11 @@ class AnalisisPendapatanController extends Controller
             return response()->json(['success' => true, 'dataset' => $dataset, 'suggestedMax' => $suggestedMax]);
         }
 
-        // 3. Opsi dropdown FILTER kategori: sengaja pakai $masterList PENUH (bukan $availableList),
-        // supaya user tetap bisa pindah ke kategori lain meski datanya kosong di rentang ini.
         $kategoriOptions = ['semua' => 'Semua Kategori'];
         foreach ($masterList as $meta) {
             $kategoriOptions[$meta['label']] = $meta['label'];
         }
 
-        // Daftar kategori untuk autocomplete "Tambah Pembanding": pakai $availableList (sudah sesuai filter)
         $allKategori = collect($availableList)->map(fn($m) => [
             'kategori_key' => $m['key'],
             'label' => $m['label'],
@@ -446,10 +395,6 @@ class AnalisisPendapatanController extends Controller
             if ($dataset) $chartDatasets[] = $dataset;
         }
 
-        // 4. HANDLER AJAX: submit filter (ganti periode/tanggal/kategori)
-        // allKategori ikut dikirim balik supaya JS bisa update opsi "Tambah Pembanding" TANPA reload halaman.
-        // 'table' ikut disertakan (selalu halaman 1) supaya tabel ikut ter-refresh sesuai filter baru --
-        // sebelumnya cuma chart yang ter-update, tabel diam karena tidak ada request terpisah untuk itu.
         if ($request->ajax()) {
             $tableRequest = clone $request;
             $tableRequest->query->set('page', 1);

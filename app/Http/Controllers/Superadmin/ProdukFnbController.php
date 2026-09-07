@@ -42,6 +42,8 @@ class ProdukFnbController extends Controller
             $tanggalInput = $request->input('tanggal') ?? $request->input('rentang_tanggal');
 
             if ($tanggalInput && str_contains($tanggalInput, ' - ')) {
+                // Custom range multi-hari: granularitas per-tanggal di buildAxes(), jam operasional
+                // tidak relevan di sini karena tiap transaksi tetap masuk ke tanggalnya sendiri.
                 $dates = explode(' - ', $tanggalInput);
                 try {
                     $start = Carbon::parse(trim($dates[0]))->startOfDay();
@@ -51,16 +53,18 @@ class ProdukFnbController extends Controller
                     $end   = Carbon::today()->endOfDay();
                 }
             } elseif ($tanggalInput) {
+                // Jam operasional 10:00 - 01:00 (lewat tengah malam), jadi end harus nyambung
+                // ke jam 01:59:59 keesokan harinya supaya transaksi jam 00:00-01:00 ikut ke-fetch.
                 try {
                     $start = Carbon::parse($tanggalInput)->startOfDay();
-                    $end   = Carbon::parse($tanggalInput)->endOfDay();
+                    $end   = Carbon::parse($tanggalInput)->addDay()->setTime(1, 59, 59);
                 } catch (\Exception $e) {
                     $start = Carbon::today()->startOfDay();
-                    $end   = Carbon::today()->endOfDay();
+                    $end   = Carbon::tomorrow()->setTime(1, 59, 59);
                 }
             } else {
                 $start = Carbon::today()->startOfDay();
-                $end   = Carbon::today()->endOfDay();
+                $end   = Carbon::tomorrow()->setTime(1, 59, 59);
             }
         }
 
@@ -73,8 +77,9 @@ class ProdukFnbController extends Controller
         $slots = [];
 
         if ($periode === 'harian') {
-            // Format Jam (06:00 - 23:00 sesuai logic awalmu)
-            for ($i = 6; $i <= 23; $i++) {
+            // Jam operasional: 10:00 - 01:00 (lewat tengah malam)
+            $hours = array_merge(range(10, 23), [0, 1]);
+            foreach ($hours as $i) {
                 $hour = str_pad($i, 2, '0', STR_PAD_LEFT);
                 $labels[] = $hour . ':00';
                 $slots[$hour] = 0;
@@ -123,7 +128,7 @@ class ProdukFnbController extends Controller
 
             if ($periode === 'harian') {
                 $key = $dt->format('H');
-                // Abaikan jika transaksi terjadi di luar jam operasional (06 - 23)
+                // Abaikan jika transaksi terjadi di luar jam operasional (10:00 - 01:00)
                 if (!array_key_exists($key, $slots)) continue;
             } elseif ($periode === 'mingguan') {
                 $key = $dt->dayOfWeekIso;

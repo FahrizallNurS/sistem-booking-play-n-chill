@@ -16,6 +16,15 @@
     <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
 
+{{-- ALERT GLOBAL: selalu tampil di paling atas kalau ada error validasi
+     dari form manapun (Info Paket, Modal Tambah, atau Modal Edit). --}}
+@if($errors->any() || $errors->tambahHarga->any() || $errors->editHarga->any())
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        Terjadi kesalahan validasi. Silakan periksa form yang ditandai di bawah.
+    </div>
+@endif
+
 {{-- ============================================================ --}}
 {{-- CARD 1: INFO PAKET --}}
 {{-- ============================================================ --}}
@@ -25,7 +34,7 @@
     </div>
     <div class="card-body">
 
-        @if($errors->any() && !$errors->has('harga') && !$errors->has('sku') && !$errors->has('sku_conflict'))
+        @if($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">
                     @foreach($errors->all() as $error)
@@ -97,7 +106,7 @@
 </div>
 
 {{-- ============================================================ --}}
-{{-- CARD 2: TABEL PENETAPAN HARGA AKTIF (PENGGANTI CARD 3 LAMA) --}}
+{{-- CARD 2: TABEL PENETAPAN HARGA AKTIF --}}
 {{-- ============================================================ --}}
 <div class="card mt-3">
     <div class="card-header bg-info">
@@ -108,11 +117,11 @@
             </button>
         </div>
     </div>
-    
+
     <div class="card-body">
-        
-        @if($errors->has('kombinasi'))
-            <div class="alert alert-danger">{{ $errors->first('kombinasi') }}</div>
+
+        @if($errors->tambahHarga->has('kombinasi'))
+            <div class="alert alert-danger">{{ $errors->tambahHarga->first('kombinasi') }}</div>
         @endif
 
         @if($paket->penetapanHarga->count() > 0)
@@ -152,7 +161,6 @@
                                 <td><strong>Rp {{ number_format($ph->harga, 0, ',', '.') }}</strong></td>
                                 <td>{{ $ph->sku ?? '-' }}</td>
                                 <td>
-                                    {{-- Tombol Edit sekarang selalu sama, gak peduli udah dipakai transaksi atau belum --}}
                                     <button type="button" class="btn btn-info btn-sm btn-edit-inline"
                                         data-id="{{ $ph->id_penetapan_harga }}"
                                         data-ruangan="{{ $ph->ruangan->nama_ruangan ?? '-' }}"
@@ -207,7 +215,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Ruangan</label>
-                        <select name="id_ruangan" class="form-control" required>
+                        <select name="id_ruangan" class="form-control @error('id_ruangan', 'tambahHarga') is-invalid @enderror" required>
                             <option value="">-- Pilih Ruangan --</option>
                             @foreach($ruangans as $r)
                                 <option value="{{ $r->id_ruangan }}" {{ old('id_ruangan') == $r->id_ruangan ? 'selected' : '' }}>
@@ -215,32 +223,50 @@
                                 </option>
                             @endforeach
                         </select>
+                        @error('id_ruangan', 'tambahHarga')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
                         <label>Tipe Hari</label>
-                        <select name="tipe_hari" class="form-control" required>
+                        <select name="tipe_hari" class="form-control @error('tipe_hari', 'tambahHarga') is-invalid @enderror" required>
                             <option value="">-- Pilih Hari --</option>
                             <option value="harian" {{ old('tipe_hari') === 'harian' ? 'selected' : '' }}>Harian (Senin - Kamis)</option>
                             <option value="akhir_pekan" {{ old('tipe_hari') === 'akhir_pekan' ? 'selected' : '' }}>Akhir Pekan (Jumat - Minggu)</option>
                             <option value="liburan" {{ old('tipe_hari') === 'liburan' ? 'selected' : '' }}>Liburan (Senin - Minggu, sepanjang periode aktif)</option>
                         </select>
+                        @error('tipe_hari', 'tambahHarga')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
                         <label>Durasi (Jam)</label>
-                        <input type="number" name="durasi_jam" class="form-control" min="1" value="{{ old('durasi_jam') }}" required>
+                        <input type="number" name="durasi_jam"
+                            class="form-control @error('durasi_jam', 'tambahHarga') is-invalid @enderror"
+                            min="1" value="{{ old('durasi_jam') }}" required>
+                        @error('durasi_jam', 'tambahHarga')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
                         <label>Harga (Rp)</label>
-                        <input type="text" inputmode="numeric" name="harga" class="form-control input-format-rupiah" value="{{ old('harga') }}" required>
+                        <input type="text" inputmode="numeric" name="harga"
+                            class="form-control input-format-rupiah @error('harga', 'tambahHarga') is-invalid @enderror"
+                            value="{{ old('harga') }}" required>
+                        @error('harga', 'tambahHarga')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group mb-0">
                         <label>SKU</label>
-                        <input type="text" name="sku" maxlength="10" class="form-control @error('sku') is-invalid @enderror" value="{{ old('sku') }}" required>
-                        @error('sku')
+                        <input type="text" name="sku" maxlength="10"
+                            class="form-control @error('sku', 'tambahHarga') is-invalid @enderror"
+                            value="{{ old('sku') }}" required>
+                        @error('sku', 'tambahHarga')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
@@ -264,6 +290,9 @@
             <form id="formEditPenetapan" method="POST">
                 @csrf
                 @method('PATCH')
+                {{-- Dipakai buat tau baris mana yang lagi diedit kalau validasi
+                     gagal & halaman reload (lihat script DOMContentLoaded di bawah). --}}
+                <input type="hidden" name="id_penetapan_harga" id="modalEditIdField">
 
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title">Edit Harga</h5>
@@ -281,8 +310,8 @@
                     <div class="form-group">
                         <label>Harga Baru (Rp)</label>
                         <input type="text" inputmode="numeric" name="harga" id="modalEditHarga"
-                            class="form-control @error('harga') is-invalid @enderror" required>
-                        @error('harga')
+                            class="form-control @error('harga', 'editHarga') is-invalid @enderror" required>
+                        @error('harga', 'editHarga')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
@@ -345,6 +374,7 @@
         btn.addEventListener('click', function () {
             const id = this.dataset.id;
             document.getElementById('formEditPenetapan').action = `/admin/paket/penetapan/${id}`;
+            document.getElementById('modalEditIdField').value = id;
             document.getElementById('modalEditRuangan').textContent = this.dataset.ruangan;
             document.getElementById('modalEditTipeHariLabel').textContent = TIPE_HARI_LABEL[this.dataset.tipeHari] || this.dataset.tipeHari;
             document.getElementById('modalEditDurasi').textContent = this.dataset.durasi;
@@ -371,10 +401,22 @@
     // Repopulasi saat load awal atau error validasi
     window.addEventListener('DOMContentLoaded', function () {
         toggleSubKategoriBaru();
-        
-        // Buka modal tambah jika ada error dari sana
-        @if($errors->has('sku') || $errors->has('kombinasi'))
+
+        // Buka modal Tambah Harga lagi kalau errornya dari situ
+        @if($errors->tambahHarga->any())
             $('#modalTambahPenetapan').modal('show');
+        @endif
+
+        // Buka modal Edit Harga lagi kalau errornya dari situ, dan
+        // repopulate Ruangan/Tipe Hari/Durasi/SKU dari baris yang sama
+        // (idnya dikirim balik lewat old('id_penetapan_harga')).
+        @if($errors->editHarga->any() && old('id_penetapan_harga'))
+            const targetBtn = document.querySelector('.btn-edit-inline[data-id="{{ old('id_penetapan_harga') }}"]');
+            if (targetBtn) {
+                targetBtn.click();
+                // Override harga pakai input terakhir yang gagal, bukan harga lama
+                document.getElementById('modalEditHarga').value = @json(old('harga'));
+            }
         @endif
     });
 </script>

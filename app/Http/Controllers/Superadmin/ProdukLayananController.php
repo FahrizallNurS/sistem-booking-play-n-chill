@@ -15,6 +15,10 @@ class ProdukLayananController extends Controller
     // Palet warna khusus grafik pembanding (Maks 5)
     private $colorPalette = ['#10b981', '#f97316', '#0ea5e9', '#8b5cf6', '#ec4899'];
 
+    /**
+     * Jam operasional venue: 10:00 - 01:00 (lewat tengah malam).
+     * Disamakan dengan ProdukFnbController::getDateRange, sebelumnya pakai 06:00-23:59.
+     */
     private function getDateRange(Request $request): array
     {
         $periode = $request->input('periode', 'bulanan');
@@ -44,26 +48,27 @@ class ProdukLayananController extends Controller
             $tanggalInput = $request->input('tanggal') ?? $request->input('rentang_tanggal');
 
             if ($tanggalInput && str_contains($tanggalInput, ' - ')) {
-                // Parse jika format input rentang "DD MMM YYYY - DD MMM YYYY" (DateRangePicker)
+                // Custom range multi-hari: granularitas per-tanggal di buildAxes(),
+                // jam operasional tidak relevan di sini.
                 $dates = explode(' - ', $tanggalInput);
                 try {
                     $start = Carbon::parse(trim($dates[0]))->startOfDay();
                     $end   = Carbon::parse(trim($dates[1]))->endOfDay();
                 } catch (\Exception $e) {
-                    $start = Carbon::today()->setTime(6, 0, 0);
-                    $end   = Carbon::today()->setTime(23, 59, 59);
+                    $start = Carbon::today()->setTime(10, 0, 0);
+                    $end   = Carbon::tomorrow()->setTime(1, 59, 59);
                 }
             } elseif ($tanggalInput) {
                 try {
-                    $start = Carbon::parse($tanggalInput)->setTime(6, 0, 0);
-                    $end   = Carbon::parse($tanggalInput)->setTime(23, 59, 59);
+                    $start = Carbon::parse($tanggalInput)->setTime(10, 0, 0);
+                    $end   = Carbon::parse($tanggalInput)->addDay()->setTime(1, 59, 59);
                 } catch (\Exception $e) {
-                    $start = Carbon::today()->setTime(6, 0, 0);
-                    $end   = Carbon::today()->setTime(23, 59, 59);
+                    $start = Carbon::today()->setTime(10, 0, 0);
+                    $end   = Carbon::tomorrow()->setTime(1, 59, 59);
                 }
             } else {
-                $start = Carbon::today()->setTime(6, 0, 0);
-                $end   = Carbon::today()->setTime(23, 59, 59);
+                $start = Carbon::today()->setTime(10, 0, 0);
+                $end   = Carbon::tomorrow()->setTime(1, 59, 59);
             }
         }
 
@@ -76,8 +81,9 @@ class ProdukLayananController extends Controller
         $slots = [];
 
         if ($periode === 'harian') {
-            // Format Jam (00:00 - 23:00)
-            for ($i = 0; $i < 24; $i++) {
+            // Jam operasional: 10:00 - 01:00 (lewat tengah malam)
+            $hours = array_merge(range(10, 23), [0, 1]);
+            foreach ($hours as $i) {
                 $hour = str_pad($i, 2, '0', STR_PAD_LEFT);
                 $labels[] = $hour . ':00';
                 $slots[$hour] = 0;
@@ -92,7 +98,6 @@ class ProdukLayananController extends Controller
                 $slots[$i] = 0;
             }
         } else {
-            // Rentang waktu dinamis (kustom)
             $diff = $start->diffInDays($end);
             for ($i = 0; $i <= $diff; $i++) {
                 $dt = $start->copy()->addDays($i);
@@ -104,9 +109,6 @@ class ProdukLayananController extends Controller
         return ['labels' => $labels, 'slots' => $slots];
     }
 
-    /**
-     * Fetch Dataset 1 Baris Grafik berdasarkan ID Paket
-     */
     private function fetchDatasetForPaket($paketId, $start, $end, $periode, $colorIndex)
     {
         $paket = MsPaket::find($paketId);
@@ -127,7 +129,7 @@ class ProdukLayananController extends Controller
             $dt = Carbon::parse($trx->waktu_mulai);
 
             if ($periode === 'harian') {
-                $key = $dt->format('H'); // Ambil jam (00 - 23)
+                $key = $dt->format('H');
             } elseif ($periode === 'mingguan') {
                 $key = $dt->dayOfWeekIso;
             } elseif ($periode === 'bulanan') {
@@ -149,12 +151,6 @@ class ProdukLayananController extends Controller
         ];
     }
 
-    /**
-     * Warna progress bar kontribusi %, disamakan dengan palet fixed
-     * Regular/Private Room yang dipakai di AnalisisPendapatanController,
-     * supaya kategori ruangan yang sama konsisten warnanya lintas halaman.
-     * Di luar 2 kategori itu (kalau ada), fallback ke ungu default.
-     */
     private function progressBarColor(string $kategori): string
     {
         $fixedColors = config('category-colors.kategori_ruangan');
@@ -169,17 +165,6 @@ class ProdukLayananController extends Controller
         return '#6f42c1';
     }
 
-    /**
-     * Baris tabel: 1 baris = 1 penetapan_harga (paket + ruangan + durasi + SKU),
-     * dilengkapi Total Pendapatan & Jml Transaksi hasil agregat tr_transaksi
-     * pada rentang waktu $start-$end (mengikuti filter periode/tanggal aktif).
-     *
-     * Kontribusi % dihitung terhadap grand total dari SELURUH baris yang lolos
-     * filter kategori/sub_kategori/periode saat ini (bukan grand total absolut
-     * semua data) -- beda dengan AnalisisPendapatanController.
-     *
-     * Baris tanpa transaksi pada periode terpilih TETAP ditampilkan (Rp0, 0%).
-     */
     private function getTableRows(Request $request, $start, $end)
     {
         $revenueSub = DB::table('tr_transaksi')
@@ -219,7 +204,6 @@ class ProdukLayananController extends Controller
 
         $rows = $query->get();
 
-        // Grand total relatif ke filter aktif (kategori + sub_kategori + periode) saat ini.
         $grandTotal = $rows->sum('total_pendapatan');
 
         return $rows->map(function ($row) use ($grandTotal) {
@@ -279,9 +263,6 @@ class ProdukLayananController extends Controller
         </tr>';
     }
 
-    /**
-     * Mengambil daftar paket yang TERSISA setelah filter kategori diterapkan.
-     */
     private function getAvailablePakets(Request $request): array
     {
         $query = PenetapanHarga::query()
@@ -307,10 +288,8 @@ class ProdukLayananController extends Controller
         [$start, $end, $periode] = $this->getDateRange($request);
         $suggestedMax = $this->getSuggestedMax($periode);
 
-        // Filter paket yang sah sesuai kondisi dropdown "Kategori"
         $allPakets = $this->getAvailablePakets($request);
 
-        // 1. HANDLER AJAX: Pagination Tabel Tanpa Reload
         if ($request->ajax() && $request->has('page') && !$request->has('add_paket_id')) {
             $rows = $this->getTableRows($request, $start, $end);
             $tableData = $this->paginateRows($rows, $request);
@@ -328,7 +307,6 @@ class ProdukLayananController extends Controller
             ]);
         }
 
-        // 2. HANDLER AJAX: Menambah Pembanding ke Grafik
         if ($request->ajax() && $request->has('add_paket_id')) {
             $availableIds = array_column($allPakets, 'id_paket');
             if (!in_array($request->add_paket_id, $availableIds)) {
@@ -339,7 +317,6 @@ class ProdukLayananController extends Controller
             return response()->json(['success' => true, 'dataset' => $dataset, 'suggestedMax' => $suggestedMax]);
         }
 
-        // 3. INITIAL LOAD & SUBMIT FILTER (Data Dropdown)
         $kategoriOptions = ['semua' => 'Semua Kategori', 'REGULAR' => 'REGULAR', 'PRIVATE-ROOM' => 'PRIVATE-ROOM'];
 
         $subKategoriOptions = ['semua' => 'Semua Sub Kategori'];
@@ -348,7 +325,6 @@ class ProdukLayananController extends Controller
             $subKategoriOptions[$sub->id_sub_kategori_paket] = $sub->nama_sub_kategori;
         }
 
-        // Paket yang tampil di grafik: dari state client (jika ada), atau Top-4 terlaris
         $paketIds = $this->resolvePaketIds($request, $start, $end, $allPakets);
 
         $axes = $this->buildAxes($start, $end, $periode);
@@ -362,9 +338,7 @@ class ProdukLayananController extends Controller
             }
         }
 
-        // 4. HANDLER AJAX: Jika user ganti rentang tanggal / submit form filter
         if ($request->ajax()) {
-            // Render ulang tabel halaman 1 dan kirim daftar autocomplete paket terbaru
             $tableRequest = clone $request;
             $tableRequest->query->set('page', 1);
             $rows = $this->getTableRows($tableRequest, $start, $end);
@@ -410,7 +384,6 @@ class ProdukLayananController extends Controller
             $raw = $request->input('paket_ids', '');
             $ids = is_array($raw) ? $raw : explode(',', $raw);
 
-            // Validasi id yang masuk, pastikan masih match dengan filter aktif
             $filtered = array_values(array_unique(array_filter(
                 array_map('intval', $ids),
                 fn($id) => in_array($id, $availableIds)
@@ -421,7 +394,6 @@ class ProdukLayananController extends Controller
             }
         }
 
-        // Kalau kosong (atau ga ada yg match), balikin default top-4 revenue DARI paket yang tersedia
         return DB::table('tr_transaksi')
             ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
             ->where('tr_transaksi.status_sewa', 'selesai')

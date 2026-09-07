@@ -17,7 +17,12 @@ class SATinjauLaporanController extends Controller
 {
     /**
      * Hitung rentang waktu berdasarkan periode (Harian/Mingguan/Bulanan).
-     * Pola & default (bulanan) disamakan persis dengan SABerandaController::getPeriodRanges().
+     * Jam operasional venue: 10:00 - 01:00 (lewat tengah malam), disamakan
+     * dengan AnalisisPendapatanController, ProdukLayananController, dan
+     * ProdukFnbController. Sebelumnya periode harian pakai startOfDay()/
+     * endOfDay() murni (00:00-23:59), jadi transaksi jam 00:00-01:00 dinihari
+     * dianggap "hari berikutnya" -- sekarang dianggap masih "hari operasional
+     * sebelumnya", konsisten dengan 3 controller lain.
      */
     private function getPeriodRange(Request $request): array
     {
@@ -42,14 +47,14 @@ class SATinjauLaporanController extends Controller
             }
             $end = $start->copy()->endOfMonth();
         } else {
-            // Default: Harian
+            // Default: Harian. Jam operasional 10:00 - 01:00 (lewat tengah malam).
             $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
             try {
-                $start = Carbon::parse($tanggal)->startOfDay();
-                $end   = Carbon::parse($tanggal)->endOfDay();
+                $start = Carbon::parse($tanggal)->setTime(10, 0, 0);
+                $end   = Carbon::parse($tanggal)->addDay()->setTime(1, 59, 59);
             } catch (Exception $e) {
-                $start = Carbon::today()->startOfDay();
-                $end   = Carbon::today()->endOfDay();
+                $start = Carbon::today()->setTime(10, 0, 0);
+                $end   = Carbon::tomorrow()->setTime(1, 59, 59);
             }
         }
 
@@ -71,8 +76,8 @@ class SATinjauLaporanController extends Controller
             ->get()
             ->map(function ($item) {
                 $item->jenis_laporan = 'Booking';
-                // Kasir dari relasi admin (sebelumnya field ini tidak pernah di-set).
                 $item->kasir = $item->admin->nama_pengguna ?? null;
+                $item->kode_transaksi = $item->kode_sewa;
                 return $item;
             });
 
@@ -83,8 +88,6 @@ class SATinjauLaporanController extends Controller
             ->map(function ($item) {
                 $item->jenis_laporan = 'F&B';
 
-                // --- Alias/virtual property, supaya blade yang sudah ada
-                //     (table-transaksi, modal-fnb) bisa dipakai tanpa diubah ---
                 $item->waktu_mulai    = $item->created_at;
                 $item->kasir          = $item->admin->nama_pengguna ?? null;
                 $item->kode_transaksi = $item->kode_pos;
@@ -115,7 +118,6 @@ class SATinjauLaporanController extends Controller
             $bookingFiltered = $bookingRaw->where('status_sewa', 'dibatalkan')->values();
             $fnbFiltered     = $fnbRaw->filter($isFnbDibatalkan)->values();
         } else {
-            // Semua = kombinasi Selesai + Dibatalkan (bukan tanpa filter status sama sekali).
             $bookingFiltered = $bookingRaw->whereIn('status_sewa', ['selesai', 'dibatalkan'])->values();
             $fnbFiltered     = $fnbRaw->filter(
                 fn ($item) => $isFnbSelesai($item) || $isFnbDibatalkan($item)
@@ -137,9 +139,6 @@ class SATinjauLaporanController extends Controller
         $totalFnb      = $fnbRaw->count();
         $fnbSelesai    = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'selesai')->count();
         $fnbDibatalkan = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'dibatalkan')->count();
-        // Pendapatan F&B wajib dua-duanya (status_pesanan Selesai DAN pembayaran lunas),
-        // pakai closure $isFnbSelesai yang sama supaya konsisten dengan filter tabel di atas
-        // (sebelumnya cuma cek status_pembayaran, jadi bisa beda angka dengan jumlah baris "Selesai").
         $pendapatanFnb = (float) $fnbRaw->filter($isFnbSelesai)->sum('total_pos');
 
         $totalPelanggan = User::where('role', 'pelanggan')->count();
@@ -174,7 +173,6 @@ class SATinjauLaporanController extends Controller
         $data = $this->getQueryData($request);
         $data['transaksisPaged'] = $this->paginateTransaksis($data['transaksis'], $request);
 
-        // Handler AJAX: klik link pagination tabel, tanpa reload halaman
         if ($request->ajax() && $request->has('page')) {
             $html = view('superadmin.laporan-sa.partials.table-rows', [
                 'transaksis' => $data['transaksisPaged'],
@@ -213,7 +211,6 @@ class SATinjauLaporanController extends Controller
                     'status'         => strtolower($t->status_sewa),
                 ];
             } else {
-                // F&B: pecah per produk (Opsi A), sama seperti exportExcel
                 if (isset($t->items) && count($t->items) > 0) {
                     foreach ($t->items as $item) {
                         $flat[] = (object) [
@@ -258,9 +255,6 @@ class SATinjauLaporanController extends Controller
             ->where('status', 'selesai')
             ->sum('total');
 
-        // ============================================================
-        // TAMBAHAN BARU: Hitung total selesai dan dibatalkan 
-        // ============================================================
         $data['totalSelesai']    = $data['bookingSelesai'] + $data['fnbSelesai'];
         $data['totalDibatalkan'] = $data['bookingDibatalkan'] + $data['fnbDibatalkan'];
 
@@ -277,17 +271,15 @@ class SATinjauLaporanController extends Controller
     {
         $data = $this->getQueryData($request);
         $transaksis = $data['transaksis'];
-        
-        // Kita butuh ngerombak collection ini jadi array flat sesuai "Opsi A" (F&B pecah per baris)
+
         $flatData = [];
 
         foreach ($transaksis as $t) {
             if ($t->jenis_laporan === 'Booking') {
-                // Booking: 1 baris (1-to-1)
                 $flatData[] = [
-                    'kode_transaksi'    => $t->kode_sewa, // Sesuaikan field di database lu
+                    'kode_transaksi'    => $t->kode_sewa,
                     'jenis_laporan'     => 'Booking',
-                    'tanggal_transaksi' => $t->waktu_selesai, // Tanggal transaksi Booking = waktu_selesai (samain sama filter periode)
+                    'tanggal_transaksi' => $t->waktu_selesai,
                     'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                     'kasir'             => $t->kasir ?? '-',
                     'nama_produk'       => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
@@ -298,29 +290,27 @@ class SATinjauLaporanController extends Controller
                     'status_sewa'       => strtolower($t->status_sewa),
                 ];
             } else {
-                // F&B: Pecah per produk (Opsi A) dari ->items yang udah lu buat di getQueryData()
                 if (isset($t->items) && count($t->items) > 0) {
                     foreach ($t->items as $item) {
                         $flatData[] = [
-                            'kode_transaksi'    => $t->kode_transaksi, // Diambil dari kode_pos
+                            'kode_transaksi'    => $t->kode_transaksi,
                             'jenis_laporan'     => 'F&B',
-                            'tanggal_transaksi' => $t->created_at, // Tanggal transaksi F&B = created_at (samain sama filter periode)
+                            'tanggal_transaksi' => $t->created_at,
                             'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                             'kasir'             => $t->kasir ?? '-',
                             'nama_produk'       => $item->produk,
-                            'jumlah'            => $item->jumlah . ' Item', // Biar spesifik
-                            'nominal_transaksi' => $item->subtotal, // Biar sesuai nominal item tersebut
+                            'jumlah'            => $item->jumlah . ' Item',
+                            'nominal_transaksi' => $item->subtotal,
                             'metode_pembayaran' => $t->metode_pembayaran,
                             'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
                             'status_sewa'       => strtolower($t->status_sewa),
                         ];
                     }
                 } else {
-                    // Jaga-jaga kalau ada struk F&B tapi items-nya kosong (meskipun jarang)
                     $flatData[] = [
                         'kode_transaksi'    => $t->kode_transaksi,
                         'jenis_laporan'     => 'F&B',
-                        'tanggal_transaksi' => $t->created_at, // Tanggal transaksi F&B = created_at (samain sama filter periode)
+                        'tanggal_transaksi' => $t->created_at,
                         'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                         'kasir'             => $t->kasir ?? '-',
                         'nama_produk'       => '-',
