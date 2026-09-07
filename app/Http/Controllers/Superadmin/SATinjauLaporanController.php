@@ -287,6 +287,7 @@ class SATinjauLaporanController extends Controller
                 $flatData[] = [
                     'kode_transaksi'    => $t->kode_sewa, // Sesuaikan field di database lu
                     'jenis_laporan'     => 'Booking',
+                    'tanggal_transaksi' => $t->waktu_selesai, // Tanggal transaksi Booking = waktu_selesai (samain sama filter periode)
                     'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                     'kasir'             => $t->kasir ?? '-',
                     'nama_produk'       => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
@@ -303,6 +304,7 @@ class SATinjauLaporanController extends Controller
                         $flatData[] = [
                             'kode_transaksi'    => $t->kode_transaksi, // Diambil dari kode_pos
                             'jenis_laporan'     => 'F&B',
+                            'tanggal_transaksi' => $t->created_at, // Tanggal transaksi F&B = created_at (samain sama filter periode)
                             'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                             'kasir'             => $t->kasir ?? '-',
                             'nama_produk'       => $item->produk,
@@ -318,6 +320,7 @@ class SATinjauLaporanController extends Controller
                     $flatData[] = [
                         'kode_transaksi'    => $t->kode_transaksi,
                         'jenis_laporan'     => 'F&B',
+                        'tanggal_transaksi' => $t->created_at, // Tanggal transaksi F&B = created_at (samain sama filter periode)
                         'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                         'kasir'             => $t->kasir ?? '-',
                         'nama_produk'       => '-',
