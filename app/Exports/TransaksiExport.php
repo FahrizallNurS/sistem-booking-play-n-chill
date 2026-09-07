@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Carbon\Carbon;
 
 class TransaksiExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
 {
@@ -33,6 +34,7 @@ class TransaksiExport implements FromCollection, WithHeadings, WithMapping, With
         return [
             'NO',
             'KODE TRANSAKSI',
+            'TANGGAL TRANSAKSI',
             'JENIS TRANSAKSI',
             'PELANGGAN',
             'KASIR',
@@ -49,9 +51,13 @@ class TransaksiExport implements FromCollection, WithHeadings, WithMapping, With
     {
         $this->rowNumber++;
 
+        $tanggal = $row['tanggal_transaksi'] ?? null;
+        $tanggalFormatted = $tanggal ? Carbon::parse($tanggal)->format('d-m-Y H:i') : '-';
+
         return [
             $this->rowNumber,
             $row['kode_transaksi'],
+            $tanggalFormatted,
             $row['jenis_laporan'],
             $row['pelanggan'],
             $row['kasir'],
@@ -66,8 +72,8 @@ class TransaksiExport implements FromCollection, WithHeadings, WithMapping, With
 
     public function styles(Worksheet $sheet): array
     {
-        // Style Header
-        $sheet->getStyle('A1:K1')->applyFromArray([
+        // Style Header (A..L, sekarang 12 kolom)
+        $sheet->getStyle('A1:L1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -91,7 +97,7 @@ class TransaksiExport implements FromCollection, WithHeadings, WithMapping, With
         $highestRow = $sheet->getHighestRow();
 
         if ($highestRow > 1) {
-            $sheet->getStyle('A2:K' . $highestRow)->applyFromArray([
+            $sheet->getStyle('A2:L' . $highestRow)->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -100,33 +106,43 @@ class TransaksiExport implements FromCollection, WithHeadings, WithMapping, With
                 ],
             ]);
 
+            // NO
             $sheet->getStyle('A2:A' . $highestRow)
                 ->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
+            // TANGGAL TRANSAKSI
             $sheet->getStyle('C2:C' . $highestRow)
                 ->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            $sheet->getStyle('G2:G' . $highestRow)
+            // JENIS TRANSAKSI
+            $sheet->getStyle('D2:D' . $highestRow)
                 ->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            $sheet->getStyle('I2:K' . $highestRow)
-                ->getAlignment()
-                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
+            // JUMLAH
             $sheet->getStyle('H2:H' . $highestRow)
+                ->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // METODE, SUMBER, STATUS TRANSAKSI
+            $sheet->getStyle('J2:L' . $highestRow)
+                ->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // NOMINAL TRANSAKSI
+            $sheet->getStyle('I2:I' . $highestRow)
                 ->getNumberFormat()
                 ->setFormatCode('"Rp "#,##0');
 
-            $sheet->getStyle('H2:H' . $highestRow)
+            $sheet->getStyle('I2:I' . $highestRow)
                 ->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
             for ($row = 2; $row <= $highestRow; $row++) {
                 if ($row % 2 === 0) {
-                    $sheet->getStyle('A' . $row . ':K' . $row)
+                    $sheet->getStyle('A' . $row . ':L' . $row)
                         ->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,

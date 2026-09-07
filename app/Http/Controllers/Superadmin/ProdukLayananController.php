@@ -125,7 +125,7 @@ class ProdukLayananController extends Controller
 
         foreach ($transactions as $trx) {
             $dt = Carbon::parse($trx->waktu_mulai);
-            
+
             if ($periode === 'harian') {
                 $key = $dt->format('H'); // Ambil jam (00 - 23)
             } elseif ($periode === 'mingguan') {
@@ -150,21 +150,64 @@ class ProdukLayananController extends Controller
     }
 
     /**
-     * Kueri untuk Tabel Data
+     * Warna progress bar kontribusi %, disamakan dengan palet fixed
+     * Regular/Private Room yang dipakai di AnalisisPendapatanController,
+     * supaya kategori ruangan yang sama konsisten warnanya lintas halaman.
+     * Di luar 2 kategori itu (kalau ada), fallback ke ungu default.
      */
-    private function getTableQuery(Request $request)
+    private function progressBarColor(string $kategori): string
     {
+        $fixedColors = config('category-colors.kategori_ruangan');
+
+        if ($kategori === 'REGULAR' && $fixedColors) {
+            return $fixedColors['regular']['color'];
+        }
+        if ($kategori === 'PRIVATE-ROOM' && $fixedColors) {
+            return $fixedColors['private_room']['color'];
+        }
+
+        return '#6f42c1';
+    }
+
+    /**
+     * Baris tabel: 1 baris = 1 penetapan_harga (paket + ruangan + durasi + SKU),
+     * dilengkapi Total Pendapatan & Jml Transaksi hasil agregat tr_transaksi
+     * pada rentang waktu $start-$end (mengikuti filter periode/tanggal aktif).
+     *
+     * Kontribusi % dihitung terhadap grand total dari SELURUH baris yang lolos
+     * filter kategori/sub_kategori/periode saat ini (bukan grand total absolut
+     * semua data) -- beda dengan AnalisisPendapatanController.
+     *
+     * Baris tanpa transaksi pada periode terpilih TETAP ditampilkan (Rp0, 0%).
+     */
+    private function getTableRows(Request $request, $start, $end)
+    {
+        $revenueSub = DB::table('tr_transaksi')
+            ->where('status_sewa', 'selesai')
+            ->whereBetween('waktu_mulai', [$start, $end])
+            ->select(
+                'id_penetapan_harga',
+                DB::raw('SUM(total_harga) as total'),
+                DB::raw('COUNT(*) as trx')
+            )
+            ->groupBy('id_penetapan_harga');
+
         $query = PenetapanHarga::query()
             ->join('ms_paket', 'penetapan_harga.id_paket', '=', 'ms_paket.id_paket')
             ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
             ->join('ms_sub_kategori_paket', 'ms_paket.ms_sub_kategori_paket_id_sub_kategori_paket', '=', 'ms_sub_kategori_paket.id_sub_kategori_paket')
+            ->leftJoinSub($revenueSub, 'agg', function ($join) {
+                $join->on('penetapan_harga.id_penetapan_harga', '=', 'agg.id_penetapan_harga');
+            })
             ->select(
                 'ms_paket.nama_paket as paket',
                 'ms_ruangan.kategori as kategori',
                 'ms_sub_kategori_paket.nama_sub_kategori as sub',
                 'penetapan_harga.harga as harga',
                 'penetapan_harga.durasi_jam as jam',
-                'penetapan_harga.sku as sku'
+                'penetapan_harga.sku as sku',
+                DB::raw('COALESCE(agg.total, 0) as total_pendapatan'),
+                DB::raw('COALESCE(agg.trx, 0) as jml_transaksi')
             );
 
         if ($request->filled('kategori') && $request->kategori !== 'semua') {
@@ -174,7 +217,66 @@ class ProdukLayananController extends Controller
             $query->where('ms_sub_kategori_paket.id_sub_kategori_paket', $request->sub_kategori);
         }
 
-        return $query;
+        $rows = $query->get();
+
+        // Grand total relatif ke filter aktif (kategori + sub_kategori + periode) saat ini.
+        $grandTotal = $rows->sum('total_pendapatan');
+
+        return $rows->map(function ($row) use ($grandTotal) {
+            $total = (float) $row->total_pendapatan;
+            $trx = (int) $row->jml_transaksi;
+
+            return [
+                'paket' => $row->paket,
+                'kategori' => $row->kategori,
+                'sub' => $row->sub,
+                'harga' => $row->harga,
+                'jam' => $row->jam,
+                'sku' => $row->sku,
+                'total' => $total,
+                'trx' => $trx,
+                'persen' => $grandTotal > 0 ? round(($total / $grandTotal) * 100, 1) : 0,
+                'rata' => $trx > 0 ? round($total / $trx) : 0,
+            ];
+        })->sortByDesc('total')->values();
+    }
+
+    private function paginateRows($rows, Request $request)
+    {
+        $perPage = 10;
+        $page = (int) $request->input('page', 1);
+        $slice = $rows->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $slice,
+            $rows->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+    }
+
+    private function tableRowHtml(int $no, array $row): string
+    {
+        $barColor = $this->progressBarColor($row['kategori']);
+
+        return '<tr>
+            <td class="px-4 text-muted py-3" style="font-size: 13px;">' . $no . '</td>
+            <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">' . e($row['paket']) . '</td>
+            <td class="text-muted py-3" style="font-size: 13px;">' . e($row['kategori']) . '</td>
+            <td class="text-muted py-3" style="font-size: 13px;">' . e($row['sub']) . '</td>
+            <td class="text-muted py-3" style="font-size: 13px;">Rp ' . number_format($row['harga'], 0, ',', '.') . '</td>
+            <td class="text-muted py-3 text-center" style="font-size: 13px;">' . e($row['jam']) . '</td>
+            <td class="text-muted py-3" style="font-size: 13px;">' . e($row['sku']) . '</td>
+            <td class="text-right font-weight-bold py-3" style="font-size: 13px;">Rp ' . number_format($row['total'], 0, ',', '.') . '</td>
+            <td class="text-center py-3" style="width: 150px;">
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar" style="width:' . $row['persen'] . '%; background-color:' . $barColor . ';"></div>
+                </div>
+                <span class="font-weight-bold" style="font-size: 12px;">' . $row['persen'] . '%</span>
+            </td>
+            <td class="text-right text-muted py-3" style="font-size: 13px;">Rp ' . number_format($row['rata'], 0, ',', '.') . '</td>
+        </tr>';
     }
 
     /**
@@ -210,20 +312,13 @@ class ProdukLayananController extends Controller
 
         // 1. HANDLER AJAX: Pagination Tabel Tanpa Reload
         if ($request->ajax() && $request->has('page') && !$request->has('add_paket_id')) {
-            $tableData = $this->getTableQuery($request)->paginate(10);
-            
+            $rows = $this->getTableRows($request, $start, $end);
+            $tableData = $this->paginateRows($rows, $request);
+
             $html = '';
             $startNum = ($tableData->currentPage() - 1) * $tableData->perPage() + 1;
             foreach ($tableData as $index => $row) {
-                $html .= '<tr>
-                    <td class="px-4 text-muted py-3" style="font-size: 13px;">' . ($startNum + $index) . '</td>
-                    <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">' . e($row->paket) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->kategori) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sub) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">Rp ' . number_format($row->harga, 0, ',', '.') . '</td>
-                    <td class="text-muted py-3 text-center" style="font-size: 13px;">' . e($row->jam) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sku) . '</td>
-                </tr>';
+                $html .= $this->tableRowHtml($startNum + $index, $row);
             }
 
             return response()->json([
@@ -272,19 +367,12 @@ class ProdukLayananController extends Controller
             // Render ulang tabel halaman 1 dan kirim daftar autocomplete paket terbaru
             $tableRequest = clone $request;
             $tableRequest->query->set('page', 1);
-            $tableData = $this->getTableQuery($tableRequest)->paginate(10);
+            $rows = $this->getTableRows($tableRequest, $start, $end);
+            $tableData = $this->paginateRows($rows, $tableRequest);
 
             $tableHtml = '';
             foreach ($tableData as $index => $row) {
-                $tableHtml .= '<tr>
-                    <td class="px-4 text-muted py-3" style="font-size: 13px;">' . ($index + 1) . '</td>
-                    <td class="text-dark py-3 font-weight-bold" style="font-size: 13px;">' . e($row->paket) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->kategori) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sub) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">Rp ' . number_format($row->harga, 0, ',', '.') . '</td>
-                    <td class="text-muted py-3 text-center" style="font-size: 13px;">' . e($row->jam) . '</td>
-                    <td class="text-muted py-3" style="font-size: 13px;">' . e($row->sku) . '</td>
-                </tr>';
+                $tableHtml .= $this->tableRowHtml($index + 1, $row);
             }
 
             return response()->json([
@@ -301,7 +389,8 @@ class ProdukLayananController extends Controller
             ]);
         }
 
-        $tableData = $this->getTableQuery($request)->paginate(10);
+        $rows = $this->getTableRows($request, $start, $end);
+        $tableData = $this->paginateRows($rows, $request);
 
         return view('superadmin.produk-layanan.index', compact(
             'chartLabels', 'chartDatasets', 'tableData', 'kategoriOptions', 'subKategoriOptions', 'allPakets', 'suggestedMax'
@@ -320,7 +409,7 @@ class ProdukLayananController extends Controller
         if ($request->has('paket_ids')) {
             $raw = $request->input('paket_ids', '');
             $ids = is_array($raw) ? $raw : explode(',', $raw);
-            
+
             // Validasi id yang masuk, pastikan masih match dengan filter aktif
             $filtered = array_values(array_unique(array_filter(
                 array_map('intval', $ids),
@@ -341,7 +430,7 @@ class ProdukLayananController extends Controller
             ->select('penetapan_harga.id_paket', DB::raw('SUM(tr_transaksi.total_harga) as total_revenue'))
             ->groupBy('penetapan_harga.id_paket')
             ->orderByDesc('total_revenue')
-            ->limit(4) 
+            ->limit(4)
             ->pluck('id_paket')
             ->toArray();
     }
