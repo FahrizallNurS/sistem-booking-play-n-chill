@@ -77,7 +77,7 @@ class BookingService
             }
 
             $kode = TrTransaksi::generateKodeSewa();
-            
+
            $transaksi = TrTransaksi::create([
                 'id_penetapan_harga' => $ph->id_penetapan_harga,
                 'id_pengguna'        => $user->id_pengguna,
@@ -142,13 +142,19 @@ class BookingService
                 ->first();
 
             if ($trPos) {
+                // ==========================================================
+                // Kasus: TrPos sudah ada sebelumnya (dibuat lewat modal F&B
+                // terpisah / AdminFbController). Detail baris sudah tersimpan
+                // di tr_pos_detail sejak awal, di sini kita cuma perlu
+                // membaca ulang untuk keperluan struk & total.
+                // ==========================================================
                 $existingDetails = TrPosDetail::where('id_pos', $trPos->id_pos)->get();
 
                 foreach ($existingDetails as $d) {
                     $produk = MsProduk::find($d->id_produk);
 
                     $fnbDetailRows[] = [
-                        'produk'       => $produk, 
+                        'produk'       => $produk,
                         'nama_produk'  => $produk->nama_produk ?? 'Produk Dihapus',
                         'jumlah'       => $d->jumlah,
                         'harga_satuan' => $d->harga_satuan,
@@ -161,11 +167,15 @@ class BookingService
                     'status_pembayaran' => 'lunas',
                     'metode_pembayaran' => $metodePembayaran,
                     'id_admin'          => $idAdminPencetak ?? $trPos->id_admin,
-                    
                 ]);
 
             } elseif (!empty($itemsFnb)) {
-
+                // ==========================================================
+                // Kasus: F&B dikirim bareng saat booking dibuat (belum ada
+                // TrPos). Di sini kita HARUS membuat baris tr_pos_detail
+                // satu per satu, dan memotong stok produk — sebelumnya kedua
+                // hal ini tidak pernah terjadi (bug utama).
+                // ==========================================================
                 foreach ($itemsFnb as $item) {
                     $jumlah = (int) ($item['jumlah'] ?? 0);
                     if ($jumlah <= 0) {
@@ -214,20 +224,23 @@ class BookingService
                         'catatan'           => null,
                     ]);
 
+                    // --- FIX: simpan tiap baris ke tr_pos_detail & potong stok ---
                     foreach ($fnbDetailRows as $row) {
-                        $items[] = [
-                            'nama'     => $row['nama_produk'] ?? ($row['produk']->nama_produk ?? 'Produk'),
-                            'sub'      => null,
-                            'qty'      => $row['jumlah'],
-                            'harga'    => $row['harga_satuan'],
-                            'subtotal' => $row['subtotal'],
-                        ];
+                        TrPosDetail::create([
+                            'id_pos'       => $trPos->id_pos,
+                            'id_produk'    => $row['produk']->id_produk,
+                            'jumlah'       => $row['jumlah'],
+                            'harga_satuan' => $row['harga_satuan'],
+                            'subtotal'     => $row['subtotal'],
+                        ]);
+
+                        $row['produk']->decrement('stock', $row['jumlah']);
                     }
                 }
             }
 
 
-                        // --- Finalisasi status booking ---
+            // --- Finalisasi status booking ---
             $totalTagihan = (int) $transaksi->total_harga + $totalFnb;
             $jumlahDp = (int) ($transaksi->jumlah_dp ?? 0);
             $sisaYangDibayar = $totalTagihan - $jumlahDp;

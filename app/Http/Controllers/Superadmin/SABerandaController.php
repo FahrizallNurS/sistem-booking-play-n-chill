@@ -130,12 +130,21 @@ class SABerandaController extends Controller
         $this->populateSlots($currentSlots, $curBooking, $curPos, $periode);
         $this->populateSlots($previousSlots, $prevBooking, $prevPos, $periode);
 
+        // SESUDAH
+        $currentValues  = array_values($currentSlots);
+        $previousValues = array_values($previousSlots);
+        $peakValue      = max(array_merge($currentValues, $previousValues, [0]));
+
+        // Beri headroom 20% di atas nilai tertinggi, tapi jangan lebih kecil dari fallback dasar
+        $dynamicMax = $peakValue > 0 ? (int) ceil($peakValue * 1.2) : $suggestedMax;
+
         return [
             'labels'       => $labels,
-            'currentData'  => array_values($currentSlots),
-            'previousData' => array_values($previousSlots),
-            'suggestedMax' => $suggestedMax,
+            'currentData'  => $currentValues,
+            'previousData' => $previousValues,
+            'suggestedMax' => max($dynamicMax, $suggestedMax > 400000 ? 0 : $suggestedMax), // fallback minimum tetap ada saat data kosong
         ];
+        
     }
 
     private function queryBookingData($start, $end)
@@ -218,9 +227,7 @@ class SABerandaController extends Controller
             ],
         ];
 
-        // ------------------------------------------------------------
-        // 2. Produk Layanan / Sewa (Private Room vs Regular) — basis jumlah transaksi
-        // ------------------------------------------------------------
+
         $ruanganCounts = TrTransaksi::join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
             ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
             ->where('tr_transaksi.status_sewa', 'selesai')
@@ -405,9 +412,16 @@ class SABerandaController extends Controller
     {
         [$curStart, $curEnd, $prevStart, $prevEnd, $periode] = $this->getPeriodRanges($request);
 
-        // 1. Hitung Ringkasan Metrik
         $totalBookingCount = TrTransaksi::whereBetween('created_at', [$curStart, $curEnd])->count();
         $totalFnbCount     = TrPos::whereBetween('created_at', [$curStart, $curEnd])->count();
+
+        $bookingSelesaiCount = TrTransaksi::where('status_sewa', 'selesai')
+            ->whereBetween('created_at', [$curStart, $curEnd])
+            ->count();
+
+        $fnbLunasCount = TrPos::whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
+            ->whereBetween('created_at', [$curStart, $curEnd])
+            ->count();
 
         $pendapatanBooking = (float) TrTransaksi::where('status_sewa', 'selesai')
             ->whereBetween('created_at', [$curStart, $curEnd])
@@ -417,9 +431,9 @@ class SABerandaController extends Controller
             ->whereBetween('created_at', [$curStart, $curEnd])
             ->sum('total_pos');
 
-        $totalPendapatanVal  = $pendapatanBooking + $pendapatanFnb;
-        $totalTransaksiCount = $totalBookingCount + $totalFnbCount;
-        $rataRataVal         = $totalTransaksiCount > 0 ? round($totalPendapatanVal / $totalTransaksiCount) : 0;
+        $totalPendapatanVal    = $pendapatanBooking + $pendapatanFnb;
+        $totalTransaksiBerhasil = $bookingSelesaiCount + $fnbLunasCount;
+        $rataRataVal            = $totalTransaksiBerhasil > 0 ? round($totalPendapatanVal / $totalTransaksiBerhasil) : 0;
 
         $metricsData = [
             'total_pendapatan' => 'Rp ' . number_format($totalPendapatanVal, 0, ',', '.'),
