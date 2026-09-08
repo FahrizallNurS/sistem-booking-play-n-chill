@@ -22,7 +22,8 @@
                         </div>
                         <div class="mb-3">
                             <small class="text-muted d-block mb-1">Nama Pelanggan</small>
-                            <span class="text-dark">{{ $t->pengguna->nama_pengguna ?? '-' }}</span>
+                            {{-- FIX: Cek nama manual ketikan kasir dulu, baru cek relasi akun online --}}
+                            <span class="text-dark">{{ $t->nama ?? $t->pengguna->nama_pengguna ?? '-' }}</span>
                         </div>
                         <div class="mb-0">
                             <small class="text-muted d-block mb-1">Tanggal Pesanan</small>

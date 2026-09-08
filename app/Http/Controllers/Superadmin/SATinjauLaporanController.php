@@ -91,6 +91,8 @@ class SATinjauLaporanController extends Controller
                 $item->waktu_mulai    = $item->created_at;
                 $item->kasir          = $item->admin->nama_pengguna ?? null;
                 $item->kode_transaksi = $item->kode_pos;
+                // FIX: Sertakan nama ketikan manual dari kasir
+                $item->nama           = $item->nama_pelanggan;
                 $item->ruangan        = $item->transaksi->penetapanHarga->ruangan->nama_ruangan ?? '-';
                 $item->status_sewa    = strtolower($item->status_pesanan ?? '');
                 $item->total_harga    = $item->total_pos;

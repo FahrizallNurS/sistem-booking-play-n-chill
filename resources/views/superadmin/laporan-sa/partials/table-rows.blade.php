@@ -19,7 +19,7 @@
             <td class="align-middle py-3 font-weight-bold">{{ $t->jenis_laporan }}</td>
         @endif
 
-        <td class="align-middle py-3">{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
+        <td class="align-middle py-3">{{ $t->nama ?? $t->pengguna->nama_pengguna ?? '-' }}</td>
         <td class="align-middle py-3">{{ $t->kasir ?? '-' }}</td>
         <td class="align-middle py-3">{{ $t->metode_pembayaran ?? 'Cash' }}</td>
         <td class="align-middle py-3 font-weight-bold text-dark">
