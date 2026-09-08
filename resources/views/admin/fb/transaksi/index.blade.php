@@ -78,7 +78,13 @@
                             
                             <td class="fw-bold">
                                 @php
-                                    $nama = $item->id_pengguna ? \App\Models\User::where('id_pengguna', $item->id_pengguna)->value('nama_pengguna') : 'Pelanggan Umum (Kasir)';
+                                    if (!empty($item->nama_pelanggan)) {
+                                        $nama = $item->nama_pelanggan;
+                                    } elseif ($item->id_pengguna) {
+                                        $nama = \App\Models\User::where('id_pengguna', $item->id_pengguna)->value('nama_pengguna');
+                                    } else {
+                                        $nama = 'Pelanggan Umum';
+                                    }
                                 @endphp
                                 {{ $nama }}
                             </td>
@@ -188,9 +194,20 @@
                                 <span class="text-muted d-block" style="font-size: 0.8rem;">Tanggal Pesanan</span>
                                 <span class="text-dark">{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i') }}</span>
                             </div>
-                            <div class="col-md-6 mb-2">
+                           <div class="col-md-6 mb-2">
                                 <span class="text-muted d-block" style="font-size: 0.8rem;">Nama Pelanggan</span>
-                                <span class="text-dark">{{ $item->id_pengguna ? \App\Models\User::where('id_pengguna', $item->id_pengguna)->value('nama_pengguna') : 'Pelanggan Umum' }}</span>
+                                <span class="text-dark">
+                                    @php
+                                        if (!empty($item->nama_pelanggan)) {
+                                            $namaModal = $item->nama_pelanggan;
+                                        } elseif ($item->id_pengguna) {
+                                            $namaModal = \App\Models\User::where('id_pengguna', $item->id_pengguna)->value('nama_pengguna');
+                                        } else {
+                                            $namaModal = 'Pelanggan Umum';
+                                        }
+                                    @endphp
+                                    {{ $namaModal }}
+                                </span>
                             </div>
                             <div class="col-md-6 mb-2">
                                 <span class="text-muted d-block" style="font-size: 0.8rem;">Status Saat Ini</span>

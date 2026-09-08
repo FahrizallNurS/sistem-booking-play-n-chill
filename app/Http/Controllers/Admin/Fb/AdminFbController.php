@@ -29,7 +29,7 @@ class AdminFbController extends Controller
                 'status_pembayaran' => 'kadaluarsa',
             ]);
 
-        $query = TrPos::query();
+        $query = TrPos::whereNotIn('status_pesanan', ['Selesai', 'Dibatalkan']);
 
         if ($request->filled('tanggal')) {
             $query->whereDate('created_at', $request->tanggal);

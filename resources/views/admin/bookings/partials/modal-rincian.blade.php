@@ -241,14 +241,7 @@ $(document).on('click', '#btn-cetak-struk', function () {
         return;
     }
 
-    // PENTING: window.open() harus dipanggil di sini, LANGSUNG di dalam
-    // event klik (synchronous) -- BUKAN di dalam callback AJAX (async).
-    // Kalau dipanggil setelah nunggu response server, browser anggap ini
-    // bukan aksi user asli dan memblokirnya (kadang malah redirect tab
-    // aktif, bukan cuma diblokir diam-diam). Trik-nya: buka tab kosong
-    // dulu sekarang, baru isi alamatnya (location.href) setelah PDF siap.
-    const strukWindow = window.open('', '_blank');
-
+    // Ubah tombol jadi status loading
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
 
     $.ajax({
@@ -262,31 +255,43 @@ $(document).on('click', '#btn-cetak-struk', function () {
         },
         success: function (res) {
             if (res.success) {
-                if (strukWindow) {
-                    strukWindow.location.href = res.data.pdf_url;
-                } else {
-                    // Fallback kalau tab kosong tadi ternyata tetap diblokir
-                    window.open(res.data.pdf_url, '_blank');
+                const iframe = document.getElementById('cetak-struk-iframe');
+                
+                if (iframe) {
+                    // Eksekusi print setelah PDF selesai dimuat di dalam iframe tersembunyi
+                    iframe.onload = function () {
+                        triggerPrintStrukRincian();
+                        
+                        // Sembunyikan tombol cetak, lalu munculkan tombol Selesai
+                        btn.addClass('d-none');
+                        $('#btn-selesai').removeClass('d-none');
+                    };
+                    
+                    // Masukkan URL struk ke iframe ditambah timestamp agar tidak terkena cache browser lama
+                    iframe.src = res.data.pdf_url + '?t=' + Date.now();
                 }
-                btn.addClass('d-none');
-                $('#btn-selesai').removeClass('d-none');
             }
         },
-       error: function(xhr) {
-                        let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
-                        // Jika error 422 (Validasi gagal)
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            let firstError = '';
-                            // Ambil pesan error pertama dari Laravel
-                            for (let key in errors) {
-                                firstError = errors[key][0];
-                                break;
-                            }
-                            errorMessage = 'Validasi Gagal: ' + firstError;
-                        }
-                        Swal.fire('Gagal!', errorMessage, 'error');
-                    }
+        error: function(xhr) {
+            let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
+            
+            // Jika error 422 (Validasi gagal)
+            if (xhr.status === 422) {
+                let errors = xhr.responseJSON.errors;
+                let firstError = '';
+                // Ambil pesan error pertama dari Laravel
+                for (let key in errors) {
+                    firstError = errors[key][0];
+                    break;
+                }
+                errorMessage = 'Validasi Gagal: ' + firstError;
+            }
+            
+            Swal.fire('Gagal!', errorMessage, 'error');
+            
+            // Kembalikan tombol ke wujud semula agar bisa diklik lagi
+            btn.prop('disabled', false).html('<i class="fas fa-print mr-1"></i> Cetak Struk');
+        }
     });
 });
 </script>

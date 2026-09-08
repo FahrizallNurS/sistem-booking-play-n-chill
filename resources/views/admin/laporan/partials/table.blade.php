@@ -33,19 +33,32 @@
                 @php
                     $isBooking = $t->jenis_laporan === 'Booking';
                     $modalId   = $isBooking ? 'modalBooking' . $t->id_transaksi : 'modalFNB' . $t->id_pos;
+                    
+                    // 🔹 FIX: LOGIKA PENCARIAN NAMA PELANGGAN YANG PINTAR 🔹
+                    if ($isBooking) {
+                        $namaPelanggan = $t->pengguna->nama_pengguna ?? '-';
+                    } else {
+                        if (!empty($t->nama_pelanggan)) {
+                            $namaPelanggan = $t->nama_pelanggan; // Ambil nama manual
+                        } elseif ($t->pengguna) {
+                            $namaPelanggan = $t->pengguna->nama_pengguna; // Ambil dari user terdaftar
+                        } else {
+                            $namaPelanggan = 'Pelanggan Umum (Kasir)'; // Default
+                        }
+                    }
                 @endphp
                 <tr>
                     <td>{{ $i + 1 }}</td>
 
                     @if($jenisTransaksi === 'booking')
                         <td><code>{{ $t->kode_sewa }}</code></td>
-                        <td>{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
+                        <td>{{ $namaPelanggan }}</td>
                         <td>{{ $t->penetapanHarga->ruangan->nama_ruangan ?? '-' }}</td>
                         <td>{{ $t->penetapanHarga->paket->nama_paket ?? '-' }}</td>
                         <td>{{ \Carbon\Carbon::parse($t->waktu_mulai)->format('d/m/Y H:i') }}</td>
                     @elseif($jenisTransaksi === 'fnb')
                         <td><code>{{ $t->kode_pos }}</code></td>
-                        <td>{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
+                        <td>{{ $namaPelanggan }}</td>
                         <td>{{ $t->transaksi->kode_sewa ?? '-' }}</td>
                         <td>{{ $t->created_at->format('d/m/Y H:i') }}</td>
                     @else
@@ -55,7 +68,7 @@
                             </span>
                         </td>
                         <td><code>{{ $isBooking ? $t->kode_sewa : $t->kode_pos }}</code></td>
-                        <td>{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
+                        <td>{{ $namaPelanggan }}</td>
                         <td>{{ $isBooking ? \Carbon\Carbon::parse($t->waktu_mulai)->format('d/m/Y H:i') : $t->created_at->format('d/m/Y H:i') }}</td>
                     @endif
 

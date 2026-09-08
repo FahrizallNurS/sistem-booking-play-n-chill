@@ -120,9 +120,7 @@
                     <li>
                         <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
                         <div>
-                            <div>Senin – Kamis: 10.00 – 01.00</div>
-                            <div class="my-1">Jumat: 10.00 – 01.00</div>
-                            <div>Sabtu – Minggu: 10.00 – 01.00</div>
+                            <div>Senin – Minggu: 10.00 – 01.00</div>
                         </div>
                     </li>
                 </ul>
