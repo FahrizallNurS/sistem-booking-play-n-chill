@@ -246,12 +246,15 @@ class BookingController extends Controller
 
             $kode = TrTransaksi::generateKodeSewa();
 
-            $jumlahDp  = null;
-            $sisaBayar = 0;
+           $jumlahDp  = null;
 
             if ($request->opsi_pembayaran === 'dp') {
                 $jumlahDp  = (int) str_replace('.', '', $request->jumlah_dp);
                 $sisaBayar = $ph->harga - $jumlahDp;
+            } else {
+                // FIX: Jika pelanggan pilih Full Payment tapi belum lunas (menunggu),
+                // maka sisa bayarnya adalah harga full ruangan tersebut.
+                $sisaBayar = $ph->harga;
             }
 
             $transaksi = TrTransaksi::create([

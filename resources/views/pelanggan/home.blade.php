@@ -523,75 +523,8 @@
     </div>
 </section>
 
-<footer>
-    <div class="container">
-        <div class="row gy-4 pb-2">
-
-           <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-brand-container">
-                    <img src="{{ asset('logo/PNCLOGO.jpg') }}" alt="Logo Play N Chill" class="f-logo-round">                   
-                    <div class="f-brand-text">
-                        <h3 class="f-brand-title">Play N Chill</h3>
-                        <p class="f-tagline mb-0">Nikmati pengalaman tak terlupakan bersama teman dan keluarga.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="f-head">Jam Operasional</div>
-                <ul class="f-list">
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_jam.png') }}" alt="Jam"></span>
-                        <div>
-                            <div>Senin – Kamis: 14.00 – 22.00</div>
-                            <div>Jumat: 13.00 – 00.00</div>
-                            <div>Sabtu – Minggu: 10.00 – 00.00</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="col-6 col-sm-3 col-lg-3 pe-2">
-                <div class="f-head">Hubungi Kami</div>
-                <ul class="f-list">
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_tel.png') }}" alt="Phone"></span><span>+62 857-3532-9227</span></li>
-                    <li><span class="fi"><img src="{{ asset('gambar/ic_email.png') }}" alt="Email"></span><span style="word-break: break-word;">playnchillmadiun@gmail.com</span></li>
-                    <li>
-                        <span class="fi"><img src="{{ asset('gambar/ic_lok.png') }}" alt="Location"></span>
-                        <span style="line-height: 1.5;">Jl. Puntadewa,<br>Ngrame RT02, Tamantirto, Kasihan, Bantul<br>Yogyakarta,<br>Selatan Sportorium UMY</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="col-6 col-sm-3 col-lg-3 d-flex justify-content-end justify-content-sm-start">
-                <div class="w-100" style="max-width: max-content;">
-                    <div class="f-head">Ikuti Kami</div>
-                    <ul class="f-list f-soc-list">
-                        <li>
-                            <a class="soc-btn" href="https://youtube.com/@playnchillmadiun?si=KVGMA9tC2ktJHAY0" title="YouTube">
-                                <img src="{{ asset('gambar/ic_yt.png') }}" alt="YouTube"> YouTube
-                            </a>
-                        </li>
-                        <li>
-                            <a class="soc-btn" href="https://www.tiktok.com/@playnchill.madiun?_r=1&_t=ZS-96DA4Nfui1t" title="TikTok">
-                                <img src="{{ asset('gambar/ic_tk.png') }}" alt="TikTok"> TikTok
-                            </a>
-                        </li>
-                        <li>
-                            <a class="soc-btn" href="https://share.google/fMbFjkoIuMs0P7Mfh" title="Instagram">
-                                <img src="{{ asset('gambar/ic_ig.png') }}" alt="Instagram"> Instagram
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-        </div>
-
-        <hr class="f-divider">
-        <p class="f-copy">&copy; {{ date('Y') }} Play N Chill Yogyakarta. All rights reserved.</p>
-    </div>
-</footer>
+<!-- Memanggil Footer -->
+  @include('partials.footer')
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>

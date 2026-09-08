@@ -111,11 +111,6 @@
 
                         <div class="border-top pt-4 mb-3"></div>
 
-                        {{-- Sisa Booking: muncul cuma di skenario booking DP online yang
-                             dilunasin di kasir. Baris ini terkunci (bukan item F&B),
-                             angkanya diisi dari sisi JS pas alur checkout F&B dipicu.
-                             Sengaja disembunyikan default — belum ada trigger backend
-                             yang ngisi ini, menyusul di task checkout F&B. --}}
                         <div id="rincian-sisa-booking-section" style="display: none;">
                             <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
                                 <span class="font-weight-bold text-dark">Sisa Booking (belum lunas)</span>
@@ -195,14 +190,6 @@ function updateStatusTombolCetakRincian() {
     btn.prop('disabled', uangDiterima < grandTotal);
 }
 
-function triggerPrintStrukRincian() {
-    const iframe = document.getElementById('cetak-struk-iframe');
-    if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-    }
-}
-
 $('#modalDetailPesanan').on('show.bs.modal', function () {
     $('#rincian-uang-diterima').val('');
     $('#rincian-kembalian-preview').text('Rp 0');
@@ -246,11 +233,13 @@ $(document).on('click', '#btn-cetak-struk', function () {
     }
 
     if (!window.validasiRincianPembayaranSiap()) {
-    return;
+        return;
     }
 
     const iframe = document.getElementById('cetak-struk-iframe');
     const originalText = btn.html();
+
+    // Ubah tombol jadi status loading
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
 
     $.ajax({
@@ -264,35 +253,52 @@ $(document).on('click', '#btn-cetak-struk', function () {
         },
         success: function (res) {
             if (res.success) {
-                btn.addClass('d-none');
-                $('#btn-selesai').removeClass('d-none');
+                // Tambahkan timestamp supaya browser tidak menampilkan struk lama dari cache
+                const pdfUrl = res.data.pdf_url + '?t=' + Date.now();
 
                 if (iframe) {
+                    // Eksekusi print setelah PDF selesai dimuat di dalam iframe tersembunyi
                     iframe.onload = function () {
                         triggerPrintStrukRincian();
+
+                        // Sembunyikan tombol cetak, lalu munculkan tombol Selesai
+                        btn.addClass('d-none');
+                        $('#btn-selesai').removeClass('d-none');
                     };
-                    iframe.src = res.data.pdf_url;
+
+                    iframe.src = pdfUrl;
                 } else {
-                    window.open(res.data.pdf_url, '_blank'); // fallback saja
+                    // Fallback: iframe tidak ditemukan, buka jendela baru dan langsung tampilkan dialog print
+                    const printWindow = window.open(pdfUrl, '_blank');
+                    if (printWindow) {
+                        printWindow.onload = function () {
+                            printWindow.focus();
+                            printWindow.print();
+                        };
+                    }
+                    btn.addClass('d-none');
+                    $('#btn-selesai').removeClass('d-none');
                 }
             }
         },
-       error: function(xhr) {
-                        let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
-                         btn.prop('disabled', false).html(originalText);
-                        // Jika error 422 (Validasi gagal)
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            let firstError = '';
-                            // Ambil pesan error pertama dari Laravel
-                            for (let key in errors) {
-                                firstError = errors[key][0];
-                                break;
-                            }
-                            errorMessage = 'Validasi Gagal: ' + firstError;
-                        }
-                        Swal.fire('Gagal!', errorMessage, 'error');
-                    }
+        error: function (xhr) {
+            let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
+            btn.prop('disabled', false).html(originalText);
+
+            // Jika error 422 (Validasi gagal)
+            if (xhr.status === 422) {
+                let errors = xhr.responseJSON.errors;
+                let firstError = '';
+                // Ambil pesan error pertama dari Laravel
+                for (let key in errors) {
+                    firstError = errors[key][0];
+                    break;
+                }
+                errorMessage = 'Validasi Gagal: ' + firstError;
+            }
+
+            Swal.fire('Gagal!', errorMessage, 'error');
+        }
     });
 });
 </script>

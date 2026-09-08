@@ -246,16 +246,25 @@ class BookingService
 
             // --- Finalisasi status booking ---
             $totalTagihan = (int) $transaksi->total_harga + $totalFnb;
-            $jumlahDp = (int) ($transaksi->jumlah_dp ?? 0);
-            $sisaYangDibayar = $totalTagihan - $jumlahDp;
+            
+            // FIX BUG UANG DITERIMA KURANG:
+            // Cek berapa uang yang SUDAH dibayarkan sebelumnya untuk booking ruangan ini
+            $sudahDibayarBooking = 0;
+            if ($transaksi->status_pembayaran === 'lunas') {
+                $sudahDibayarBooking = (int) $transaksi->total_harga;
+            } elseif ($transaksi->status_pembayaran === 'dp') {
+                $sudahDibayarBooking = (int) $transaksi->jumlah_dp;
+            }
 
-            // Kembalian cuma relevan buat TUNAI. QRIS: uang_diterima & kembalian
-            // sengaja dipaksa null (nominal pas otomatis dari sistem pembayaran).
+            // Sisa yang benar-benar harus dibayar di kasir saat ini
+            $sisaYangDibayar = $totalTagihan - $sudahDibayarBooking;
+
+            // Kembalian cuma relevan buat TUNAI.
             $kembalian = null;
             if ($metodePembayaran === 'TUNAI') {
                 if ($uangDiterima === null || $uangDiterima < $sisaYangDibayar) {
                     throw ValidationException::withMessages([
-                        'uang_diterima' => 'Uang diterima kurang dari total tagihan yang harus dibayar.',
+                        'uang_diterima' => 'Uang diterima kurang dari total tagihan yang harus dibayar (Minimal Rp ' . number_format($sisaYangDibayar, 0, ',', '.') . ').',
                     ]);
                 }
                 $kembalian = $uangDiterima - $sisaYangDibayar;
@@ -284,7 +293,7 @@ class BookingService
                 $fnbDetailRows,
                 $totalTagihan,
                 $metodePembayaran,
-                $jumlahDp,
+                $sudahDibayarBooking, // <--- UBAH BAGIAN INI (Sebelumnya $jumlahDp)
                 $uangDiterima,
                 $kembalian
             );

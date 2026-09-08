@@ -290,7 +290,15 @@ Route::middleware(['auth'])->group(function () {
    // Grouping Admin
         Route::middleware([RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+
+        // 🔹 TAMBAHKAN API NOTIFIKASI SIDEBAR DI SINI 🔹
+        Route::get('/api/notifikasi-sidebar', function () {
+            return response()->json([
+                'booking' => \App\Models\TrTransaksi::where('status_sewa', 'ditahan')->count(),
+                'fnb'     => \App\Models\TrPos::where('status_pesanan', 'Menunggu')->count(),
+            ]);
+        });
+        // 🔹 ------------------------------------------ 🔹
         
         // Pengaturan (Wifi, dll)
         Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');

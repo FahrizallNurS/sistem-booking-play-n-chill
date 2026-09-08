@@ -243,6 +243,39 @@
                 border-radius: 20px;
             }
         }
+
+       /* =========================================
+           KOLEKSI ANIMASI ELEGAN (REVEAL)
+           ========================================= */
+        /* Base Reveal (Wajib ada) */
+        .reveal {
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        /* Saat Animasi Aktif (Kembali ke posisi/ukuran normal) */
+        .reveal.active {
+            opacity: 1;
+            transform: translate(0, 0) scale(1) !important;
+        }
+
+        /* 1. Dari Bawah ke Atas */
+        .reveal-up { transform: translateY(50px); }
+
+        /* 2. Dari Kiri ke Kanan */
+        .reveal-right { transform: translateX(-50px); }
+
+        /* 3. Dari Kanan ke Kiri */
+        .reveal-left { transform: translateX(50px); }
+
+        /* 4. Zoom In (Membesar perlahan) */
+        .reveal-scale { transform: scale(0.85); }
+
+        /* Waktu Tunda (Delay) agar elemen muncul bergantian (staggered) */
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.3s; }
+        .delay-3 { transition-delay: 0.5s; }
+s
     </style>
 </head>
 
@@ -254,7 +287,7 @@
 <div class="container">
 
     <!-- HERO SECTION -->
-    <div class="hero-section">
+    <div class="hero-section reveal-up">
         <div class="badge-location">Play N Chill</div>
 
         <h1 class="main-title">
@@ -266,64 +299,67 @@
         </p>
     </div>
 
-    <!-- KATEGORI AUDIENS (COUPLE, GROUP, PARTY) -->
+   <!-- KATEGORI AUDIENS (COUPLE, GROUP, PARTY) -->
     <div class="row justify-content-center mt-4 text-center">
-        <div class="col-12 mb-4">
+        <div class="col-12 mb-4 reveal reveal-scale"> <!-- Judul membesar -->
             <h2 class="section-title">Solusi Melepas Penat</h2>
             <p class="sub-title" style="margin-bottom: 30px;">Ruang kami didesain khusus agar kamu bebas beraktivitas tanpa takut bosan.</p>
         </div>
         
         <!-- CARD COUPLE -->
-        <div class="col-md-4 mb-4">
+       <div class="col-md-4 mb-4 reveal reveal-right delay-1">
             <div class="audience-card">
                 <h3 class="audience-title">Couple</h3>
                 
-                <!-- Jejeran 3 Foto -->
-                <div class="d-flex justify-content-center gap-2 mb-3 px-2">
+                <!-- TULISAN DI ATAS -->
+                <p class="text-light small px-2 mb-3">Nikmati quality time berdua bersama pasangan atau sahabat dengan suasana private yang cozy dan nyaman.</p>
+
+                <!-- GAMBAR DI BAWAH -->
+                <div class="d-flex justify-content-center gap-2 px-2">
                     <img src="{{ asset('images/couple-1.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Couple 1">
                     <img src="{{ asset('images/couple-2.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Couple 2">
                     <img src="{{ asset('images/couple-3.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Couple 3">
                 </div>
-
-                <p class="text-light small px-2">Quality time berdua bersama pasangan dengan suasana private yang cozy, nyaman, dan romantis.</p>
             </div>
         </div>
         
         <!-- CARD GROUP -->
-        <div class="col-md-4 mb-4">
+        <div class="col-md-4 mb-4 reveal reveal-up delay-2">
             <div class="audience-card">
                 <h3 class="audience-title">Group</h3>
+
+                <!-- TULISAN DI ATAS -->
+                <p class="text-light small px-2 mb-3">Seru-seruan bareng bestie, mabar PlayStation atau nonton film bareng dalam satu ruangan nyaman.</p>
                 
-                <!-- Jejeran 3 Foto -->
-                <div class="d-flex justify-content-center gap-2 mb-3 px-2">
+                <!-- GAMBAR DI BAWAH -->
+                <div class="d-flex justify-content-center gap-2 px-2">
                     <img src="{{ asset('images/group-1.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Group 1">
                     <img src="{{ asset('images/group-2.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Group 2">
                     <img src="{{ asset('images/group-3.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Group 3">
                 </div>
-
-                <p class="text-light small px-2">Seru-seruan bareng bestie, mabar PlayStation atau nonton film bareng dalam satu ruangan nyaman.</p>
             </div>
         </div>
         
         <!-- CARD PARTY -->
-        <div class="col-md-4 mb-4">
+        <div class="col-md-4 mb-4 reveal reveal-left delay-3">
             <div class="audience-card">
                 <h3 class="audience-title">Party</h3>
+
+                <!-- TULISAN DI ATAS -->
+                <p class="text-light small px-2 mb-3">Kumpul rame-rame bareng teman se-circle, rayakan momen spesial tanpa takut mengganggu orang lain.</p>
                 
-                <!-- Jejeran 3 Foto -->
-                <div class="d-flex justify-content-center gap-2 mb-3 px-2">
+                <!-- GAMBAR DI BAWAH -->
+                <div class="d-flex justify-content-center gap-2 px-2">
                     <img src="{{ asset('images/party-1.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Party 1">
                     <img src="{{ asset('images/party-2.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Party 2">
                     <!-- <img src="{{ asset('images/party-3.png') }}" class="img-fluid rounded audience-img" style="width: 31%; aspect-ratio: 1/1; object-fit: cover;" alt="Party 3"> -->
                 </div>
-
-                <p class="text-light small px-2">Kumpul rame-rame bareng teman se-circle, rayakan momen spesial tanpa takut mengganggu orang lain.</p>
             </div>
         </div>
     </div>
 
     <!-- FASILITAS & LAYANAN KAMI -->
-    <div class="text-center mt-5 pt-4">
+    <div class="text-center mt-5 pt-4 reveal">
         <h2 class="section-title">Fasilitas & Layanan Kami</h2>
         <p class="sub-title">Pengalaman hiburan lengkap untuk segala suasana</p>
 
@@ -356,23 +392,23 @@
 
     <!-- AKTIVITAS KAMI -->
     <div class="text-center mt-5 pt-5">
-        <h2 class="section-title">Aktivitas Kami</h2>
-        <p class="sub-title mb-4">Informasi membership eksklusif dan turnamen rutin PlayStation kami.</p>
-        
-        <div class="row justify-content-center g-4">
-            <div class="col-md-5">
-                <!-- Ganti nama file gambar sesuai dengan screenshot Loyalty Card yang diberikan klien -->
+        <div class="reveal reveal-scale">
+            <h2 class="section-title">Aktivitas Kami</h2>
+            <p class="sub-title mb-4">Informasi membership eksklusif dan turnamen rutin PlayStation kami.</p>
+        </div>
+    
+       <div class="row justify-content-center g-4">
+            <div class="col-md-5 reveal reveal-right delay-1">
                 <img src="{{ asset('images/loyalty-card.png') }}" class="img-fluid rounded-4 shadow" style="border: 2px solid rgba(255, 255, 255, 0.1);" alt="Loyalty Card Membership">
             </div>
-            <div class="col-md-5">
-                <!-- Ganti nama file gambar sesuai dengan screenshot PlayStation Tournament yang diberikan klien -->
+            <div class="col-md-5 reveal reveal-left delay-2">
                 <img src="{{ asset('images/ps-tournament.png') }}" class="img-fluid rounded-4 shadow" style="border: 2px solid rgba(255, 255, 255, 0.1);" alt="PlayStation Tournament">
             </div>
         </div>
     </div>
 
     <!-- CTA BANNER -->
-    <div class="cta-banner">
+    <div class="cta-banner reveal reveal-scale">
         <h2 class="fw-bold mb-3">Siap untuk recharge energimu?</h2>
         <p class="fs-5">Pilih ruangan favoritmu sekarang dan rasakan pengalaman Chill yang sesungguhnya hanya di Play N Chill.</p>
         <a href="{{ url('/booking') }}" class="btn btn-booking">
@@ -386,6 +422,28 @@
  @include('partials.footer')
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const reveals = document.querySelectorAll(".reveal");
+        const revealObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("active");
+                    observer.unobserve(entry.target); 
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: "0px 0px -50px 0px", 
+            threshold: 0.15 
+        });
+
+        reveals.forEach(function(reveal) {
+            revealObserver.observe(reveal);
+        });
+    });
+</script>
 
 </body>
 </html>
