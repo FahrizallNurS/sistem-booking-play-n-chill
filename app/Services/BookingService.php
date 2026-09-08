@@ -280,8 +280,6 @@ class BookingService
                 'metode_pembayaran' => $metodePembayaran,
                 'struk_created_at'  => $waktuCetak,
                 'nomor_nota'        => $nomorNota,
-                'uang_diterima'     => $uangDiterima,
-                'kembalian'         => $kembalian,
             ]);
 
             // --- Generate PDF struk (gabungan item ruangan + F&B) ---

@@ -106,8 +106,6 @@ class FbService
                     'metode_pembayaran' => $data['metode_pembayaran'],
                     'catatan'           => $data['catatan'] ?? null,
                     'nomor_nota'        => $this->generateNomorNota(),
-                    'uang_diterima'     => $uangDiterima,
-                    'kembalian'         => $kembalian,
                     'struk_created_at'  => now(), // PDF digenerate & disimpan di request ini juga
                 ]);  
 

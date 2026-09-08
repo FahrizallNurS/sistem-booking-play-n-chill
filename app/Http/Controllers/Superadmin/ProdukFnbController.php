@@ -117,14 +117,14 @@ class ProdukFnbController extends Controller
         // Agregasi di level Database (Mencegah out of memory)
         $transactions = DB::table('tr_pos_detail')
             ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
-            ->where('tr_pos.status_pesanan', '!=', 'Dibatalkan')
+            ->where('tr_pos.status_pembayaran', 'lunas')
             ->where('tr_pos_detail.id_produk', $produkId)
-            ->whereBetween('tr_pos.created_at', [$start, $end])
-            ->select('tr_pos_detail.subtotal', 'tr_pos.created_at')
+            ->whereBetween('tr_pos.struk_created_at', [$start, $end])
+            ->select('tr_pos_detail.subtotal', 'tr_pos.struk_created_at')
             ->get();
 
         foreach ($transactions as $trx) {
-            $dt = Carbon::parse($trx->created_at);
+            $dt = Carbon::parse($trx->struk_created_at);
 
             if ($periode === 'harian') {
                 $key = $dt->format('H');
@@ -191,10 +191,11 @@ class ProdukFnbController extends Controller
         }
 
         // Ambil Top 4 Produk Terlaris berdasarkan periode yang dipilih
+        // Ambil Top 4 Produk Terlaris berdasarkan periode yang dipilih
         return DB::table('tr_pos_detail')
             ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
-            ->where('tr_pos.status_pesanan', '!=', 'Dibatalkan')
-            ->whereBetween('tr_pos.created_at', [$start, $end])
+            ->where('tr_pos.status_pembayaran', 'lunas')
+            ->whereBetween('tr_pos.struk_created_at', [$start, $end])
             ->whereIn('tr_pos_detail.id_produk', $availableIds)
             ->select('tr_pos_detail.id_produk', DB::raw('SUM(tr_pos_detail.subtotal) as total_revenue'))
             ->groupBy('tr_pos_detail.id_produk')
@@ -204,28 +205,12 @@ class ProdukFnbController extends Controller
             ->toArray();
     }
 
-    /**
-     * Baris tabel: 1 baris = 1 produk F&B, dilengkapi Total Pendapatan & Jml
-     * Transaksi hasil agregat tr_pos_detail pada rentang waktu $start-$end
-     * (mengikuti filter periode/tanggal aktif).
-     *
-     * Basis pendapatan "closing": status_pesanan = 'Selesai' DAN
-     * status_pembayaran sudah-bayar/lunas -- konsisten dengan
-     * AnalisisPendapatanController, BUKAN basis chart yang lama
-     * (status_pesanan != 'Dibatalkan', termasuk yang belum lunas).
-     *
-     * Kontribusi % dihitung terhadap grand total dari SELURUH baris yang
-     * lolos filter kategori/sub_kategori/periode saat ini.
-     *
-     * Produk tanpa transaksi pada periode terpilih TETAP ditampilkan (Rp0, 0%).
-     */
     private function getTableRows(Request $request, $start, $end)
     {
         $revenueSub = DB::table('tr_pos_detail')
             ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
-            ->where('tr_pos.status_pesanan', 'Selesai')
-            ->whereIn('tr_pos.status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->whereBetween('tr_pos.created_at', [$start, $end])
+            ->where('tr_pos.status_pembayaran', 'lunas')
+            ->whereBetween('tr_pos.struk_created_at', [$start, $end])
             ->select(
                 'tr_pos_detail.id_produk',
                 DB::raw('SUM(tr_pos_detail.subtotal) as total'),
