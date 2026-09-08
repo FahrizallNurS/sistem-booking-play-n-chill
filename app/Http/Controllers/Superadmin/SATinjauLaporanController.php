@@ -15,15 +15,7 @@ use App\Exports\TransaksiExport;
 
 class SATinjauLaporanController extends Controller
 {
-    /**
-     * Hitung rentang waktu berdasarkan periode (Harian/Mingguan/Bulanan).
-     * Jam operasional venue: 10:00 - 01:00 (lewat tengah malam), disamakan
-     * dengan AnalisisPendapatanController, ProdukLayananController, dan
-     * ProdukFnbController. Sebelumnya periode harian pakai startOfDay()/
-     * endOfDay() murni (00:00-23:59), jadi transaksi jam 00:00-01:00 dinihari
-     * dianggap "hari berikutnya" -- sekarang dianggap masih "hari operasional
-     * sebelumnya", konsisten dengan 3 controller lain.
-     */
+
     private function getPeriodRange(Request $request): array
     {
         $periode = $request->input('periode', 'bulanan');
@@ -68,36 +60,77 @@ class SATinjauLaporanController extends Controller
         $jenisTransaksi  = $request->input('jenis_transaksi', 'semua');
         $statusTransaksi = $request->input('status_transaksi', ''); // '' = Semua, 'dibatalkan' = Dibatalkan
 
-        // Booking difilter berdasarkan waktu_selesai (tanggal sesi benar-benar kelar main),
-        // bukan created_at, supaya konsisten dengan standar "closing" di halaman analitik lain.
-        $bookingRaw = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
-            ->whereBetween('waktu_selesai', [$start, $end])
-            ->latest('waktu_mulai')
+        $bookingSelesaiRaw = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
+        ->where('status_pembayaran', 'lunas')
+        ->whereBetween('struk_created_at', [$start, $end])
+        ->get()
+        ->map(function ($item) {
+            $item->jenis_laporan   = 'Booking';
+            $item->kasir           = $item->admin->nama_pengguna ?? null;
+            $item->kode_transaksi  = $item->kode_sewa;
+            $item->tanggal_laporan = $item->created_at;
+            return $item;
+        });
+
+        $bookingDibatalkanRaw = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
+            ->where('status_sewa', 'dibatalkan')
+            ->whereBetween('created_at', [$start, $end])
             ->get()
             ->map(function ($item) {
-                $item->jenis_laporan = 'Booking';
-                $item->kasir = $item->admin->nama_pengguna ?? null;
-                $item->kode_transaksi = $item->kode_sewa;
+                $item->jenis_laporan   = 'Booking';
+                $item->kasir           = $item->admin->nama_pengguna ?? null;
+                $item->kode_transaksi  = $item->kode_sewa;
+                $item->status_sewa     = strtolower($item->status_pesanan ?? '');
+                $item->tanggal_laporan = $item->created_at;
                 return $item;
             });
 
-        $fnbRaw = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
+        $bookingRaw = $bookingSelesaiRaw->concat($bookingDibatalkanRaw)
+            ->sortByDesc('waktu_mulai')
+            ->values();
+
+       $fnbSelesaiRaw = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
+        ->where('status_pembayaran', 'lunas')
+        ->whereBetween('struk_created_at', [$start, $end])
+        ->get()
+        ->map(function ($item) {
+            $item->jenis_laporan   = 'F&B';
+            $item->waktu_mulai     = $item->struk_created_at;
+            $item->tanggal_laporan = $item->struk_created_at;
+            $item->kasir           = $item->admin->nama_pengguna ?? null;
+            $item->kode_transaksi  = $item->kode_pos;
+            $item->ruangan         = $item->transaksi->penetapanHarga->ruangan->nama_ruangan ?? '-';
+            $item->status_sewa     = strtolower($item->status_pesanan ?? '');
+            $item->total_harga     = $item->total_pos;
+            $item->sumber_booking  = $item->sumber_pesanan;
+            $item->items           = $item->details->map(function ($d) {
+                return (object) [
+                    'produk'   => $d->produk->nama_produk ?? 'Produk dihapus',
+                    'harga'    => $d->harga_satuan,
+                    'jumlah'   => $d->jumlah,
+                    'subtotal' => $d->subtotal,
+                ];
+            });
+            return $item;
+        });
+
+        $fnbDibatalkanRaw = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
+            ->where('status_pesanan', 'Dibatalkan')
             ->whereBetween('created_at', [$start, $end])
-            ->latest('created_at')
             ->get()
             ->map(function ($item) {
-                $item->jenis_laporan = 'F&B';
-
-                $item->waktu_mulai    = $item->created_at;
-                $item->kasir          = $item->admin->nama_pengguna ?? null;
-                $item->kode_transaksi = $item->kode_pos;
+                $item->jenis_laporan   = 'F&B';
+                $item->waktu_mulai     = $item->created_at;
+                $item->tanggal_laporan = $item->created_at;
+                $item->kasir           = $item->admin->nama_pengguna ?? null;
+                $item->kode_transaksi  = $item->kode_pos;
                 // FIX: Sertakan nama ketikan manual dari kasir
                 $item->nama           = $item->nama_pelanggan;
-                $item->ruangan        = $item->transaksi->penetapanHarga->ruangan->nama_ruangan ?? '-';
-                $item->status_sewa    = strtolower($item->status_pesanan ?? '');
-                $item->total_harga    = $item->total_pos;
-                $item->sumber_booking = $item->sumber_pesanan;
-                $item->items          = $item->details->map(function ($d) {
+                $item->ruangan         = $item->transaksi->penetapanHarga->ruangan->nama_ruangan ?? '-';
+                $item->status_sewa     = strtolower($item->status_pesanan ?? '');
+                $item->total_harga     = $item->total_pos;
+                $item->sumber_booking  = $item->sumber_pesanan;
+                $item->items           = $item->details->map(function ($d) {
                     return (object) [
                         'produk'   => $d->produk->nama_produk ?? 'Produk dihapus',
                         'harga'    => $d->harga_satuan,
@@ -105,25 +138,22 @@ class SATinjauLaporanController extends Controller
                         'subtotal' => $d->subtotal,
                     ];
                 });
-
                 return $item;
             });
 
-        $isFnbSelesai = fn ($item) => $item->status_sewa === 'selesai'
-            && in_array($item->status_pembayaran, ['sudah-bayar', 'lunas']);
-        $isFnbDibatalkan = fn ($item) => $item->status_sewa === 'dibatalkan';
+        $fnbRaw = $fnbSelesaiRaw->concat($fnbDibatalkanRaw)
+            ->sortByDesc('waktu_mulai')
+            ->values();
 
         if ($statusTransaksi === 'selesai') {
-            $bookingFiltered = $bookingRaw->where('status_sewa', 'selesai')->values();
-            $fnbFiltered     = $fnbRaw->filter($isFnbSelesai)->values();
+            $bookingFiltered = $bookingSelesaiRaw->values();
+            $fnbFiltered     = $fnbSelesaiRaw->values();
         } elseif ($statusTransaksi === 'dibatalkan') {
-            $bookingFiltered = $bookingRaw->where('status_sewa', 'dibatalkan')->values();
-            $fnbFiltered     = $fnbRaw->filter($isFnbDibatalkan)->values();
+            $bookingFiltered = $bookingDibatalkanRaw->values();
+            $fnbFiltered     = $fnbDibatalkanRaw->values();
         } else {
-            $bookingFiltered = $bookingRaw->whereIn('status_sewa', ['selesai', 'dibatalkan'])->values();
-            $fnbFiltered     = $fnbRaw->filter(
-                fn ($item) => $isFnbSelesai($item) || $isFnbDibatalkan($item)
-            )->values();
+            $bookingFiltered = $bookingRaw;
+            $fnbFiltered     = $fnbRaw;
         }
 
         $transaksis = match ($jenisTransaksi) {
@@ -132,16 +162,15 @@ class SATinjauLaporanController extends Controller
             default   => $bookingFiltered->concat($fnbFiltered)->sortByDesc('waktu_mulai')->values(),
         };
 
-
-        $totalBooking = $bookingRaw->whereIn('status_sewa', ['selesai', 'dibatalkan'])->count();
-        $bookingSelesai    = $bookingRaw->where('status_sewa', 'selesai')->count();
-        $bookingDibatalkan = $bookingRaw->where('status_sewa', 'dibatalkan')->count();
-        $pendapatanBooking = (float) $bookingRaw->where('status_sewa', 'selesai')->sum('total_harga');
+        $totalBooking      = $bookingRaw->count();
+        $bookingSelesai    = $bookingSelesaiRaw->count();
+        $bookingDibatalkan = $bookingDibatalkanRaw->count();
+        $pendapatanBooking = (float) $bookingSelesaiRaw->sum('total_harga');
 
         $totalFnb      = $fnbRaw->count();
-        $fnbSelesai    = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'selesai')->count();
-        $fnbDibatalkan = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'dibatalkan')->count();
-        $pendapatanFnb = (float) $fnbRaw->filter($isFnbSelesai)->sum('total_pos');
+        $fnbSelesai    = $fnbSelesaiRaw->count();
+        $fnbDibatalkan = $fnbDibatalkanRaw->count();
+        $pendapatanFnb = (float) $fnbSelesaiRaw->sum('total_pos');
 
         $totalPelanggan = User::where('role', 'pelanggan')->count();
         $totalAdmin     = User::where('role', 'admin')->count();
@@ -194,65 +223,89 @@ class SATinjauLaporanController extends Controller
         return view('superadmin.laporan-sa.index', $data);
     }
 
-    private function flattenForPdf($transaksis): array
+    /**
+     * Sumber data terpusat (Single Source of Truth) untuk export PDF dan Excel.
+     */
+    private function getFlattenedData($transaksis): array
     {
-        $flat = [];
+        $flatData = [];
 
         foreach ($transaksis as $t) {
             if ($t->jenis_laporan === 'Booking') {
-                $flat[] = (object) [
-                    'kode_transaksi' => $t->kode_sewa,
-                    'jenis_laporan'  => 'Booking',
-                    'pelanggan'      => $t->pengguna->nama_pengguna ?? '-',
-                    'kasir'          => $t->kasir ?? '-',
-                    'produk'         => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
-                    'jumlah'         => ($t->penetapanHarga->durasi_jam ?? 0) . ' Jam',
-                    'total'          => $t->total_harga,
-                    'metode'         => $t->metode_pembayaran ?? 'Cash',
-                    'sumber'         => $t->sumber_booking ?? 'Kasir',
-                    'status'         => strtolower($t->status_sewa),
+                $flatData[] = [
+                    'kode_transaksi'    => $t->kode_sewa,
+                    'jenis_laporan'     => 'Booking',
+                    'tanggal_transaksi' => $t->tanggal_laporan,
+                    'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
+                    'kasir'             => $t->kasir ?? '-',
+                    'nama_produk'       => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
+                    'jumlah'            => ($t->penetapanHarga->durasi_jam ?? 0) . ' Jam',
+                    'nominal_transaksi' => $t->total_harga,
+                    'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
+                    'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
+                    'status_sewa'       => strtolower($t->status_sewa),
                 ];
             } else {
                 if (isset($t->items) && count($t->items) > 0) {
                     foreach ($t->items as $item) {
-                        $flat[] = (object) [
-                            'kode_transaksi' => $t->kode_transaksi,
-                            'jenis_laporan'  => 'F&B',
-                            'pelanggan'      => $t->pengguna->nama_pengguna ?? '-',
-                            'kasir'          => $t->kasir ?? '-',
-                            'produk'         => $item->produk,
-                            'jumlah'         => $item->jumlah . ' Item',
-                            'total'          => $item->subtotal,
-                            'metode'         => $t->metode_pembayaran ?? 'Cash',
-                            'sumber'         => $t->sumber_booking ?? 'Kasir',
-                            'status'         => $t->status_sewa,
+                        $flatData[] = [
+                            'kode_transaksi'    => $t->kode_transaksi,
+                            'jenis_laporan'     => 'F&B',
+                            'tanggal_transaksi' => $t->tanggal_laporan,
+                            'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
+                            'kasir'             => $t->kasir ?? '-',
+                            'nama_produk'       => $item->produk,
+                            'jumlah'            => $item->jumlah . ' Item',
+                            'nominal_transaksi' => $item->subtotal,
+                            'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
+                            'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
+                            'status_sewa'       => strtolower($t->status_sewa),
                         ];
                     }
                 } else {
-                    $flat[] = (object) [
-                        'kode_transaksi' => $t->kode_transaksi,
-                        'jenis_laporan'  => 'F&B',
-                        'pelanggan'      => $t->pengguna->nama_pengguna ?? '-',
-                        'kasir'          => $t->kasir ?? '-',
-                        'produk'         => '-',
-                        'jumlah'         => '-',
-                        'total'          => $t->total_harga,
-                        'metode'         => $t->metode_pembayaran ?? 'Cash',
-                        'sumber'         => $t->sumber_booking ?? 'Kasir',
-                        'status'         => $t->status_sewa,
+                    $flatData[] = [
+                        'kode_transaksi'    => $t->kode_transaksi,
+                        'jenis_laporan'     => 'F&B',
+                        'tanggal_transaksi' => $t->tanggal_laporan,
+                        'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
+                        'kasir'             => $t->kasir ?? '-',
+                        'nama_produk'       => '-',
+                        'jumlah'            => '-',
+                        'nominal_transaksi' => $t->total_harga,
+                        'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
+                        'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
+                        'status_sewa'       => strtolower($t->status_sewa),
                     ];
                 }
             }
         }
 
-        return $flat;
+        return $flatData;
     }
 
-   public function exportPdf(Request $request)
+    public function exportPdf(Request $request)
     {
         $data = $this->getQueryData($request);
 
-        $data['rows']         = $this->flattenForPdf($data['transaksis']);
+        // Ambil data flat
+        $flatData = $this->getFlattenedData($data['transaksis']);
+
+        // Konversi array kembali ke object dengan key yang sesuai dengan PDF blade agar tidak merusak view
+        $data['rows'] = array_map(function($item) {
+            return (object) [
+                'kode_transaksi' => $item['kode_transaksi'],
+                'jenis_laporan'  => $item['jenis_laporan'],
+                'pelanggan'      => $item['pelanggan'],
+                'kasir'          => $item['kasir'],
+                'produk'         => $item['nama_produk'],
+                'jumlah'         => $item['jumlah'],
+                'total'          => $item['nominal_transaksi'],
+                'metode'         => $item['metode_pembayaran'],
+                'sumber'         => $item['sumber_booking'],
+                'status'         => $item['status_sewa'],
+            ];
+        }, $flatData);
+
         $data['totalPendapatan'] = collect($data['rows'])
             ->where('status', 'selesai')
             ->sum('total');
@@ -272,59 +325,9 @@ class SATinjauLaporanController extends Controller
     public function exportExcel(Request $request)
     {
         $data = $this->getQueryData($request);
-        $transaksis = $data['transaksis'];
-
-        $flatData = [];
-
-        foreach ($transaksis as $t) {
-            if ($t->jenis_laporan === 'Booking') {
-                $flatData[] = [
-                    'kode_transaksi'    => $t->kode_sewa,
-                    'jenis_laporan'     => 'Booking',
-                    'tanggal_transaksi' => $t->waktu_selesai,
-                    'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
-                    'kasir'             => $t->kasir ?? '-',
-                    'nama_produk'       => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
-                    'jumlah'            => ($t->penetapanHarga->durasi_jam ?? 0) . ' Jam',
-                    'nominal_transaksi' => $t->total_harga,
-                    'metode_pembayaran' => $t->metode_pembayaran,
-                    'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
-                    'status_sewa'       => strtolower($t->status_sewa),
-                ];
-            } else {
-                if (isset($t->items) && count($t->items) > 0) {
-                    foreach ($t->items as $item) {
-                        $flatData[] = [
-                            'kode_transaksi'    => $t->kode_transaksi,
-                            'jenis_laporan'     => 'F&B',
-                            'tanggal_transaksi' => $t->created_at,
-                            'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
-                            'kasir'             => $t->kasir ?? '-',
-                            'nama_produk'       => $item->produk,
-                            'jumlah'            => $item->jumlah . ' Item',
-                            'nominal_transaksi' => $item->subtotal,
-                            'metode_pembayaran' => $t->metode_pembayaran,
-                            'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
-                            'status_sewa'       => strtolower($t->status_sewa),
-                        ];
-                    }
-                } else {
-                    $flatData[] = [
-                        'kode_transaksi'    => $t->kode_transaksi,
-                        'jenis_laporan'     => 'F&B',
-                        'tanggal_transaksi' => $t->created_at,
-                        'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
-                        'kasir'             => $t->kasir ?? '-',
-                        'nama_produk'       => '-',
-                        'jumlah'            => '-',
-                        'nominal_transaksi' => $t->total_harga,
-                        'metode_pembayaran' => $t->metode_pembayaran,
-                        'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
-                        'status_sewa'       => strtolower($t->status_sewa),
-                    ];
-                }
-            }
-        }
+        
+        // Ambil data flat
+        $flatData = $this->getFlattenedData($data['transaksis']);
 
         $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.xlsx';
         return Excel::download(new TransaksiExport($flatData), $filename);

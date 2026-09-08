@@ -130,6 +130,8 @@ class BookingService
                 return $pdfRelativePath;
             }
 
+            $waktuCetak = now();
+
             $transaksi->loadMissing('penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna');
             $ph   = $transaksi->penetapanHarga;
             $user = $transaksi->pengguna;
@@ -167,6 +169,7 @@ class BookingService
                     'status_pembayaran' => 'lunas',
                     'metode_pembayaran' => $metodePembayaran,
                     'id_admin'          => $idAdminPencetak ?? $trPos->id_admin,
+                    'struk_created_at'  => $waktuCetak,
                 ]);
 
             } elseif (!empty($itemsFnb)) {
@@ -222,6 +225,7 @@ class BookingService
                         'status_pembayaran' => 'lunas',
                         'metode_pembayaran' => $metodePembayaran,
                         'catatan'           => null,
+                        'struk_created_at'  => $waktuCetak,
                     ]);
 
                     // --- FIX: simpan tiap baris ke tr_pos_detail & potong stok ---
@@ -274,10 +278,8 @@ class BookingService
                 'status_pembayaran' => 'lunas',
                 'sisa_bayar'        => 0,
                 'metode_pembayaran' => $metodePembayaran,
-                'struk_created_at'  => now(),
+                'struk_created_at'  => $waktuCetak,
                 'nomor_nota'        => $nomorNota,
-                'uang_diterima'     => $uangDiterima,
-                'kembalian'         => $kembalian,
             ]);
 
             // --- Generate PDF struk (gabungan item ruangan + F&B) ---

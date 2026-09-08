@@ -11,7 +11,7 @@
     {{-- Filter --}}
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="{{ route('admin.laporan.index') }}">
+            <form method="GET" action="{{ route('admin.laporan.index') }}" id="filter-form">
                 <div class="row align-items-end">
 
                     <div class="col-md-2">
@@ -71,6 +71,18 @@
                         </div>
                     </div>
 
+                    {{-- TAMBAHAN: Filter Status (Selesai/Dibatalkan) --}}
+                    <div class="col-md-2 mt-2">
+                        <div class="form-group mb-0">
+                            <label>Status Transaksi</label>
+                            <select name="status_transaksi" class="form-control">
+                                <option value="" {{ request('status_transaksi') === '' ? 'selected' : '' }}>Semua</option>
+                                <option value="selesai" {{ request('status_transaksi') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                <option value="dibatalkan" {{ request('status_transaksi') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="col-md-2 mt-2">
                         <button type="submit" class="btn btn-primary btn-block">
                             <i class="fas fa-search"></i> Tampilkan
@@ -97,6 +109,11 @@
                 </small>
             </h3>
             <div class="card-tools">
+                {{-- TAMBAHAN: Tombol Export Excel --}}
+                <a href="{{ route('admin.laporan.export-excel', request()->all()) }}"
+                    class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </a>
                 <a href="{{ route('admin.laporan.export-pdf', request()->all()) }}"
                     class="btn btn-danger btn-sm" target="_blank">
                     <i class="fas fa-file-pdf"></i> Export PDF
@@ -104,6 +121,7 @@
             </div>
         </div>
         <div class="card-body p-0">
+            {{-- Pastikan di dalam file ini Anda melooping $transaksisPaged, BUKAN $transaksis --}}
             @include('admin.laporan.partials.table')
         </div>
     </div>
@@ -128,5 +146,28 @@
     document.getElementById('periode').addEventListener('change', function() {
         updateFilter(this.value);
     });
+
+    // TAMBAHAN: Script AJAX Pagination (Sama persis dengan Superadmin)
+    $(document).on('click', '.pagination a', function(event) {
+        event.preventDefault();
+        var page = $(this).attr('href').split('page=')[1];
+        fetch_data(page);
+    });
+
+    function fetch_data(page) {
+        var form_data = $('#filter-form').serialize();
+        var url = "{{ route('admin.laporan.index') }}?" + form_data + "&page=" + page;
+
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function(data) {
+
+                $('#table-body').html(data.html);
+                $('#pagination-container').html(data.pagination);
+                $('#table-info').html(data.info);
+            }
+        });
+    }
 </script>
 @stop

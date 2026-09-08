@@ -111,11 +111,6 @@
 
                         <div class="border-top pt-4 mb-3"></div>
 
-                        {{-- Sisa Booking: muncul cuma di skenario booking DP online yang
-                             dilunasin di kasir. Baris ini terkunci (bukan item F&B),
-                             angkanya diisi dari sisi JS pas alur checkout F&B dipicu.
-                             Sengaja disembunyikan default — belum ada trigger backend
-                             yang ngisi ini, menyusul di task checkout F&B. --}}
                         <div id="rincian-sisa-booking-section" style="display: none;">
                             <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
                                 <span class="font-weight-bold text-dark">Sisa Booking (belum lunas)</span>
@@ -241,6 +236,9 @@ $(document).on('click', '#btn-cetak-struk', function () {
         return;
     }
 
+    const iframe = document.getElementById('cetak-struk-iframe');
+    const originalText = btn.html();
+
     // Ubah tombol jadi status loading
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
 
@@ -255,26 +253,38 @@ $(document).on('click', '#btn-cetak-struk', function () {
         },
         success: function (res) {
             if (res.success) {
-                const iframe = document.getElementById('cetak-struk-iframe');
-                
+                // Tambahkan timestamp supaya browser tidak menampilkan struk lama dari cache
+                const pdfUrl = res.data.pdf_url + '?t=' + Date.now();
+
                 if (iframe) {
                     // Eksekusi print setelah PDF selesai dimuat di dalam iframe tersembunyi
                     iframe.onload = function () {
                         triggerPrintStrukRincian();
-                        
+
                         // Sembunyikan tombol cetak, lalu munculkan tombol Selesai
                         btn.addClass('d-none');
                         $('#btn-selesai').removeClass('d-none');
                     };
-                    
-                    // Masukkan URL struk ke iframe ditambah timestamp agar tidak terkena cache browser lama
-                    iframe.src = res.data.pdf_url + '?t=' + Date.now();
+
+                    iframe.src = pdfUrl;
+                } else {
+                    // Fallback: iframe tidak ditemukan, buka jendela baru dan langsung tampilkan dialog print
+                    const printWindow = window.open(pdfUrl, '_blank');
+                    if (printWindow) {
+                        printWindow.onload = function () {
+                            printWindow.focus();
+                            printWindow.print();
+                        };
+                    }
+                    btn.addClass('d-none');
+                    $('#btn-selesai').removeClass('d-none');
                 }
             }
         },
-        error: function(xhr) {
+        error: function (xhr) {
             let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
-            
+            btn.prop('disabled', false).html(originalText);
+
             // Jika error 422 (Validasi gagal)
             if (xhr.status === 422) {
                 let errors = xhr.responseJSON.errors;
@@ -286,11 +296,8 @@ $(document).on('click', '#btn-cetak-struk', function () {
                 }
                 errorMessage = 'Validasi Gagal: ' + firstError;
             }
-            
+
             Swal.fire('Gagal!', errorMessage, 'error');
-            
-            // Kembalikan tombol ke wujud semula agar bisa diklik lagi
-            btn.prop('disabled', false).html('<i class="fas fa-print mr-1"></i> Cetak Struk');
         }
     });
 });

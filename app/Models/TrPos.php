@@ -14,6 +14,10 @@ class TrPos extends Model
     protected $guarded = [];
     protected $appends = ['kode_pos'];
 
+    protected $casts = [
+        'struk_created_at' => 'datetime',
+    ];
+
     public function getKodePosAttribute(): string
     {
         return 'FNBPNC-' . str_pad((string) $this->id_pos, 3, '0', STR_PAD_LEFT);
@@ -24,7 +28,6 @@ class TrPos extends Model
         return $this->belongsTo(User::class, 'id_pengguna', 'id_pengguna');
     }
 
-    // Nullable — F&B mandiri (kasir/kafe) tidak selalu nempel ke booking
     public function transaksi()
     {
         return $this->belongsTo(TrTransaksi::class, 'id_transaksi', 'id_transaksi');

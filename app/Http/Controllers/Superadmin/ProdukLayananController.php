@@ -119,14 +119,15 @@ class ProdukLayananController extends Controller
 
         $transactions = DB::table('tr_transaksi')
             ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
-            ->where('tr_transaksi.status_sewa', 'selesai')
+            ->where('tr_transaksi.status_pembayaran', 'lunas')
             ->where('penetapan_harga.id_paket', $paketId)
-            ->whereBetween('tr_transaksi.waktu_mulai', [$start, $end])
-            ->select('tr_transaksi.total_harga', 'tr_transaksi.waktu_mulai')
+            ->whereNotNull('tr_transaksi.struk_created_at')
+            ->whereBetween('tr_transaksi.struk_created_at', [$start, $end])
+            ->select('tr_transaksi.total_harga', 'tr_transaksi.struk_created_at')
             ->get();
 
         foreach ($transactions as $trx) {
-            $dt = Carbon::parse($trx->waktu_mulai);
+            $dt = Carbon::parse($trx->struk_created_at);
 
             if ($periode === 'harian') {
                 $key = $dt->format('H');
@@ -168,8 +169,9 @@ class ProdukLayananController extends Controller
     private function getTableRows(Request $request, $start, $end)
     {
         $revenueSub = DB::table('tr_transaksi')
-            ->where('status_sewa', 'selesai')
-            ->whereBetween('waktu_mulai', [$start, $end])
+            ->where('status_pembayaran', 'lunas')
+            ->whereNotNull('struk_created_at')
+            ->whereBetween('struk_created_at', [$start, $end])
             ->select(
                 'id_penetapan_harga',
                 DB::raw('SUM(total_harga) as total'),
@@ -394,16 +396,17 @@ class ProdukLayananController extends Controller
             }
         }
 
-        return DB::table('tr_transaksi')
-            ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
-            ->where('tr_transaksi.status_sewa', 'selesai')
-            ->whereBetween('tr_transaksi.waktu_mulai', [$start, $end])
-            ->whereIn('penetapan_harga.id_paket', $availableIds)
-            ->select('penetapan_harga.id_paket', DB::raw('SUM(tr_transaksi.total_harga) as total_revenue'))
-            ->groupBy('penetapan_harga.id_paket')
-            ->orderByDesc('total_revenue')
-            ->limit(4)
-            ->pluck('id_paket')
-            ->toArray();
+       return DB::table('tr_transaksi')
+        ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
+        ->where('tr_transaksi.status_pembayaran', 'lunas')
+        ->whereNotNull('tr_transaksi.struk_created_at')
+        ->whereBetween('tr_transaksi.struk_created_at', [$start, $end])
+        ->whereIn('penetapan_harga.id_paket', $availableIds)
+        ->select('penetapan_harga.id_paket', DB::raw('SUM(tr_transaksi.total_harga) as total_revenue'))
+        ->groupBy('penetapan_harga.id_paket')
+        ->orderByDesc('total_revenue')
+        ->limit(4)
+        ->pluck('id_paket')
+        ->toArray();
     }
 }
