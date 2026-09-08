@@ -265,11 +265,7 @@
      @include('admin.bookings.partials.modal-fb')
     @include('admin.bookings.partials.modal-rincian')
 
-    {{-- Iframe struk disembunyikan tapi tetap "hidup" (bukan display:none)
-         supaya window.print() dari dalam iframe tetap bisa jalan di semua
-         browser. Dipakai oleh handler default #btn-cetak-struk di
-         modal-rincian.blade.php untuk auto-print, sama seperti pola yang
-         dipakai di create.blade.php (Tambah Booking). --}}
+
     <iframe id="cetak-struk-iframe"></iframe>
 
 @stop

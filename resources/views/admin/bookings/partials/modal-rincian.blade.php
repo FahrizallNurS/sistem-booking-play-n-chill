@@ -195,6 +195,14 @@ function updateStatusTombolCetakRincian() {
     btn.prop('disabled', uangDiterima < grandTotal);
 }
 
+function triggerPrintStrukRincian() {
+    const iframe = document.getElementById('cetak-struk-iframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }
+}
+
 $('#modalDetailPesanan').on('show.bs.modal', function () {
     $('#rincian-uang-diterima').val('');
     $('#rincian-kembalian-preview').text('Rp 0');
@@ -238,17 +246,11 @@ $(document).on('click', '#btn-cetak-struk', function () {
     }
 
     if (!window.validasiRincianPembayaranSiap()) {
-        return;
+    return;
     }
 
-    // PENTING: window.open() harus dipanggil di sini, LANGSUNG di dalam
-    // event klik (synchronous) -- BUKAN di dalam callback AJAX (async).
-    // Kalau dipanggil setelah nunggu response server, browser anggap ini
-    // bukan aksi user asli dan memblokirnya (kadang malah redirect tab
-    // aktif, bukan cuma diblokir diam-diam). Trik-nya: buka tab kosong
-    // dulu sekarang, baru isi alamatnya (location.href) setelah PDF siap.
-    const strukWindow = window.open('', '_blank');
-
+    const iframe = document.getElementById('cetak-struk-iframe');
+    const originalText = btn.html();
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
 
     $.ajax({
@@ -262,18 +264,22 @@ $(document).on('click', '#btn-cetak-struk', function () {
         },
         success: function (res) {
             if (res.success) {
-                if (strukWindow) {
-                    strukWindow.location.href = res.data.pdf_url;
-                } else {
-                    // Fallback kalau tab kosong tadi ternyata tetap diblokir
-                    window.open(res.data.pdf_url, '_blank');
-                }
                 btn.addClass('d-none');
                 $('#btn-selesai').removeClass('d-none');
+
+                if (iframe) {
+                    iframe.onload = function () {
+                        triggerPrintStrukRincian();
+                    };
+                    iframe.src = res.data.pdf_url;
+                } else {
+                    window.open(res.data.pdf_url, '_blank'); // fallback saja
+                }
             }
         },
        error: function(xhr) {
                         let errorMessage = 'Terjadi kesalahan sistem. Gagal menyimpan pesanan.';
+                         btn.prop('disabled', false).html(originalText);
                         // Jika error 422 (Validasi gagal)
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;

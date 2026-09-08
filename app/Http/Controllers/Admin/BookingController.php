@@ -365,6 +365,13 @@ class BookingController extends Controller
             return back()->withErrors(['error' => 'Booking ini tidak bisa di-refund.']);
         }
 
+        // Struk yang sudah tercetak bersifat final -- begitu ada bukti fisik/PDF
+        // dicetak dan diserahkan ke customer, transaksi tidak boleh dibatalkan
+        // lagi lewat jalur ini.
+        if (!empty($booking->struk_created_at)) {
+            return back()->withErrors(['error' => 'Booking ini sudah dicetak strukturnya dan tidak bisa dibatalkan.']);
+        }
+
         $booking->update([
             'status_sewa'        => 'dibatalkan',
             'status_pembayaran'  => 'refund',

@@ -3,7 +3,6 @@
         <thead class="thead-light">
             <tr>
                 <th>NO</th>
-
                 @if($jenisTransaksi === 'booking')
                     <th>Kode Booking</th>
                     <th>Pelanggan</th>
@@ -21,21 +20,21 @@
                     <th>Pelanggan</th>
                     <th>Waktu</th>
                 @endif
-
                 <th>Sumber</th>
                 <th>Total</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
         </thead>
-        <tbody>
-            @forelse($transaksis as $i => $t)
+        <tbody id="table-body">
+            @forelse($transaksisPaged as $i => $t)
                 @php
                     $isBooking = $t->jenis_laporan === 'Booking';
                     $modalId   = $isBooking ? 'modalBooking' . $t->id_transaksi : 'modalFNB' . $t->id_pos;
                 @endphp
                 <tr>
-                    <td>{{ $i + 1 }}</td>
+                    {{-- Nomor urut dinamis menyesuaikan halaman --}}
+                    <td>{{ $transaksisPaged->firstItem() + $i }}</td>
 
                     @if($jenisTransaksi === 'booking')
                         <td><code>{{ $t->kode_sewa }}</code></td>
@@ -92,8 +91,18 @@
     </table>
 </div>
 
-{{-- Modal per baris --}}
-@foreach($transaksis as $t)
+{{-- Elemen Pagination (Wajib untuk pindah halaman) --}}
+<div class="d-flex justify-content-between align-items-center p-3 border-top">
+    <div id="table-info" class="text-muted text-sm">
+        Menampilkan {{ $transaksisPaged->firstItem() ?? 0 }} hingga {{ $transaksisPaged->lastItem() ?? 0 }} dari {{ $transaksisPaged->total() }} entri
+    </div>
+    <div id="pagination-container">
+        {{ $transaksisPaged->appends(request()->query())->links() }}
+    </div>
+</div>
+
+{{-- Modal per baris (Diubah ke transaksisPaged) --}}
+@foreach($transaksisPaged as $t)
     @if($t->jenis_laporan === 'Booking')
         @include('admin.laporan.partials.modal-booking', ['t' => $t])
     @else
