@@ -45,7 +45,7 @@
     {{-- ═══ Kontrol Tanggal & Kategori ═══ --}}
     <div class="booking-control-card">
 
-        <div class="control-label">Jadwal Cepat</div>
+        <div class="control-label" style="color: #ffffff;">Mau Booking Buat Kapan?</div>
 
         <div class="date-row">
             <div class="date-quick-group">
@@ -61,7 +61,7 @@
             </div>
 
             <div class="date-custom-wrap">
-                <div class="control-label" style="margin-bottom:8px;">Atau Tanggal Lain</div>
+                <div class="control-label" style="color: #ffffff;">Atau Tanggal Lain</div>
                 <input type="date"
                        id="tanggalCustom"
                        class="date-custom-input"
@@ -71,7 +71,7 @@
         </div>
 
         <div class="kategori-row">
-            <div class="control-label" style="margin:0;">Kategori Ruangan:</div>
+            <div class="control-label" style="color: #ffffff;">Kategori Ruangan:</div>
             <div class="kategori-tabs">
                 <a href="{{ url('/booking?tipe=reguler&tanggal='.$tanggal) }}"
                    class="kategori-tab tab-reguler js-tab-link {{ request('tipe', 'reguler') == 'reguler' ? 'active' : '' }}"
