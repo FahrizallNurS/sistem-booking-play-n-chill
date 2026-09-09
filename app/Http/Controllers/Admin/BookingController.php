@@ -123,10 +123,10 @@ class BookingController extends Controller
         $waktuSelesai = $waktuMulai->copy()->addHours($durasiJam);
 
         // Cek apakah ada jadwal yang tumpang tindih
-        $isBentrok = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ruanganId) {
+         $isBentrok = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ruanganId) {
                 $q->where('id_ruangan', $ruanganId);
             })
-            ->whereNotIn('status_sewa', ['selesai', 'dibatalkan']) 
+            ->where('status_sewa', 'dikonfirmasi')
             ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
                 // Logika akurat: Booking lama mulai SEBELUM booking baru selesai 
                 // DAN booking lama selesai SESUDAH booking baru mulai

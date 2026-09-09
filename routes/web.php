@@ -229,6 +229,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
+    Route::get('/booking/cek-bentrok', [BookingController::class, 'cekBentrok'])->name('booking.cek-bentrok');
     Route::get('/jadwal', [JadwalController::class, 'index'])->name('pelanggan.jadwal');
     Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
 

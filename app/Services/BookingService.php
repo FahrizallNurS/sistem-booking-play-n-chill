@@ -62,7 +62,7 @@ class BookingService
             $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
                     $q->where('id_ruangan', $ph->id_ruangan);
                 })
-                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                ->where('status_sewa', 'dikonfirmasi')
                 ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
                     $query->where('waktu_mulai', '<', $waktuSelesai)
                           ->where('waktu_selesai', '>', $waktuMulai);
@@ -396,7 +396,7 @@ class BookingService
                     $q->where('id_ruangan', $ph->id_ruangan);
                 })
                 ->where('id_transaksi', '!=', $booking->id_transaksi)
-                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                ->where('status_sewa', 'dikonfirmasi')
                 ->where(function ($query) use ($waktuMulaiBaruCarbon, $waktuSelesaiBaru) {
                     $query->where('waktu_mulai', '<', $waktuSelesaiBaru)
                         ->where('waktu_selesai', '>', $waktuMulaiBaruCarbon);

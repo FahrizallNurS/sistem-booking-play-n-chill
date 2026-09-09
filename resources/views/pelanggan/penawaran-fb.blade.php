@@ -653,9 +653,10 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-    AOS.init({ duration: 800, once: true });
-    
-    let cart = [];
+     AOS.init({ duration: 800, once: true });
+
+    const CART_STORAGE_KEY = 'cart_fb_booking';
+    let cart = JSON.parse(sessionStorage.getItem(CART_STORAGE_KEY) || '[]');
     
     const formatRupiah = (angka) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -696,13 +697,17 @@
             if (pillTotal) pillTotal.innerText = 'Rp 0';
             if (cartDataInput) cartDataInput.value = '[]';
 
-            if (floatingSkipBtn) floatingSkipBtn.style.display = 'flex';
+                        if (floatingSkipBtn) floatingSkipBtn.style.display = 'none';
             if (floatingCartPill) {
-                floatingCartPill.classList.add('d-none-custom');
-                floatingCartPill.style.display = 'none';
+                floatingCartPill.classList.remove('d-none-custom');
+                floatingCartPill.style.display = 'flex';
             }
-            
+        }
+
+        sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+
         } else {
+
             if (totalsArea) totalsArea.style.display = 'block';
             if (emptyCartAction) emptyCartAction.style.display = 'none';
             
@@ -795,6 +800,8 @@
             updateCartUI();
         });
     });
+
+    updateCartUI();
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
