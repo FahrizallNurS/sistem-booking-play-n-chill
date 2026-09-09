@@ -653,11 +653,13 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-     AOS.init({ duration: 800, once: true });
+    AOS.init({ duration: 800, once: true });
 
+    // Cart di-persist ke sessionStorage supaya tidak hilang kalau ada
+    // redirect back() akibat bentrok jadwal di step akhir (booking.store()).
     const CART_STORAGE_KEY = 'cart_fb_booking';
     let cart = JSON.parse(sessionStorage.getItem(CART_STORAGE_KEY) || '[]');
-    
+
     const formatRupiah = (angka) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
     };
@@ -666,12 +668,12 @@
         const pillBadge = document.getElementById('floatingCartBadge');
         const pillCount = document.getElementById('floatingCartCount');
         const pillTotal = document.getElementById('floatingCartTotal');
-        
+
         const cartItemsArea = document.getElementById('cartItemsArea');
         const totalsArea = document.getElementById('cartTotalsArea');
         const emptyCartAction = document.getElementById('emptyCartAction');
         const cartDataInput = document.getElementById('cartDataInput');
-        
+
         const totalItemValue = document.getElementById('totalItemValue');
         const totalValue = document.getElementById('totalValue');
 
@@ -691,27 +693,23 @@
             }
             if (totalsArea) totalsArea.style.display = 'none';
             if (emptyCartAction) emptyCartAction.style.display = 'block';
-            
+
             if (pillBadge) pillBadge.innerText = '0';
             if (pillCount) pillCount.innerText = '0 Items';
             if (pillTotal) pillTotal.innerText = 'Rp 0';
             if (cartDataInput) cartDataInput.value = '[]';
 
-                        if (floatingSkipBtn) floatingSkipBtn.style.display = 'none';
+            if (floatingSkipBtn) floatingSkipBtn.style.display = 'flex';
             if (floatingCartPill) {
-                floatingCartPill.classList.remove('d-none-custom');
-                floatingCartPill.style.display = 'flex';
+                floatingCartPill.classList.add('d-none-custom');
+                floatingCartPill.style.display = 'none';
             }
-        }
-
-        sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
 
         } else {
-
             if (totalsArea) totalsArea.style.display = 'block';
             if (emptyCartAction) emptyCartAction.style.display = 'none';
-            
-            let htmlContent = ''; 
+
+            let htmlContent = '';
 
             cart.forEach(item => {
                 totalQty += item.qty;
@@ -721,7 +719,7 @@
                 htmlContent += `
                     <div class="d-flex align-items-center mb-4">
                         <img src="${imgSrc}" alt="${item.name}" class="rounded" style="width: 56px; height: 56px; object-fit: cover;" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
-                        
+
                         <div class="ms-3 flex-grow-1">
                             <div class="text-white fw-semibold mb-1" style="font-size: 0.95rem;">${item.name}</div>
                             <div class="d-flex align-items-center">
@@ -730,7 +728,7 @@
                                 <button type="button" class="btn-qty-control" onclick="changeQty(${item.id}, 1)">+</button>
                             </div>
                         </div>
-                        
+
                         <div class="text-end d-flex flex-column align-items-end">
                             <div class="text-white fw-bold" style="font-size: 1rem;">
                                 ${formatRupiah(item.price * item.qty)}
@@ -750,12 +748,12 @@
             if (cartItemsArea) cartItemsArea.innerHTML = htmlContent;
             if (totalItemValue) totalItemValue.innerText = totalQty;
             if (totalValue) totalValue.innerText = formatRupiah(totalPrice);
-            
+
             if (pillBadge) pillBadge.innerText = totalQty;
             if (pillCount) pillCount.innerText = totalQty + ' Items';
             if (pillTotal) pillTotal.innerText = formatRupiah(totalPrice);
-            
-            if (cartDataInput) cartDataInput.value = JSON.stringify(cart); 
+
+            if (cartDataInput) cartDataInput.value = JSON.stringify(cart);
 
             if (floatingSkipBtn) floatingSkipBtn.style.display = 'none';
             if (floatingCartPill) {
@@ -763,6 +761,11 @@
                 floatingCartPill.style.display = 'flex';
             }
         }
+
+        // Simpan kondisi cart terbaru ke sessionStorage setiap kali UI di-update.
+        // Diletakkan di sini (setelah blok if/else selesai total) supaya
+        // tidak memutus struktur if/else itu sendiri.
+        sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }
 
     window.changeQty = function(id, change) {
@@ -770,7 +773,7 @@
         if (itemIndex > -1) {
             cart[itemIndex].qty += change;
             if (cart[itemIndex].qty <= 0) {
-                cart.splice(itemIndex, 1); 
+                cart.splice(itemIndex, 1);
             }
             updateCartUI();
         }
@@ -783,34 +786,36 @@
 
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
             const id = this.getAttribute('data-id');
             const name = this.getAttribute('data-name');
             const price = parseInt(this.getAttribute('data-price'));
             const img = this.getAttribute('data-img');
 
             const existingItem = cart.find(item => item.id == id);
-            
+
             if (existingItem) {
                 existingItem.qty += 1;
             } else {
                 cart.push({ id, name, price, img, qty: 1 });
             }
-            
+
             updateCartUI();
         });
     });
 
+    // Render ulang cart yang sudah tersimpan (dari sessionStorage)
+    // begitu halaman dimuat — bukan cuma nunggu klik tombol "+".
     updateCartUI();
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
+
             const filter = this.getAttribute('data-filter');
             const items = document.querySelectorAll('.product-item');
-            
+
             items.forEach(item => {
                 if(filter === 'semua' || item.getAttribute('data-kategori') === filter) {
                     item.style.display = 'block';
