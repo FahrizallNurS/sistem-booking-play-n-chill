@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -183,6 +183,27 @@
             transform: scale(1.03);
         }
 
+        /* Kotak Pembungkus Couple, Group, Party */
+        .audience-card {
+            background-color: rgba(255, 255, 255, 0.05); /* Efek kaca transparan elegan */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px 20px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .audience-card:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #A855F7;
+            transform: translateY(-5px);
+        }
+
+        /* Jarak pintar untuk section */
+        .section-spacing {
+            margin-top: 80px;
+        }
+
         /* CTA */
         .cta-banner {
             background: var(--purple);
@@ -242,40 +263,38 @@
                 padding: 40px 20px;
                 border-radius: 20px;
             }
+
+            /* Penyesuaian khusus layar HP */
+            .section-spacing {
+                margin-top: 40px;
+            }
+            
+            .audience-card {
+                padding: 20px 15px;
+            }
         }
 
        /* =========================================
            KOLEKSI ANIMASI ELEGAN (REVEAL)
            ========================================= */
-        /* Base Reveal (Wajib ada) */
         .reveal {
             opacity: 0;
             transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
         }
 
-        /* Saat Animasi Aktif (Kembali ke posisi/ukuran normal) */
         .reveal.active {
             opacity: 1;
             transform: translate(0, 0) scale(1) !important;
         }
 
-        /* 1. Dari Bawah ke Atas */
         .reveal-up { transform: translateY(50px); }
-
-        /* 2. Dari Kiri ke Kanan */
         .reveal-right { transform: translateX(-50px); }
-
-        /* 3. Dari Kanan ke Kiri */
         .reveal-left { transform: translateX(50px); }
-
-        /* 4. Zoom In (Membesar perlahan) */
         .reveal-scale { transform: scale(0.85); }
 
-        /* Waktu Tunda (Delay) agar elemen muncul bergantian (staggered) */
         .delay-1 { transition-delay: 0.1s; }
         .delay-2 { transition-delay: 0.3s; }
         .delay-3 { transition-delay: 0.5s; }
-s
     </style>
 </head>
 
@@ -299,9 +318,9 @@ s
         </p>
     </div>
 
-   <!-- KATEGORI AUDIENS (COUPLE, GROUP, PARTY) -->
-    <div class="row justify-content-center mt-4 text-center">
-        <div class="col-12 mb-4 reveal reveal-scale"> <!-- Judul membesar -->
+    <!-- KATEGORI AUDIENS (COUPLE, GROUP, PARTY) -->
+    <div class="row justify-content-center text-center section-spacing">
+        <div class="col-12 mb-5 reveal reveal-scale"> 
             <h2 class="section-title">Solusi Melepas Penat</h2>
             <p class="sub-title" style="margin-bottom: 30px;">Ruang kami didesain khusus agar kamu bebas beraktivitas tanpa takut bosan.</p>
         </div>

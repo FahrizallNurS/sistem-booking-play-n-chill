@@ -156,13 +156,13 @@
         </div>
         @else
         <div class="timer-bar text-center text-white" style="background-color: rgba(255,0,0,0.2); border-color: red;">
-            <span class="fw-bold">❌ Waktu pembayaran telah habis. Pesanan dibatalkan otomatis.</span>
+            <span class="fw-bold">Waktu pembayaran telah habis. Pesanan dibatalkan otomatis.</span>
         </div>
         @endif
 
-        <h3 class="text-center text-white fw-bold mb-4">RINGKASAN PESANAN</h3>
-
         <div class="payment-wrapper text-white mb-4">
+            
+        <h3 class="text-center text-white fw-bold mt-2" style="letter-spacing: 1px; margin-bottom: 40px;">RINGKASAN PESANAN</h3>
             
             {{-- ================= BAGIAN 1: RINCIAN BOOKING (Hanya Muncul Jika Ada Booking) ================= --}}
             @if(isset($transaksi) && $transaksi)
@@ -208,7 +208,7 @@
 
             {{-- ================= BAGIAN 2: RINCIAN F&B (Hanya Muncul Jika Ada Keranjang F&B) ================= --}}
             @if(is_array($keranjangFb) && count($keranjangFb) > 0)
-                <div class="badge-orange mt-4 mb-3">Ringkasan Pesanan F&B</div>
+                
                 
                 {{-- Jika HANYA pesan F&B (Tidak ada booking), tampilkan nama pemesan di sini --}}
                 @if(!isset($transaksi))
@@ -254,23 +254,47 @@
                 </span>
             </div>
 
-            <div class="text-center">
-                <div class="qr-box shadow">
-                    <img src="{{ asset('images/qris_play_n_chill_hd.png') }}" class="img-fluid" alt="QR Code QRIS">
+          {{-- AREA QRIS MODERN --}}
+            <div class="qris-payment-section text-center mt-4 mb-2">
+
+                {{-- Kotak Gambar QRIS Modern --}}
+                <div class="d-inline-block position-relative" 
+                     style="background: #ffffff; border-radius: 24px; padding: 20px; box-shadow: 0 15px 35px rgba(255, 122, 0, 0.25);">
+
+                    {{-- Teks Instruksi di dalam kotak --}}
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-0" style="color: #FF7A00; font-size: 1rem; letter-spacing: 0.5px;">
+                            Scan QRIS untuk Membayar!
+                        </h6>
+                    </div>
+                    
+                    {{-- Inner Scanner Frame (Bingkai Putus-putus) --}}
+                    <div style="border: 2px dashed rgba(255, 122, 0, 0.5); border-radius: 16px; padding: 12px; background-color: #fffcf8;">
+                        <img src="{{ asset('images/qris_play_n_chill_hd.png') }}" 
+                             class="img-fluid" 
+                             alt="QR Code QRIS"
+                             style="width: 210px; height: 210px; object-fit: contain; border-radius: 8px;">
+                    </div>
+
+                    {{-- Label Pendukung --}}
+                    <div class="mt-3 text-center" style="color: #FF7A00; font-size: 0.85rem; font-weight: 800; letter-spacing: 1px;">
+                        PLAY N CHILL
+                    </div>
+
                 </div>
+                
             </div>
-
         </div>
 
         </div>
 
-        {{-- ================= TOMBOL AKSI BAWAH ================= --}}
-        <div class="d-flex flex-column gap-3">
-            <a href="{{ route('profile') }}" class="btn btn-full-orange text-center text-decoration-none d-block w-100">
-                LIHAT STATUS PESANAN
+     {{-- ================= TOMBOL AKSI BAWAH ================= --}}
+        <div class="d-flex flex-row gap-2 px-3" style="margin-top: -15px;">
+            <a href="{{ route('profile') }}" class="btn btn-full-orange w-50 d-flex align-items-center justify-content-center text-center text-decoration-none" style="font-size: 0.85rem; line-height: 1.3; min-height: 50px;">
+                LIHAT STATUS<br>PESANAN
             </a>
-            <a href="{{ url('/') }}" class="btn btn-full-white text-center text-decoration-none d-block w-100">
-                KEMBALI KE BERANDA
+            <a href="{{ url('/') }}" class="btn btn-full-white w-50 d-flex align-items-center justify-content-center text-center text-decoration-none" style="font-size: 0.85rem; line-height: 1.3; min-height: 50px;">
+                KEMBALI KE<br>BERANDA
             </a>
         </div>
 
