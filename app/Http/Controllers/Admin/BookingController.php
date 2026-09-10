@@ -20,14 +20,16 @@ class BookingController extends Controller
     public function __construct(private BookingService $bookingService) {}
 
     public function index(Request $request)
+
     {
-        // [BARU] Eksekusi update otomatis sebelum data ditarik
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
 
         $query = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna'])
             ->whereNotIn('status_sewa', ['dibatalkan', 'selesai'])
             ->latest('created_at');
+
+
 
         // Filter sumber booking (Online / Kasir). Kosong = tampilkan semua.
         if ($request->filled('sumber_booking')) {
@@ -62,12 +64,19 @@ class BookingController extends Controller
 
         $bookings = $query->paginate(15)->withQueryString();
         $ruangans = MsRuangan::where('is_active', 1)->get();
-
         [$produks, $kategoriFnb] = $this->getProdukFnbData();
 
-        return view('admin.bookings.index', compact('bookings', 'ruangans', 'produks', 'kategoriFnb'));
-    }
 
+        $existingFnbByBooking = $bookings->getCollection()->mapWithKeys(
+                fn ($booking) => [$booking->id_transaksi => $this->bookingService->getFnbCartState($booking->id_transaksi)]
+            );
+
+            return view('admin.bookings.index', compact(
+                'bookings', 'ruangans', 'produks', 'kategoriFnb', 'existingFnbByBooking'
+            ));
+        }
+
+        
     // ============================================================
     // CREATE (Form Tambah Booking Manual - data ruangan/paket asli)
     // ============================================================
@@ -213,8 +222,6 @@ class BookingController extends Controller
     // ============================================================
     public function show($id)
     {
-        // [BARU] Pastikan juga ditaruh di fungsi show
-        // Biar misal admin refresh halaman detail, statusnya ikut terupdate otomatis
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
 
@@ -237,7 +244,9 @@ class BookingController extends Controller
             }
         }
 
-        return view('admin.bookings.show', compact('booking', 'pos', 'posDetails'));
+        $fnbCartState = $this->bookingService->getFnbCartState($id);
+
+        return view('admin.bookings.show', compact('booking', 'pos', 'posDetails', 'fnbCartState'));
     }
 
     // ============================================================

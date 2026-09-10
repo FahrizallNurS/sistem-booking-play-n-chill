@@ -676,37 +676,43 @@
             });
         }
 
-               $('#btn-konfirmasi-cetak-struk').on('click', function () {
-        const metodePembayaran = $('#inputMetodeBayarStruk').val();
-        if (!metodePembayaran) return;
+        const fnbCartStateForStruk = @json($fnbCartState);
 
-        if (metodePembayaran === 'TUNAI') {
-            const grandTotal = grandTotalStruk();
-            const uangDiterima = parseInt($('#inputUangDiterimaStruk').val(), 10) || 0;
-            if (uangDiterima < grandTotal) {
-                alert('Uang diterima kurang dari total tagihan.');
-                return;
-            }
-        }
+            $('#btn-konfirmasi-cetak-struk').on('click', function () {
+                const metodePembayaran = $('#inputMetodeBayarStruk').val();
+                if (!metodePembayaran) return;
 
-        const btn = $(this);
-        const iframe = document.getElementById('cetak-struk-iframe');
-        const uangDiterima = metodePembayaran === 'TUNAI'
-            ? (parseInt($('#inputUangDiterimaStruk').val(), 10) || 0)
-            : null;
+                if (metodePembayaran === 'TUNAI') {
+                    const grandTotal = grandTotalStruk();
+                    const uangDiterima = parseInt($('#inputUangDiterimaStruk').val(), 10) || 0;
+                    if (uangDiterima < grandTotal) {
+                        alert('Uang diterima kurang dari total tagihan.');
+                        return;
+                    }
+                }
 
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+                const btn = $(this);
+                const iframe = document.getElementById('cetak-struk-iframe');
+                const uangDiterima = metodePembayaran === 'TUNAI'
+                    ? (parseInt($('#inputUangDiterimaStruk').val(), 10) || 0)
+                    : null;
 
-        $.ajax({
-            url: '{{ route('admin.booking.cetak-struk', $booking->id_transaksi) }}',
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            data: {
-                metode_pembayaran: metodePembayaran,
-                uang_diterima: uangDiterima,
-                items: [],
-            },
-            success: function (res) {
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+
+                $.ajax({
+                    url: '{{ route('admin.booking.cetak-struk', $booking->id_transaksi) }}',
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    data: {
+                        metode_pembayaran: metodePembayaran,
+                        uang_diterima: uangDiterima,
+                        // [DIUBAH] kirim state F&B existing apa adanya, BUKAN array kosong
+                        items: fnbCartStateForStruk.map(i => ({
+                            id_produk: i.id_produk,
+                            jumlah: i.jumlah,
+                        })),
+                    },
+                    success: function (res) {
                 if (res.success && iframe) {
                     iframe.onload = function () {
                         triggerPrintStrukShow(function () {

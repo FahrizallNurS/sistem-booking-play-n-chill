@@ -202,7 +202,8 @@
                                                 data-tipe-hari="{{ $labelTipeHariBaris }}"
                                                 data-total-harga="{{ $booking->total_harga ?? 0 }}"
                                                 data-sisa-bayar="{{ $booking->sisa_bayar ?? 0 }}"
-                                                data-metode-bayar="{{ $booking->metode_pembayaran ?? '-' }}"
+                                                data-metode-bayar="{{ $booking->metode_pembayaran ?? '-' }}"        
+                                                data-fnb-existing="{{ collect($existingFnbByBooking->get($booking->id_transaksi, []))->toJson() }}"
                                             @else
                                                 disabled
                                             @endif
