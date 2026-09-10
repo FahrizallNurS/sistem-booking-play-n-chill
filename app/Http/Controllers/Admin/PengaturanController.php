@@ -13,7 +13,7 @@ class PengaturanController extends Controller
     {
         $pengaturan = MsPengaturan::current();
 
-        return view('admin.pengaturan.index', compact('pengaturan'));
+        return view('admin.Pengaturan.index', compact('pengaturan'));
     }
 
     public function update(Request $request)
