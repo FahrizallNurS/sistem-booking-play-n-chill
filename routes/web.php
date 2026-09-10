@@ -356,6 +356,8 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
 
+        Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+
         // HALAMAN KELOLA GALERI PANEL ADMIN
         Route::resource('galeri', GaleriController::class)->names([
             'index'   => 'galeri.index',
