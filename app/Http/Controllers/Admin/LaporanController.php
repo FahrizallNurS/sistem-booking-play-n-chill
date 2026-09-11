@@ -137,14 +137,54 @@ class LaporanController extends Controller
         return view('admin.laporan.index', $data);
     }
 
-    public function exportPdf(Request $request)
+   public function exportPdf(Request $request)
     {
+        // 1. Ambil semua data yang sudah diracik rapi dari fungsi getReportData
         $data = $this->getReportData($request);
-        $data['tanggalCetak'] = now()->translatedFormat('d F Y H:i');
-        $data['admin']        = auth()->user()->nama_pengguna;
+        
+        // 2. Siapkan data umum (Meta Info)
+        $data['tanggalCetak']  = now()->translatedFormat('d F Y H:i');
+        $data['admin']         = auth()->user()->nama_pengguna ?? auth()->user()->name ?? 'Administrator';
+        $data['periode_awal']  = $data['start']->translatedFormat('d F Y');
+        $data['periode_akhir'] = $data['end']->translatedFormat('d F Y');
 
-        $pdf      = Pdf::loadView('admin.laporan.pdf', $data)->setPaper('a4', 'portrait');
-        $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.pdf';
+        // 3. Tentukan jenis transaksi dari filter
+        $jenis = $data['jenisTransaksi']; // Isinya bisa: 'booking', 'fnb', atau 'semua'
+
+        // ==========================================
+        // PERCABANGAN LOGIKA BERDASARKAN FILTER
+        // ==========================================
+        
+        if ($jenis === 'fnb') {
+            
+            // Mapping variabel agar sesuai dengan desain pdf-fb.blade.php yang baru kita buat
+            $data['data_fb']           = $data['transaksis'];
+            $data['total_transaksi']   = $data['totalFnb'];
+            $data['transaksi_selesai'] = $data['fnbSelesai'];
+            $data['transaksi_batal']   = $data['fnbDibatalkan'];
+            $data['total_pendapatan']  = $data['pendapatanFnb'];
+
+            $view = 'admin.laporan.pdf-fb';
+            $filename = 'Laporan_FNB_PlayNChill_' . $data['start']->format('Ymd') . '.pdf';
+
+        } elseif ($jenis === 'booking') {
+            
+            // Gunakan view PDF Booking bawaan Anda
+            $view = 'admin.laporan.pdf'; 
+            $filename = 'Laporan_Booking_PlayNChill_' . $data['start']->format('Ymd') . '.pdf';
+            
+        } else {
+            
+            // Skenario 'semua' (Keseluruhan)
+            // Sementara kita arahkan ke view PDF bawaan. 
+            // Nanti kita bisa buatkan view khusus misal 'admin.laporan.pdf-semua'
+            $view = 'admin.laporan.pdf'; 
+            $filename = 'Laporan_Keseluruhan_PlayNChill_' . $data['start']->format('Ymd') . '.pdf';
+            
+        }
+
+        // 4. Proses render PDF dan Download
+        $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
     }

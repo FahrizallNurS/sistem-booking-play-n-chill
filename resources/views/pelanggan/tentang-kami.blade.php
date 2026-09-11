@@ -44,9 +44,9 @@
             z-index: -1;
         }
 
-        /* HERO */
+       /* HERO */
         .hero-section {
-            padding: 100px 0 50px;
+            padding: 40px 0 40px;
             text-align: center;
         }
 
@@ -247,7 +247,7 @@
 
         @media (max-width: 767px) {
             .hero-section {
-                padding: 70px 16px 30px;
+                padding: 10px 16px 20px;
             }
 
             .main-title {
@@ -318,11 +318,11 @@
         </p>
     </div>
 
-    <!-- KATEGORI AUDIENS (COUPLE, GROUP, PARTY) -->
-    <div class="row justify-content-center text-center section-spacing">
-        <div class="col-12 mb-5 reveal reveal-scale"> 
+   <!-- KATEGORI AUDIENS (COUPLE, GROUP, PARTY) -->
+    <div class="row justify-content-center text-center mt-5 pt-4">
+        <div class="col-12 mb-4 reveal reveal-scale"> 
             <h2 class="section-title">Solusi Melepas Penat</h2>
-            <p class="sub-title" style="margin-bottom: 30px;">Ruang kami didesain khusus agar kamu bebas beraktivitas tanpa takut bosan.</p>
+            <p class="sub-title" style="margin-bottom: 40px;">Ruang kami didesain khusus agar kamu bebas beraktivitas tanpa takut bosan.</p>
         </div>
         
         <!-- CARD COUPLE -->

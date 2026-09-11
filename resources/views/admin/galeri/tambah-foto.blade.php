@@ -7,7 +7,8 @@
 @section('content_header')
     <div class="px-2">
         <h1 class="text-dark fw-bold" style="font-size: 1.8rem;">Kelola Galeri</h1>
-        <p class="text-muted mb-2">Manajemen Galeri Website.</p>
+        <p class="text-muted mb-2">Manajemen Galeri We
+            bsite.</p>
         <hr class="mt-0 mb-3" style="border-color: #d1d5db;">
     </div>
 @stop
@@ -93,19 +94,26 @@
                         </a>
                     </div>
 
-                    {{-- KOLOM KANAN: Upload Area & Tombol Simpan --}}
+                   {{-- KOLOM KANAN: Upload Area & Tombol Simpan --}}
                     <div class="col-12 col-lg-6 d-flex flex-column">
-                        <div class="mb-4 flex-grow-1 d-flex flex-column">
+                        <div class="mb-4">
                             <label class="form-label fw-bold" style="font-size: 0.95rem; color: #4b5563;">Foto Ruangan <span class="text-danger">*</span></label>
                             
-                            {{-- Area Upload --}}
-                            <div class="upload-area flex-grow-1 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden @error('file_foto') border-danger @enderror" id="uploadContainer" onclick="document.getElementById('fileUpload').click()">
+                            {{-- Area Upload Modern (Rasio 4:3) --}}
+                            <div class="upload-area position-relative overflow-hidden @error('file_foto') border-danger @enderror" id="uploadContainer" onclick="document.getElementById('fileUpload').click()">
                                 
                                 {{-- Konten Default --}}
-                                <div id="defaultUploadContent" class="text-center d-flex flex-column align-items-center">
-                                    <i class="fas fa-upload mb-3" style="font-size: 3rem; color: #9ca3af;"></i>
-                                    <span class="fw-normal text-muted mb-1">Upload Foto Max 2MB</span>
-                                    <small style="color: #9ca3af; font-size: 0.75rem;">Format: JPG, JPEG, PNG</small>
+                                <div id="defaultUploadContent" class="text-center d-flex flex-column align-items-center justify-content-center h-100 p-4">
+                                    <div class="icon-circle mb-3">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: #0084ff;"></i>
+                                    </div>
+                                    <h6 class="fw-bold mb-1" style="color: #374151;">Pilih atau Drop Foto di Sini</h6>
+                                    <span class="text-muted mb-3" style="font-size: 0.85rem;">
+                                        Wajib menggunakan rasio gambar <strong>4:3</strong> (Landscape)
+                                    </span>
+                                    <span class="badge" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 6px 12px; font-weight: 500;">
+                                        Max: 2MB | JPG, JPEG, PNG
+                                    </span>
                                 </div>
                                 
                                 {{-- Preview Image --}}
@@ -115,13 +123,13 @@
                                 <input type="file" name="file_foto" id="fileUpload" class="d-none" accept="image/jpeg, image/png, image/jpg" onchange="previewImage(this)" required>
                             </div>
                             @error('file_foto')
-                                <small class="text-danger mt-2 text-center">{{ $message }}</small>
+                                <small class="text-danger mt-2 d-block text-center">{{ $message }}</small>
                             @enderror
                         </div>
 
                         {{-- Tombol Simpan --}}
-                        <button type="submit" class="btn btn-blue w-100 py-2 fw-bold text-white mt-auto" style="border-radius: 6px;">
-                            Simpan
+                        <button type="submit" class="btn btn-blue w-100 py-2 fw-bold text-white mt-auto" style="border-radius: 6px; min-height: 46px;">
+                            Simpan Foto Galeri
                         </button>
                     </div>
 
@@ -154,19 +162,37 @@
     }
     
     .upload-area {
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        background-color: #ffffff;
+        border: 2px dashed #cbd5e1; 
+        border-radius: 12px;
+        background-color: #f8fafc;
         cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        min-height: 250px; 
+        transition: all 0.3s ease-in-out;
+        width: 100%;
+        aspect-ratio: 4 / 3; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
+    
     .upload-area:hover {
         border-color: #0084ff;
-        background-color: #f8faff;
+        background-color: #f0f9ff;
     }
-    .upload-area:hover i {
-        color: #0084ff !important;
+
+    .icon-circle {
+        background-color: #e0f2fe;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .upload-area:hover .icon-circle {
+        transform: scale(1.1);
+        background-color: #bae6fd;
     }
     .border-danger {
         border-color: #dc3545 !important;

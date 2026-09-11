@@ -127,7 +127,7 @@
 
     {{-- Header --}}
     <div class="header">
-        <img src="{{ public_path('gambar/PNCLOGO.jpg') }}" alt="Play N Chill Logo">
+        <img src="{{ public_path('gambar/Logo-PNC01.png') }}" alt="Play N Chill Logo">
         <h1>LAPORAN BOOKING</h1>
         <p>Play N Chill - Gaming & Entertainment Center</p>
     </div>
