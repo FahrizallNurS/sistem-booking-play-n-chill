@@ -319,6 +319,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('paket.toggle-aktif');
         Route::post('/paket/{id}/penetapan-modal', [PaketController::class, 'storePenetapanModal'])
              ->name('paket.penetapan.storeModal');
+
+        Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])
+            ->name('kategori.ruangan');
+
                 
         Route::resource('paket', PaketController::class);
                 

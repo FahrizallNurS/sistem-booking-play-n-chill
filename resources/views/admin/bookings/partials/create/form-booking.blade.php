@@ -6,7 +6,7 @@
     </div>
     <div class="card-body">
 
-        {{-- Ruangan & Paket --}}
+        {{-- Ruangan & Waktu Mulai --}}
         <div class="row">
             <div class="col-12 col-md-6 form-group">
                 <label>Ruangan</label>
@@ -18,41 +18,32 @@
                 </select>
             </div>
             <div class="col-12 col-md-6 form-group">
-                <label>Paket</label>
-                <select name="paket" id="select_paket" class="form-control select-pnc">
-                    <option value="">Pilih Paket</option>
-                    @foreach($pakets as $p)
-                        <option value="{{ $p->id_paket }}">{{ $p->nama_paket }}</option>
-                    @endforeach
-                </select>
+                <label>Waktu Mulai</label>
+                <input type="datetime-local" name="waktu_mulai" id="waktu_mulai" class="form-control">
             </div>
         </div>
 
-        {{-- Durasi & Harga (dimuat otomatis setelah Ruangan + Paket dipilih) --}}
+        {{-- Paket & Durasi/Harga --}}
         <div class="row">
-            <div class="col-12 form-group">
+            <div class="col-12 col-md-6 form-group">
+                <label>Paket</label>
+                <select name="paket" id="select_paket" class="form-control select-pnc" disabled>
+                    <option value="">Pilih ruangan &amp; waktu mulai dahulu</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-6 form-group">
                 <label>Durasi & Harga</label>
                 <input type="hidden" name="id_penetapan_harga" id="id_penetapan_harga">
-                <div id="durasi-options" class="d-flex flex-wrap" style="gap: 10px;">
-                    <small class="text-muted">Pilih ruangan &amp; paket terlebih dahulu.</small>
+                <div id="durasi-options" class="d-flex flex-wrap" style="gap: 8px;">
+                    <small class="text-muted">Pilih ruangan, waktu mulai &amp; paket terlebih dahulu.</small>
                 </div>
             </div>
         </div>
 
-        {{-- Waktu Mulai & Waktu Selesai (otomatis) --}}
-        <div class="row">
-            <div class="col-12 col-md-6 form-group">
-                <label>Waktu Mulai</label>
-                <input type="datetime-local" name="waktu_mulai" id="waktu_mulai" class="form-control">
-            </div>
-            <div class="col-12 col-md-6 form-group">
-                <label>Waktu Selesai <small class="text-muted">(otomatis)</small></label>
-                <input type="text" id="waktu_selesai_preview" class="form-control" value="-" readonly
-                    style="background-color: #f8f7fc;">
-            </div>
-        </div>
+        {{-- Waktu Selesai: dihilangkan dari tampilan, tapi tetap disimpan (dipakai di modal rincian) --}}
+        <input type="hidden" id="waktu_selesai_preview" value="-">
 
-        {{-- Metode Pembayaran: Cash (bawah Durasi) & QRIS (bawah Waktu Mulai) --}}
+        {{-- Metode Pembayaran --}}
         <div class="row">
             <div class="col-12 col-md-6 form-group">
                 <label>Metode Pembayaran</label>
@@ -69,7 +60,7 @@
         </div>
         <input type="hidden" name="metode_pembayaran" id="metode_pembayaran" value="">
 
-        {{-- Catatan (opsional) --}}
+        {{-- Catatan --}}
         <div class="row">
             <div class="col-12 form-group mb-0">
                 <label>Catatan <small class="text-muted">(opsional, tampil di struk)</small></label>

@@ -33,7 +33,7 @@
                         <th>Nama Paket</th>
                         <th>Sub Kategori</th>
                         <th>Deskripsi</th>
-                        <th>Maks. Orang</th>
+                        <th>Tipe Hari</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -51,7 +51,15 @@
                                 @endif
                             </td>
                             <td>{{ $paket->deskripsi_paket ?? '-' }}</td>
-                            <td>{{ $paket->maksimal_orang ?? '-' }}</td>
+                            <td>
+                                @if($paket->penetapanHarga->isNotEmpty())
+                                    @foreach($paket->penetapanHarga->pluck('tipe_hari')->unique() as $tipe)
+                                        <span class="badge badge-info">{{ ucwords(str_replace('_', ' ', $tipe)) }}</span>
+                                    @endforeach
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($paket->is_active)
                                     <span class="badge badge-success">Aktif</span>

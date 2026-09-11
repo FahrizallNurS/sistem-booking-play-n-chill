@@ -498,17 +498,24 @@ class BookingController extends Controller
     public function getPaketByRuangan(Request $request): JsonResponse
     {
         $request->validate([
-            'ruangan' => 'required|exists:ms_ruangan,id_ruangan',
+            'ruangan'     => 'required|exists:ms_ruangan,id_ruangan',
+            'waktu_mulai' => 'required|date',
         ]);
 
-        $pakets = DB::table('penetapan_harga')
-            ->join('ms_paket', 'penetapan_harga.id_paket', '=', 'ms_paket.id_paket')
-            ->where('penetapan_harga.id_ruangan', $request->ruangan)
-            ->where('ms_paket.is_active', 1)
-            ->select('ms_paket.id_paket', 'ms_paket.nama_paket')
-            ->distinct()
-            ->orderBy('ms_paket.nama_paket')
-            ->get();
+        $tipeHari = PenetapanHarga::tipeHariFromDate($request->waktu_mulai);
+
+        $pakets = PenetapanHarga::where('id_ruangan', $request->ruangan)
+            ->whereIn('tipe_hari', [$tipeHari, 'liburan'])
+            ->currentPrices()
+            ->whereHas('paket', fn ($q) => $q->where('is_active', 1))
+            ->with('paket')
+            ->get()
+            ->pluck('paket')
+            ->filter()
+            ->unique('id_paket')
+            ->sortBy('nama_paket')
+            ->values()
+            ->map(fn ($p) => ['id_paket' => $p->id_paket, 'nama_paket' => $p->nama_paket]);
 
         return response()->json(['pakets' => $pakets]);
     }
