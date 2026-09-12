@@ -32,6 +32,8 @@
             opacity: 0.9;
             z-index: -1;
         }
+
+        
     </style>
 </head>
 <body>
@@ -79,7 +81,7 @@
                     Reguler
                 </a>
                 <a href="{{ url('/booking?tipe=private-room&tanggal='.$tanggal) }}"
-                   class="kategori-tab tab-private-room js-tab-link {{ request('tipe') == 'private-room' ? 'active' : '' }}"
+                   class="kategori-tab tab-reguler js-tab-link {{ request('tipe') == 'private-room' ? 'active' : '' }}"
                    data-tipe="private-room">
                     Private VIP
                 </a>
