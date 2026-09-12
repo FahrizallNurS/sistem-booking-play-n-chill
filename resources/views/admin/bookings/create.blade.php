@@ -165,6 +165,10 @@ $(document).ready(function () {
     let selectedPricing = null; 
     let isJadwalAman = false;
 
+    // Token guard buat cegah race condition dari request yang saling susul-menyusul
+    let paketRequestToken = 0;
+    let jadwalRequestToken = 0;
+
     const tipeHariLabels = {
         'harian':      'Senin - Kamis',
         'akhir_pekan': 'Jumat - Minggu',
@@ -233,47 +237,61 @@ $(document).ready(function () {
             });
     }
 
-    // ================= Fetch Paket berdasarkan Ruangan =================
-    $('#select_ruangan').on('change', function() {
-        const idRuangan = $(this).val();
+    // ================= Reset Paket & Durasi (dipakai ulang di beberapa tempat) =================
+    function resetPaketDanDurasi(placeholderPaket) {
         const selectPaket = $('#select_paket');
-        const containerDurasi = $('#durasi-options');
+        selectPaket.prop('disabled', true).empty().append('<option value="">' + placeholderPaket + '</option>');
 
-        selectPaket.empty().append('<option value="">Pilih Paket</option>');
-        containerDurasi.html('<small class="text-muted">Pilih ruangan &amp; paket terlebih dahulu.</small>');
+        $('#durasi-options').html('<small class="text-muted">Pilih ruangan, waktu mulai &amp; paket terlebih dahulu.</small>');
         selectedPricing = null;
         $('#id_penetapan_harga').val('');
         $('#waktu_selesai_preview').val('-');
         $('#jadwal-feedback').remove();
         $('#waktu_mulai').removeClass('is-valid is-invalid');
         isJadwalAman = false;
+    }
 
-        if (!idRuangan) {
-            selectPaket.prop('disabled', false);
+    // ================= Fetch Paket berdasarkan Ruangan + Waktu Mulai =================
+    function muatOpsiPaket() {
+        const idRuangan  = $('#select_ruangan').val();
+        const waktuMulai = $('#waktu_mulai').val();
+        const selectPaket = $('#select_paket');
+
+        resetPaketDanDurasi('Pilih ruangan &amp; waktu mulai dahulu');
+
+        if (!idRuangan || !waktuMulai) {
             return;
         }
 
         selectPaket.prop('disabled', true).empty().append('<option value="">Memuat paket...</option>');
 
-        $.getJSON(getPaketUrl, { ruangan: idRuangan })
-            .done(function(res) {
+        const requestToken = ++paketRequestToken;
+
+        $.getJSON(getPaketUrl, { ruangan: idRuangan, waktu_mulai: waktuMulai })
+            .done(function (res) {
+                if (requestToken !== paketRequestToken) return; // response basi, ada request lebih baru
+
                 selectPaket.empty().append('<option value="">Pilih Paket</option>');
-                
+
                 if (res.pakets && res.pakets.length > 0) {
-                    res.pakets.forEach(function(paket) {
+                    res.pakets.forEach(function (paket) {
                         selectPaket.append('<option value="' + paket.id_paket + '">' + paket.nama_paket + '</option>');
                     });
                 } else {
-                    selectPaket.empty().append('<option value="">Tidak ada paket di ruangan ini</option>');
+                    selectPaket.empty().append('<option value="">Tidak ada paket untuk hari ini</option>');
                 }
             })
-            .fail(function() {
+            .fail(function () {
+                if (requestToken !== paketRequestToken) return;
                 selectPaket.empty().append('<option value="">Gagal memuat paket</option>');
             })
-            .always(function() {
+            .always(function () {
+                if (requestToken !== paketRequestToken) return;
                 selectPaket.prop('disabled', false);
             });
-    });
+    }
+
+    $('#select_ruangan').on('change', muatOpsiPaket);
 
     $('#select_paket').on('change', muatOpsiDurasi);
 
@@ -288,10 +306,6 @@ $(document).ready(function () {
             tipe_hari: $(this).data('tipe-hari'),
             harga: $(this).data('harga'),
         };
-
-        $('#id_penetapan_harga').val(selectedPricing.id_penetapan_harga);
-        updateWaktuSelesaiPreview();
-        checkJadwalRealtime(); 
     });
 
     // ================= Preview Waktu Selesai =================
@@ -312,9 +326,11 @@ $(document).ready(function () {
         $('#waktu_selesai_preview').val(formatted);
     }
 
-    $('#waktu_mulai').on('change', function() {
+    // ================= Handler waktu_mulai TUNGGAL (satu-satunya sumber kebenaran) =================
+    $('#waktu_mulai').on('change', function () {
+        muatOpsiPaket();
         updateWaktuSelesaiPreview();
-        checkJadwalRealtime(); 
+        checkJadwalRealtime();
     });
 
     // ================= FUNGSI CEK JADWAL REAL-TIME =================
@@ -324,7 +340,9 @@ $(document).ready(function () {
         const durasi = selectedPricing ? selectedPricing.durasi_jam : null;
 
         $('#jadwal-feedback').remove();
-        
+
+        const requestToken = ++jadwalRequestToken;
+
         if (!idRuangan || !waktuMulai || !durasi) {
             isJadwalAman = false;
             $('#waktu_mulai').removeClass('is-valid is-invalid');
@@ -343,6 +361,8 @@ $(document).ready(function () {
             type: 'GET',
             data: { ruangan: idRuangan, waktu_mulai: waktuMulai, durasi_jam: durasi },
             success: function (res) {
+                if (requestToken !== jadwalRequestToken) return; // response basi, abaikan
+
                 if (res.tersedia === false) {
                     feedbackContainer.html('<span class="text-danger"><i class="fas fa-times-circle mr-1"></i> ' + res.pesan + '</span>');
                     $('#waktu_mulai').addClass('is-invalid').removeClass('is-valid');
@@ -354,6 +374,8 @@ $(document).ready(function () {
                 }
             },
             error: function () {
+                if (requestToken !== jadwalRequestToken) return;
+
                 feedbackContainer.html('<span class="text-danger"><i class="fas fa-exclamation-triangle mr-1"></i> Gagal terhubung ke server.</span>');
                 $('#waktu_mulai').removeClass('is-valid is-invalid');
                 isJadwalAman = false;
@@ -567,17 +589,10 @@ $(document).ready(function () {
         $('input[name="no_telp"]').val('');
         $('input[name="email"]').val('');
         $('#select_ruangan').val('');
-        $('#select_paket').val('');
-        $('#durasi-options').html('<small class="text-muted">Pilih ruangan &amp; paket terlebih dahulu.</small>');
-        $('#id_penetapan_harga').val('');
+        resetPaketDanDurasi('Pilih ruangan &amp; waktu mulai dahulu');
         $('#waktu_mulai').val('');
-        $('#waktu_selesai_preview').val('-');
         $('.btn-payment-option').removeClass('active-payment');
         $('#metode_pembayaran').val(''); $('#catatan').val('');
-        selectedPricing = null;
-        isJadwalAman = false;
-        $('#jadwal-feedback').remove();
-        $('#waktu_mulai').removeClass('is-valid is-invalid');
     }
 
 });

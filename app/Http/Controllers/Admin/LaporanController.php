@@ -8,13 +8,11 @@ use App\Models\TrPos;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TransaksiExport;
 
 class LaporanController extends Controller
 {
-    // ============================================================
-    // Rentang tanggal berdasarkan periode (dipakai index & exportPdf,
-    // diekstrak biar gak duplikat)
-    // ============================================================
     private function getDateRange(Request $request): array
     {
         $periode = $request->input('periode', 'harian');
@@ -22,169 +20,278 @@ class LaporanController extends Controller
         switch ($periode) {
             case 'mingguan':
                 $minggu = $request->input('minggu', now()->format('Y-\WW'));
-                [$year, $week] = explode('-W', $minggu);
-                $start = Carbon::now()->setISODate($year, $week)->startOfWeek();
-                $end   = Carbon::now()->setISODate($year, $week)->endOfWeek();
+                if (str_contains($minggu, '-W')) {
+                    [$year, $week] = explode('-W', $minggu);
+                    $start = Carbon::now()->setISODate((int)$year, (int)$week)->startOfWeek();
+                    $end   = Carbon::now()->setISODate((int)$year, (int)$week)->endOfWeek();
+                } else {
+                    $start = Carbon::now()->startOfWeek();
+                    $end   = Carbon::now()->endOfWeek();
+                }
                 break;
 
             case 'bulanan':
                 $bulan = $request->input('bulan', now()->format('Y-m'));
-                $start = Carbon::parse($bulan . '-01')->startOfMonth();
-                $end   = Carbon::parse($bulan . '-01')->endOfMonth();
+                try {
+                    $start = Carbon::parse($bulan . '-01')->startOfMonth();
+                } catch (\Exception $e) {
+                    $start = Carbon::now()->startOfMonth();
+                }
+                $end = $start->copy()->endOfMonth();
                 break;
 
             default:
+                // Samakan jam operasional dengan SA: 10:00 - 01:59
                 $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
-                $start   = Carbon::parse($tanggal)->startOfDay();
-                $end     = Carbon::parse($tanggal)->endOfDay();
+                try {
+                    $start = Carbon::parse($tanggal)->setTime(10, 0, 0);
+                    $end   = Carbon::parse($tanggal)->addDay()->setTime(1, 59, 59);
+                } catch (\Exception $e) {
+                    $start = Carbon::today()->setTime(10, 0, 0);
+                    $end   = Carbon::tomorrow()->setTime(1, 59, 59);
+                }
                 break;
         }
 
         return [$start, $end, $periode];
     }
 
-    // ============================================================
-    // Ambil & susun semua data laporan (dipakai index & exportPdf)
-    // ============================================================
     private function getReportData(Request $request): array
     {
         [$start, $end, $periode] = $this->getDateRange($request);
 
-        $jenisTransaksi = $request->input('jenis_transaksi', 'semua'); // booking | fnb | semua
-        $sumber         = $request->input('sumber', '');               // Kasir | Online
+        $jenisTransaksi  = $request->input('jenis_transaksi', 'semua');
+        $statusTransaksi = $request->input('status_transaksi', ''); 
+        $sumber          = $request->input('sumber', ''); // Filter khusus admin
 
-        // --- Booking: filter tanggal pakai waktu_mulai ---
+        // --- Booking (Samakan waktu_selesai dan mapping datanya) ---
         $bookingQuery = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
-            ->whereBetween('waktu_mulai', [$start, $end])
-            // Ubah kolom ke huruf kecil (lowercase) lalu cocokkan dengan 'selesai'
-            ->whereRaw('LOWER(status_sewa) = ?', ['selesai']); 
+            ->whereBetween('waktu_selesai', [$start, $end]);
 
         if ($sumber) {
             $bookingQuery->where('sumber_booking', $sumber);
         }
 
-        $bookingData = $bookingQuery->latest('waktu_mulai')->get()
-            ->each(fn ($item) => $item->jenis_laporan = 'Booking');
+        $bookingRaw = $bookingQuery->latest('waktu_mulai')->get()
+            ->map(function ($item) {
+                $item->jenis_laporan = 'Booking';
+                $item->kasir = $item->admin->nama_pengguna ?? null;
+                $item->kode_transaksi = $item->kode_sewa;
+                return $item;
+            });
 
-        // --- F&B: filter tanggal pakai created_at (tr_pos tidak punya waktu_mulai) ---
+        // --- F&B (Samakan mapping struktur datanya) ---
         $fnbQuery = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
-            ->whereBetween('created_at', [$start, $end])
-            // Ubah kolom ke huruf kecil (lowercase) lalu cocokkan dengan 'selesai'
-            ->whereRaw('LOWER(status_pesanan) = ?', ['selesai']);
+            ->whereBetween('created_at', [$start, $end]);
 
         if ($sumber) {
             $fnbQuery->where('sumber_pesanan', $sumber);
         }
 
-        $fnbData = $fnbQuery->latest('created_at')->get()
-            ->each(fn ($item) => $item->jenis_laporan = 'F&B');
+        $fnbRaw = $fnbQuery->latest('created_at')->get()
+            ->map(function ($item) {
+                $item->jenis_laporan = 'F&B';
+                $item->waktu_mulai    = $item->created_at;
+                $item->kasir          = $item->admin->nama_pengguna ?? null;
+                $item->kode_transaksi = $item->kode_pos;
+                $item->ruangan        = $item->transaksi->penetapanHarga->ruangan->nama_ruangan ?? '-';
+                $item->status_sewa    = strtolower($item->status_pesanan ?? '');
+                $item->total_harga    = $item->total_pos;
+                $item->sumber_booking = $item->sumber_pesanan;
+                
+                // Samakan mapping array F&B item
+                $item->items          = $item->details->map(function ($d) {
+                    return (object) [
+                        'produk'   => $d->produk->nama_produk ?? 'Produk dihapus',
+                        'harga'    => $d->harga_satuan,
+                        'jumlah'   => $d->jumlah,
+                        'subtotal' => $d->subtotal,
+                    ];
+                });
+                return $item;
+            });
 
-        // --- Data untuk tabel: sesuai filter jenis_transaksi ---
+        // --- Logika Filter Status Batal / Selesai (Sama dengan SA) ---
+        $isFnbSelesai = fn ($item) => $item->status_sewa === 'selesai'
+            && in_array($item->status_pembayaran, ['sudah-bayar', 'lunas']);
+        $isFnbDibatalkan = fn ($item) => $item->status_sewa === 'dibatalkan';
+
+        if ($statusTransaksi === 'selesai') {
+            $bookingFiltered = $bookingRaw->where('status_sewa', 'selesai')->values();
+            $fnbFiltered     = $fnbRaw->filter($isFnbSelesai)->values();
+        } elseif ($statusTransaksi === 'dibatalkan') {
+            $bookingFiltered = $bookingRaw->where('status_sewa', 'dibatalkan')->values();
+            $fnbFiltered     = $fnbRaw->filter($isFnbDibatalkan)->values();
+        } else {
+            $bookingFiltered = $bookingRaw->whereIn('status_sewa', ['selesai', 'dibatalkan'])->values();
+            $fnbFiltered     = $fnbRaw->filter(
+                fn ($item) => $isFnbSelesai($item) || $isFnbDibatalkan($item)
+            )->values();
+        }
+
         $transaksis = match ($jenisTransaksi) {
-            'booking' => $bookingData,
-            'fnb'     => $fnbData,
-            default   => $bookingData->concat($fnbData)
-                ->sortByDesc(fn ($t) => $t->jenis_laporan === 'Booking' ? $t->waktu_mulai : $t->created_at)
-                ->values(),
+            'booking' => $bookingFiltered,
+            'fnb'     => $fnbFiltered,
+            default   => $bookingFiltered->concat($fnbFiltered)->sortByDesc('waktu_mulai')->values(),
         };
 
-        // --- Summary per jenis (dihitung dari data mentah, bukan dari $transaksis,
-        //     supaya gak ikut kepotong walau tabel lagi difilter satu jenis) ---
-        $totalBooking      = $bookingData->count();
-        $totalFnb          = $fnbData->count();
-        $bookingSelesai    = $bookingData->where('status_sewa', 'selesai')->count();
-        $fnbSelesai        = $fnbData->where('status_pesanan', 'Selesai')->count();
-        $bookingDibatalkan = $bookingData->where('status_sewa', 'dibatalkan')->count();
-        $fnbDibatalkan     = $fnbData->where('status_pesanan', 'Dibatalkan')->count();
+        // --- Summary Variables (Menggunakan raw data agar hitungan akurat) ---
+        $totalBooking      = $bookingRaw->whereIn('status_sewa', ['selesai', 'dibatalkan'])->count();
+        $totalFnb          = $fnbRaw->count();
+        $bookingSelesai    = $bookingRaw->where('status_sewa', 'selesai')->count();
+        $fnbSelesai        = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'selesai')->count();
+        $bookingDibatalkan = $bookingRaw->where('status_sewa', 'dibatalkan')->count();
+        $fnbDibatalkan     = $fnbRaw->filter(fn ($item) => $item->status_sewa === 'dibatalkan')->count();
 
-        // Pendapatan booking: HANYA yang statusnya benar-benar 'selesai'
-        $pendapatanBooking = $bookingData
-            ->where('status_sewa', 'selesai')
-            ->sum('total_harga');
-
-        $pendapatanFnb = $fnbData
-            ->whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->sum('total_pos');
+        $pendapatanBooking = (float) $bookingRaw->where('status_sewa', 'selesai')->sum('total_harga');
+        $pendapatanFnb     = (float) $fnbRaw->filter($isFnbSelesai)->sum('total_pos');
 
         $totalSelesai    = $bookingSelesai + $fnbSelesai;
         $totalDibatalkan = $bookingDibatalkan + $fnbDibatalkan;
         $totalPendapatan = $pendapatanBooking + $pendapatanFnb;
 
-        return [
-            'transaksis'        => $transaksis,
-            'jenisTransaksi'    => $jenisTransaksi,
-            'sumber'            => $sumber,
-            'totalBooking'      => $totalBooking,
-            'totalFnb'          => $totalFnb,
-            'bookingSelesai'    => $bookingSelesai,
-            'fnbSelesai'        => $fnbSelesai,
-            'bookingDibatalkan' => $bookingDibatalkan,
-            'fnbDibatalkan'     => $fnbDibatalkan,
-            'pendapatanBooking' => $pendapatanBooking,
-            'pendapatanFnb'     => $pendapatanFnb,
-            'totalSelesai'      => $totalSelesai,
-            'totalDibatalkan'   => $totalDibatalkan,
-            'totalPendapatan'   => $totalPendapatan,
-            'periode'           => $periode,
-            'start'             => $start,
-            'end'               => $end,
-        ];
+        return compact(
+            'transaksis', 'jenisTransaksi', 'sumber', 'statusTransaksi',
+            'totalBooking', 'totalFnb', 'bookingSelesai', 'fnbSelesai',
+            'bookingDibatalkan', 'fnbDibatalkan', 'pendapatanBooking', 'pendapatanFnb',
+            'totalSelesai', 'totalDibatalkan', 'totalPendapatan',
+            'periode', 'start', 'end'
+        );
+    }
+
+    // --- Pagination (Sama persis dengan Superadmin) ---
+    private function paginateTransaksis($transaksis, Request $request)
+    {
+        $perPage = 10;
+        $page    = (int) $request->input('page', 1);
+        $slice   = $transaksis->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $slice, $transaksis->count(), $perPage, $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
     }
 
     public function index(Request $request)
     {
         $data = $this->getReportData($request);
+        
+        // Paginasi Data
+        $data['transaksisPaged'] = $this->paginateTransaksis($data['transaksis'], $request);
+
+        // Jika Anda menggunakan AJAX/Infinite Scroll di Admin (seperti SA)
+        if ($request->ajax() && $request->has('page')) {
+            $html = view('admin.laporan.partials.table-rows', [
+                'transaksis' => $data['transaksisPaged'],
+            ])->render();
+
+            $pagination = view('admin.laporan.partials.pagination-links', [
+                'transaksisPaged' => $data['transaksisPaged'],
+            ])->render();
+
+            return response()->json([
+                'html'       => $html,
+                'pagination' => $pagination,
+                'info'       => "Menampilkan {$data['transaksisPaged']->firstItem()} hingga {$data['transaksisPaged']->lastItem()} dari {$data['transaksisPaged']->total()} entri",
+            ]);
+        }
+
+        // Jangan lupa pastikan view Admin membaca dari 'transaksisPaged' jika menggunakan pagination
         return view('admin.laporan.index', $data);
     }
 
-   public function exportPdf(Request $request)
+    // --- Export Logic (Diadopsi dari refactoring yang kita lakukan sebelumnya) ---
+    private function getFlattenedData($transaksis): array
     {
-        // 1. Ambil semua data yang sudah diracik rapi dari fungsi getReportData
-        $data = $this->getReportData($request);
-        
-        // 2. Siapkan data umum (Meta Info)
-        $data['tanggalCetak']  = now()->translatedFormat('d F Y H:i');
-        $data['admin']         = auth()->user()->nama_pengguna ?? auth()->user()->name ?? 'Administrator';
-        $data['periode_awal']  = $data['start']->translatedFormat('d F Y');
-        $data['periode_akhir'] = $data['end']->translatedFormat('d F Y');
+        $flatData = [];
 
-        // 3. Tentukan jenis transaksi dari filter
-        $jenis = $data['jenisTransaksi']; // Isinya bisa: 'booking', 'fnb', atau 'semua'
-
-        // ==========================================
-        // PERCABANGAN LOGIKA BERDASARKAN FILTER
-        // ==========================================
-        
-        if ($jenis === 'fnb') {
-            
-            // Mapping variabel agar sesuai dengan desain pdf-fb.blade.php yang baru kita buat
-            $data['data_fb']           = $data['transaksis'];
-            $data['total_transaksi']   = $data['totalFnb'];
-            $data['transaksi_selesai'] = $data['fnbSelesai'];
-            $data['transaksi_batal']   = $data['fnbDibatalkan'];
-            $data['total_pendapatan']  = $data['pendapatanFnb'];
-
-            $view = 'admin.laporan.pdf-fb';
-            $filename = 'Laporan_FNB_PlayNChill_' . $data['start']->format('Ymd') . '.pdf';
-
-        } elseif ($jenis === 'booking') {
-            
-            // Gunakan view PDF Booking bawaan Anda
-            $view = 'admin.laporan.pdf'; 
-            $filename = 'Laporan_Booking_PlayNChill_' . $data['start']->format('Ymd') . '.pdf';
-            
-        } else {
-            
-            // Skenario 'semua' (Keseluruhan)
-            // Sementara kita arahkan ke view PDF bawaan. 
-            // Nanti kita bisa buatkan view khusus misal 'admin.laporan.pdf-semua'
-            $view = 'admin.laporan.pdf'; 
-            $filename = 'Laporan_Keseluruhan_PlayNChill_' . $data['start']->format('Ymd') . '.pdf';
-            
+        foreach ($transaksis as $t) {
+            if ($t->jenis_laporan === 'Booking') {
+                $flatData[] = [
+                    'kode_transaksi'    => $t->kode_sewa,
+                    'jenis_laporan'     => 'Booking',
+                    'tanggal_transaksi' => $t->waktu_selesai, // Sudah disamakan dengan SA
+                    'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
+                    'kasir'             => $t->kasir ?? '-',
+                    'nama_produk'       => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
+                    'jumlah' => $t->penetapanHarga->durasi_jam ?? 0,
+                    'nominal_transaksi' => $t->total_harga,
+                    'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
+                    'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
+                    'status_sewa'       => strtolower($t->status_sewa),
+                ];
+            } else {
+                if (isset($t->items) && count($t->items) > 0) {
+                    foreach ($t->items as $item) {
+                        $flatData[] = [
+                            'kode_transaksi'    => $t->kode_transaksi,
+                            'jenis_laporan'     => 'F&B',
+                            'tanggal_transaksi' => $t->created_at,
+                            'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
+                            'kasir'             => $t->kasir ?? '-',
+                            'nama_produk'       => $item->produk,
+                            'jumlah' => $item->jumlah,
+                            'nominal_transaksi' => $item->subtotal,
+                            'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
+                            'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
+                            'status_sewa'       => strtolower($t->status_sewa),
+                        ];
+                    }
+                } else {
+                    $flatData[] = [
+                        'kode_transaksi'    => $t->kode_transaksi,
+                        'jenis_laporan'     => 'F&B',
+                        'tanggal_transaksi' => $t->created_at,
+                        'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
+                        'kasir'             => $t->kasir ?? '-',
+                        'nama_produk'       => '-',
+                        'jumlah'            => '-',
+                        'nominal_transaksi' => $t->total_harga,
+                        'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
+                        'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
+                        'status_sewa'       => strtolower($t->status_sewa),
+                    ];
+                }
+            }
         }
 
-        // 4. Proses render PDF dan Download
-        $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
+        return $flatData;
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $data = $this->getReportData($request);
+        $flatData = $this->getFlattenedData($data['transaksis']);
+        $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.xlsx';
+        return Excel::download(new TransaksiExport($flatData), $filename);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $data = $this->getReportData($request);
+        
+        // Memakai array flat dan dikonversi ulang ke nama key milik PDF
+        $flatData = $this->getFlattenedData($data['transaksis']);
+        $data['rows'] = array_map(function($item) {
+            return (object) [
+                'kode_transaksi' => $item['kode_transaksi'],
+                'jenis_laporan'  => $item['jenis_laporan'],
+                'pelanggan'      => $item['pelanggan'],
+                'kasir'          => $item['kasir'],
+                'produk'         => $item['nama_produk'],
+                'jumlah'         => $item['jumlah'],
+                'total'          => $item['nominal_transaksi'],
+                'metode'         => $item['metode_pembayaran'],
+                'sumber'         => $item['sumber_booking'],
+                'status'         => $item['status_sewa'],
+            ];
+        }, $flatData);
+
+        $data['tanggalCetak'] = now()->translatedFormat('d F Y H:i');
+        $data['admin']        = auth()->user()->nama_pengguna;
+
+        $pdf      = Pdf::loadView('admin.laporan.pdf', $data)->setPaper('a4', 'portrait');
+        $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.pdf';
 
         return $pdf->download($filename);
     }

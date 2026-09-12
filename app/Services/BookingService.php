@@ -62,7 +62,7 @@ class BookingService
             $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
                     $q->where('id_ruangan', $ph->id_ruangan);
                 })
-                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                ->where('status_sewa', 'dikonfirmasi')
                 ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
                     $query->where('waktu_mulai', '<', $waktuSelesai)
                           ->where('waktu_selesai', '>', $waktuMulai);
@@ -130,6 +130,8 @@ class BookingService
                 return $pdfRelativePath;
             }
 
+            $waktuCetak = now();
+
             $transaksi->loadMissing('penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna');
             $ph   = $transaksi->penetapanHarga;
             $user = $transaksi->pengguna;
@@ -142,40 +144,83 @@ class BookingService
                 ->first();
 
             if ($trPos) {
-                // ==========================================================
-                // Kasus: TrPos sudah ada sebelumnya (dibuat lewat modal F&B
-                // terpisah / AdminFbController). Detail baris sudah tersimpan
-                // di tr_pos_detail sejak awal, di sini kita cuma perlu
-                // membaca ulang untuk keperluan struk & total.
-                // ==========================================================
                 $existingDetails = TrPosDetail::where('id_pos', $trPos->id_pos)->get();
+                $existingQtyByProduk = $existingDetails->keyBy('id_produk')->map(fn ($d) => (int) $d->jumlah);
 
-                foreach ($existingDetails as $d) {
-                    $produk = MsProduk::find($d->id_produk);
+                $requestedByProduk = collect($itemsFnb)
+                    ->filter(fn ($item) => (int) ($item['jumlah'] ?? 0) > 0)
+                    ->keyBy('id_produk')
+                    ->map(fn ($item) => (int) $item['jumlah']);
 
-                    $fnbDetailRows[] = [
-                        'produk'       => $produk,
-                        'nama_produk'  => $produk->nama_produk ?? 'Produk Dihapus',
-                        'jumlah'       => $d->jumlah,
-                        'harga_satuan' => $d->harga_satuan,
-                        'subtotal'     => $d->subtotal,
-                    ];
-                    $totalFnb += $d->subtotal;
+                foreach ($existingQtyByProduk as $idProdukLama => $qtyLama) {
+                    if (!$requestedByProduk->has($idProdukLama)) {
+                        $produkLama = MsProduk::where('id_produk', $idProdukLama)->lockForUpdate()->first();
+                        if ($produkLama) {
+                            $produkLama->increment('stock', $qtyLama);
+                        }
+                    }
                 }
 
+                $newDetailRows = [];
+                foreach ($requestedByProduk as $idProduk => $qtyBaru) {
+                    $produk = MsProduk::where('id_produk', $idProduk)->lockForUpdate()->first();
+
+                    if (!$produk) {
+                        throw ValidationException::withMessages([
+                            'items' => 'Produk F&B tidak ditemukan.',
+                        ]);
+                    }
+
+                    $qtyLama = (int) ($existingQtyByProduk[$idProduk] ?? 0);
+                    $delta   = $qtyBaru - $qtyLama;
+
+                    if ($delta > 0) {
+                        if ($produk->stock < $delta) {
+                            throw ValidationException::withMessages([
+                                'items' => "Stock '{$produk->nama_produk}' tidak cukup (sisa {$produk->stock}).",
+                            ]);
+                        }
+                        $produk->decrement('stock', $delta);
+                    } elseif ($delta < 0) {
+                        $produk->increment('stock', abs($delta));
+                    }
+
+                    $hargaSatuan = (int) $produk->harga_jual;
+                    $subtotal    = $hargaSatuan * $qtyBaru;
+                    $totalFnb   += $subtotal;
+
+                    $newDetailRows[] = [
+                        'produk'       => $produk,
+                        'nama_produk'  => $produk->nama_produk,
+                        'jumlah'       => $qtyBaru,
+                        'harga_satuan' => $hargaSatuan,
+                        'subtotal'     => $subtotal,
+                    ];
+                }
+
+                TrPosDetail::where('id_pos', $trPos->id_pos)->delete();
+                foreach ($newDetailRows as $row) {
+                    TrPosDetail::create([
+                        'id_pos'       => $trPos->id_pos,
+                        'id_produk'    => $row['produk']->id_produk,
+                        'jumlah'       => $row['jumlah'],
+                        'harga_satuan' => $row['harga_satuan'],
+                        'subtotal'     => $row['subtotal'],
+                    ]);
+                }
+
+                $fnbDetailRows = $newDetailRows;
+
                 $trPos->update([
+                    'total_pos'         => $totalFnb, // [BARU]
                     'status_pembayaran' => 'lunas',
                     'metode_pembayaran' => $metodePembayaran,
                     'id_admin'          => $idAdminPencetak ?? $trPos->id_admin,
+                    'struk_created_at'  => $waktuCetak,
                 ]);
 
             } elseif (!empty($itemsFnb)) {
-                // ==========================================================
-                // Kasus: F&B dikirim bareng saat booking dibuat (belum ada
-                // TrPos). Di sini kita HARUS membuat baris tr_pos_detail
-                // satu per satu, dan memotong stok produk — sebelumnya kedua
-                // hal ini tidak pernah terjadi (bug utama).
-                // ==========================================================
+
                 foreach ($itemsFnb as $item) {
                     $jumlah = (int) ($item['jumlah'] ?? 0);
                     if ($jumlah <= 0) {
@@ -222,6 +267,7 @@ class BookingService
                         'status_pembayaran' => 'lunas',
                         'metode_pembayaran' => $metodePembayaran,
                         'catatan'           => null,
+                        'struk_created_at'  => $waktuCetak,
                     ]);
 
                     // --- FIX: simpan tiap baris ke tr_pos_detail & potong stok ---
@@ -274,10 +320,8 @@ class BookingService
                 'status_pembayaran' => 'lunas',
                 'sisa_bayar'        => 0,
                 'metode_pembayaran' => $metodePembayaran,
-                'struk_created_at'  => now(),
+                'struk_created_at'  => $waktuCetak,
                 'nomor_nota'        => $nomorNota,
-                'uang_diterima'     => $uangDiterima,
-                'kembalian'         => $kembalian,
             ]);
 
             // --- Generate PDF struk (gabungan item ruangan + F&B) ---
@@ -394,7 +438,7 @@ class BookingService
                     $q->where('id_ruangan', $ph->id_ruangan);
                 })
                 ->where('id_transaksi', '!=', $booking->id_transaksi)
-                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                ->where('status_sewa', 'dikonfirmasi')
                 ->where(function ($query) use ($waktuMulaiBaruCarbon, $waktuSelesaiBaru) {
                     $query->where('waktu_mulai', '<', $waktuSelesaiBaru)
                         ->where('waktu_selesai', '>', $waktuMulaiBaruCarbon);
@@ -416,5 +460,28 @@ class BookingService
 
             return $booking->fresh();
         });
+    }
+
+    public function getFnbCartState(int $idTransaksi): array
+    {
+        $trPos = TrPos::where('id_transaksi', $idTransaksi)->first();
+
+        if (!$trPos) {
+            return [];
+        }
+
+        return TrPosDetail::where('id_pos', $trPos->id_pos)
+            ->get()
+            ->map(function ($d) {
+                $produk = MsProduk::find($d->id_produk);
+                return [
+                    'id_produk' => $d->id_produk,
+                    'nama'      => $produk->nama_produk ?? 'Produk Dihapus',
+                    'harga'     => (int) $d->harga_satuan,
+                    'jumlah'    => (int) $d->jumlah,
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 }

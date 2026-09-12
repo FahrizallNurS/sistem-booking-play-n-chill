@@ -165,20 +165,20 @@ class AnalisisPendapatanController extends Controller
             $rows = DB::table('tr_transaksi')
                 ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
                 ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
-                ->where('tr_transaksi.status_sewa', 'selesai')
+                ->where('tr_transaksi.status_pembayaran', 'lunas')
                 ->where('ms_ruangan.kategori', $value)
-                ->whereBetween('tr_transaksi.waktu_mulai', [$start, $end])
-                ->select('tr_transaksi.total_harga as nominal', 'tr_transaksi.waktu_mulai as waktu')
+                ->whereBetween('tr_transaksi.struk_created_at', [$start, $end])
+                ->select('tr_transaksi.total_harga as nominal', 'tr_transaksi.struk_created_at as waktu')
                 ->get();
         } else {
             $rows = DB::table('tr_pos_detail')
                 ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
                 ->join('ms_produk', 'tr_pos_detail.id_produk', '=', 'ms_produk.id_produk')
                 ->join('ms_sub_kategori_produk', 'ms_produk.ms_sub_kategori_produk_id_sub_kategori_produk', '=', 'ms_sub_kategori_produk.id_sub_kategori_produk')
-                ->where('tr_pos.status_pesanan', 'Selesai')
+                ->where('tr_pos.status_pembayaran', 'lunas')
                 ->where('ms_sub_kategori_produk.kategori_produk', $value)
-                ->whereBetween('tr_pos.created_at', [$start, $end])
-                ->select('tr_pos_detail.subtotal as nominal', 'tr_pos.created_at as waktu')
+                ->whereBetween('tr_pos.struk_created_at', [$start, $end])
+                ->select('tr_pos_detail.subtotal as nominal', 'tr_pos.struk_created_at as waktu')
                 ->get();
         }
 
@@ -215,8 +215,8 @@ class AnalisisPendapatanController extends Controller
         $booking = DB::table('tr_transaksi')
             ->join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
             ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
-            ->where('tr_transaksi.status_sewa', 'selesai')
-            ->whereBetween('tr_transaksi.waktu_mulai', [$start, $end])
+            ->where('tr_transaksi.status_pembayaran', 'lunas')
+            ->whereBetween('tr_transaksi.struk_created_at', [$start, $end])
             ->select('ms_ruangan.kategori as kategori', DB::raw('COUNT(*) as trx'), DB::raw('SUM(tr_transaksi.total_harga) as total'))
             ->groupBy('ms_ruangan.kategori')
             ->get();
@@ -229,8 +229,8 @@ class AnalisisPendapatanController extends Controller
             ->join('tr_pos', 'tr_pos_detail.id_pos', '=', 'tr_pos.id_pos')
             ->join('ms_produk', 'tr_pos_detail.id_produk', '=', 'ms_produk.id_produk')
             ->join('ms_sub_kategori_produk', 'ms_produk.ms_sub_kategori_produk_id_sub_kategori_produk', '=', 'ms_sub_kategori_produk.id_sub_kategori_produk')
-            ->where('tr_pos.status_pesanan', 'Selesai')
-            ->whereBetween('tr_pos.created_at', [$start, $end])
+            ->where('tr_pos.status_pembayaran', 'lunas')
+            ->whereBetween('tr_pos.struk_created_at', [$start, $end])
             ->select(
                 'ms_sub_kategori_produk.kategori_produk as kategori',
                 DB::raw('COUNT(DISTINCT tr_pos.id_pos) as trx'),

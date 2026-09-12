@@ -140,6 +140,42 @@ class BookingController extends Controller
         return response()->json(['terpakai' => $terpakai]);
     }
 
+       public function cekBentrok(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ruangan'     => 'required|exists:ms_ruangan,id_ruangan',
+            'waktu_mulai' => 'required|date',
+            'durasi_jam'  => 'required|numeric|min:1',
+        ]);
+
+        $ruanganId    = $request->ruangan;
+        $waktuMulai   = Carbon::parse($request->waktu_mulai);
+        $durasiJam    = (int) $request->durasi_jam;
+        $waktuSelesai = $waktuMulai->copy()->addHours($durasiJam);
+
+        $isBentrok = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ruanganId) {
+                $q->where('id_ruangan', $ruanganId);
+            })
+            ->where('status_sewa', 'dikonfirmasi')
+            ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
+                $query->where('waktu_mulai', '<', $waktuSelesai)
+                      ->where('waktu_selesai', '>', $waktuMulai);
+            })
+            ->exists();
+
+        if ($isBentrok) {
+            return response()->json([
+                'tersedia' => false,
+                'pesan'    => 'Yah, ruangan ini baru saja dibooking orang lain di jam tersebut. Silakan pilih jam lain.',
+            ]);
+        }
+
+        return response()->json([
+            'tersedia' => true,
+            'pesan'    => 'Ruangan tersedia.',
+        ]);
+    }
+
     private function calculateOccupiedSlots($roomId, $tanggal)
     {
         $allSlots = [
@@ -155,7 +191,7 @@ class BookingController extends Controller
                 $q->where('id_ruangan', $roomId);
             })
             ->whereDate('waktu_mulai', $tanggal)
-            ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+            ->where('status_sewa', 'dikonfirmasi')
             ->get(['waktu_mulai', 'waktu_selesai']);
 
         foreach ($bookings as $booking) {
@@ -230,7 +266,7 @@ class BookingController extends Controller
             $konflik = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ph) {
                     $q->where('id_ruangan', $ph->id_ruangan);
                 })
-                ->whereIn('status_sewa', ['ditahan', 'dikonfirmasi'])
+                ->where('status_sewa', 'dikonfirmasi')
                 ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
                     $query->where('waktu_mulai', '<', $waktuSelesai)
                           ->where('waktu_selesai', '>', $waktuMulai);

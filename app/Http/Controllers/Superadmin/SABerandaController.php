@@ -149,22 +149,22 @@ class SABerandaController extends Controller
 
     private function queryBookingData($start, $end)
     {
-        return TrTransaksi::where('status_sewa', 'selesai')
-            ->whereBetween('created_at', [$start, $end])
-            ->get(['total_harga', 'created_at']);
+        return TrTransaksi::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$start, $end])
+            ->get(['total_harga', 'struk_created_at']);
     }
 
     private function queryPosData($start, $end)
     {
-        return TrPos::whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->whereBetween('created_at', [$start, $end])
-            ->get(['total_pos', 'created_at']);
+        return TrPos::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$start, $end])
+            ->get(['total_pos', 'struk_created_at']);
     }
 
     private function populateSlots(&$slots, $bookingData, $posData, $periode)
     {
         foreach ($bookingData as $row) {
-            $dt  = Carbon::parse($row->created_at);
+            $dt  = Carbon::parse($row->struk_created_at);
             $key = $this->getSlotKey($dt, $periode);
             if (array_key_exists($key, $slots)) {
                 $slots[$key] += (float) $row->total_harga;
@@ -172,7 +172,7 @@ class SABerandaController extends Controller
         }
 
         foreach ($posData as $row) {
-            $dt  = Carbon::parse($row->created_at);
+            $dt  = Carbon::parse($row->struk_created_at);
             $key = $this->getSlotKey($dt, $periode);
             if (array_key_exists($key, $slots)) {
                 $slots[$key] += (float) $row->total_pos;
@@ -230,8 +230,8 @@ class SABerandaController extends Controller
 
         $ruanganCounts = TrTransaksi::join('penetapan_harga', 'tr_transaksi.id_penetapan_harga', '=', 'penetapan_harga.id_penetapan_harga')
             ->join('ms_ruangan', 'penetapan_harga.id_ruangan', '=', 'ms_ruangan.id_ruangan')
-            ->where('tr_transaksi.status_sewa', 'selesai')
-            ->whereBetween('tr_transaksi.created_at', [$curStart, $curEnd])
+            ->where('tr_transaksi.status_pembayaran', 'lunas')
+            ->whereBetween('tr_transaksi.struk_created_at', [$curStart, $curEnd])
             ->selectRaw('ms_ruangan.kategori as kategori, COUNT(*) as total')
             ->groupBy('ms_ruangan.kategori')
             ->pluck('total', 'kategori');
@@ -263,8 +263,8 @@ class SABerandaController extends Controller
         $fnbQty = TrPos::join('tr_pos_detail', 'tr_pos.id_pos', '=', 'tr_pos_detail.id_pos')
             ->join('ms_produk', 'tr_pos_detail.id_produk', '=', 'ms_produk.id_produk')
             ->join('ms_sub_kategori_produk', 'ms_produk.ms_sub_kategori_produk_id_sub_kategori_produk', '=', 'ms_sub_kategori_produk.id_sub_kategori_produk')
-            ->whereIn('tr_pos.status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->whereBetween('tr_pos.created_at', [$curStart, $curEnd])
+            ->where('tr_pos.status_pembayaran', 'lunas')
+            ->whereBetween('tr_pos.struk_created_at', [$curStart, $curEnd])
             ->selectRaw('ms_sub_kategori_produk.sub_kategori_produk as sub_kategori, SUM(tr_pos_detail.jumlah) as total_qty')
             ->groupBy('ms_sub_kategori_produk.sub_kategori_produk')
             ->pluck('total_qty', 'sub_kategori');
@@ -293,14 +293,14 @@ class SABerandaController extends Controller
         // ------------------------------------------------------------
         // 4. Metode Pembayaran (QRIS vs Tunai) — gabungan tr_transaksi + tr_pos, basis jumlah transaksi
         // ------------------------------------------------------------
-        $metodeBooking = TrTransaksi::where('status_sewa', 'selesai')
-            ->whereBetween('created_at', [$curStart, $curEnd])
+        $metodeBooking = TrTransaksi::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$curStart, $curEnd])
             ->selectRaw('metode_pembayaran, COUNT(*) as total')
             ->groupBy('metode_pembayaran')
             ->pluck('total', 'metode_pembayaran');
 
-        $metodeFnb = TrPos::whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->whereBetween('created_at', [$curStart, $curEnd])
+        $metodeFnb = TrPos::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$curStart, $curEnd])
             ->selectRaw('metode_pembayaran, COUNT(*) as total')
             ->groupBy('metode_pembayaran')
             ->pluck('total', 'metode_pembayaran');
@@ -415,20 +415,20 @@ class SABerandaController extends Controller
         $totalBookingCount = TrTransaksi::whereBetween('created_at', [$curStart, $curEnd])->count();
         $totalFnbCount     = TrPos::whereBetween('created_at', [$curStart, $curEnd])->count();
 
-        $bookingSelesaiCount = TrTransaksi::where('status_sewa', 'selesai')
-            ->whereBetween('created_at', [$curStart, $curEnd])
+        $bookingSelesaiCount = TrTransaksi::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$curStart, $curEnd])
             ->count();
 
-        $fnbLunasCount = TrPos::whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->whereBetween('created_at', [$curStart, $curEnd])
+        $fnbLunasCount = TrPos::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$curStart, $curEnd])
             ->count();
 
-        $pendapatanBooking = (float) TrTransaksi::where('status_sewa', 'selesai')
-            ->whereBetween('created_at', [$curStart, $curEnd])
+        $pendapatanBooking = (float) TrTransaksi::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$curStart, $curEnd])
             ->sum('total_harga');
 
-        $pendapatanFnb = (float) TrPos::whereIn('status_pembayaran', ['sudah-bayar', 'lunas'])
-            ->whereBetween('created_at', [$curStart, $curEnd])
+        $pendapatanFnb = (float) TrPos::where('status_pembayaran', 'lunas')
+            ->whereBetween('struk_created_at', [$curStart, $curEnd])
             ->sum('total_pos');
 
         $totalPendapatanVal    = $pendapatanBooking + $pendapatanFnb;

@@ -1,293 +1,293 @@
-<!-- Modal Detail Pesanan -->
-<div class="modal fade" id="modalDetailPesanan" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 8px; border: none;">
+    <!-- Modal Detail Pesanan -->
+    <div class="modal fade" id="modalDetailPesanan" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 8px; border: none;">
 
-            {{-- Header Modal --}}
-            <div class="modal-header border-bottom">
-                <h6 class="modal-title font-weight-bold text-dark" id="modalDetailLabel">Konfirmasi Pesanan</h6>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true" style="font-size: 24px;">&times;</span>
-                </button>
-            </div>
-
-            {{-- Body Modal (Otomatis Scrollable jika konten panjang) --}}
-            <div class="modal-body p-4">
-                <div class="row">
-
-                    {{-- Kiri: Informasi Pelanggan --}}
-                    <div class="col-md-5 mb-4 mb-md-0">
-                        <h6 class="text-muted mb-3" style="font-size: 14px;">Informasi Pelanggan</h6>
-
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Nama</div>
-                            <div class="col-8 text-dark text-break" id="rincian-nama">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Email</div>
-                            <div class="col-8 text-dark text-break" id="rincian-email">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">No. HP</div>
-                            <div class="col-8 text-dark text-break" id="rincian-no-hp">-</div>
-                        </div>
-                    </div>
-
-                    {{-- Kanan: Detail Booking --}}
-                    <div class="col-md-7 pl-md-4">
-                        <h6 class="text-muted mb-3" style="font-size: 14px;">Detail Booking</h6>
-
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Kode Sewa</div>
-                            <div class="col-8 font-style-italic text-muted text-break" id="rincian-kode-sewa">
-                                Akan digenerate otomatis setelah disimpan
-                            </div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Ruangan</div>
-                            <div class="col-8 text-dark text-break" id="rincian-ruangan">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Paket</div>
-                            <div class="col-8 text-dark text-break" id="rincian-paket">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Waktu Mulai</div>
-                            <div class="col-8 text-dark text-break" id="rincian-waktu-mulai">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Waktu Selesai</div>
-                            <div class="col-8 text-dark text-break" id="rincian-waktu-selesai">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Durasi</div>
-                            <div class="col-8 text-dark text-break" id="rincian-durasi">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Tipe Hari</div>
-                            <div class="col-8 text-dark text-break" id="rincian-tipe-hari">-</div>
-                        </div>
-                        <div class="row mb-2" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Total Harga</div>
-                            <div class="col-8 text-dark text-break font-weight-bold" id="rincian-total-harga">-</div>
-                        </div>
-                        <div class="row mb-2 align-items-center" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Status Sewa</div>
-                            <div class="col-8">
-                                <span class="badge badge-success py-1 px-2">Dikonfirmasi</span>
-                            </div>
-                        </div>
-                        <div class="row mb-2 align-items-center" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Status Bayar</div>
-                            <div class="col-8">
-                                <span class="badge badge-success py-1 px-2">Lunas</span>
-                            </div>
-                        </div>
-                        <div class="row mb-4 align-items-center" style="font-size: 13px;">
-                            <div class="col-4 font-weight-bold text-dark">Metode Pembayaran</div>
-                            <div class="col-8 text-dark text-break font-weight-bold text-uppercase" id="detail-metode-bayar">
-                                -
-                            </div>
-                        </div>
-
-                        {{-- Muncul cuma kalau metode bayar TUNAI (di-toggle via JS
-                             berdasarkan isi #detail-metode-bayar saat modal dibuka). --}}
-                        <div id="rincian-uang-diterima-section" class="mb-4" style="display: none;">
-                            <div class="row mb-2 align-items-center" style="font-size: 13px;">
-                                <div class="col-4 font-weight-bold text-dark">Uang Diterima</div>
-                                <div class="col-8">
-                                    <input type="number" min="0" step="1" inputmode="numeric"
-                                        class="form-control form-control-sm" id="rincian-uang-diterima"
-                                        placeholder="Nominal uang tunai">
-                                </div>
-                            </div>
-                            <div class="row align-items-center" style="font-size: 13px;">
-                                <div class="col-4 font-weight-bold text-dark">Kembalian</div>
-                                <div class="col-8 font-weight-bold" id="rincian-kembalian-preview" style="color: #28a745;">
-                                    Rp 0
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border-top pt-4 mb-3"></div>
-
-                        {{-- Sisa Booking: tidak relevan untuk F&B mandiri, tetap
-                             disembunyikan permanen via JS. --}}
-                        <div id="rincian-sisa-booking-section" style="display: none;">
-                            <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
-                                <span class="font-weight-bold text-dark">Sisa Booking (belum lunas)</span>
-                                <span class="font-weight-bold" id="rincian-sisa-booking-nominal" style="color: #dc3545;">Rp 0</span>
-                            </div>
-                        </div>
-
-                        {{-- Rincian F&B: diisi lewat JS di tambah-pesanan.blade.php
-                             (fnbShowRincianManual) pas klik "Simpan Pesanan" --}}
-                        <div id="rincian-fnb-section" style="display: none;">
-                            <h6 class="text-muted mb-3" style="font-size: 14px;">Rincian Pesanan F&B</h6>
-                            <div id="rincian-fnb-items"></div>
-                            <div class="text-right border-top pt-3">
-                                <span class="font-weight-bold text-dark" style="font-size: 13px;">
-                                    Total F&B: <span id="rincian-total-fnb">Rp 0</span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer bg-light border-top-0 d-flex justify-content-between">
-                <div class="d-flex align-items-center">
-                    <h5 class="mb-0 font-weight-bold text-dark mr-2">Grand Total:</h5>
-                    <h5 class="mb-0 font-weight-bold" style="color: #6f42c1;" id="rincian-grand-total">Rp 0</h5>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-outline-secondary font-weight-bold mr-2" data-dismiss="modal">Kembali / Cek Lagi</button>
-                   {{-- Tombol Cetak (Muncul duluan) --}}
-                    <button type="button" id="btn-cetak-struk" class="btn btn-secondary font-weight-bold">
-                        <i class="fas fa-print mr-1"></i> Cetak Struk
+                {{-- Header Modal --}}
+                <div class="modal-header border-bottom">
+                    <h6 class="modal-title font-weight-bold text-dark" id="modalDetailLabel">Konfirmasi Pesanan</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="font-size: 24px;">&times;</span>
                     </button>
+                </div>
 
-                    {{-- Tombol Selesai (Disembunyikan pake d-none) --}}
-                    <a href="{{ route('admin.fb.transaksi.index') }}" id="btn-selesai" class="btn btn-success font-weight-bold shadow-sm d-none">
-                        <i class="fas fa-check-circle mr-1"></i> Selesai
-                    </a>
+                {{-- Body Modal (Otomatis Scrollable jika konten panjang) --}}
+                <div class="modal-body p-4">
+                    <div class="row">
+
+                        {{-- Kiri: Informasi Pelanggan --}}
+                        <div class="col-md-5 mb-4 mb-md-0">
+                            <h6 class="text-muted mb-3" style="font-size: 14px;">Informasi Pelanggan</h6>
+
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Nama</div>
+                                <div class="col-8 text-dark text-break" id="rincian-nama">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Email</div>
+                                <div class="col-8 text-dark text-break" id="rincian-email">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">No. HP</div>
+                                <div class="col-8 text-dark text-break" id="rincian-no-hp">-</div>
+                            </div>
+                        </div>
+
+                        {{-- Kanan: Detail Booking --}}
+                        <div class="col-md-7 pl-md-4">
+                            <h6 class="text-muted mb-3" style="font-size: 14px;">Detail Booking</h6>
+
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Kode Sewa</div>
+                                <div class="col-8 font-style-italic text-muted text-break" id="rincian-kode-sewa">
+                                    Akan digenerate otomatis setelah disimpan
+                                </div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Ruangan</div>
+                                <div class="col-8 text-dark text-break" id="rincian-ruangan">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Paket</div>
+                                <div class="col-8 text-dark text-break" id="rincian-paket">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Waktu Mulai</div>
+                                <div class="col-8 text-dark text-break" id="rincian-waktu-mulai">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Waktu Selesai</div>
+                                <div class="col-8 text-dark text-break" id="rincian-waktu-selesai">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Durasi</div>
+                                <div class="col-8 text-dark text-break" id="rincian-durasi">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Tipe Hari</div>
+                                <div class="col-8 text-dark text-break" id="rincian-tipe-hari">-</div>
+                            </div>
+                            <div class="row mb-2" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Total Harga</div>
+                                <div class="col-8 text-dark text-break font-weight-bold" id="rincian-total-harga">-</div>
+                            </div>
+                            <div class="row mb-2 align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Status Sewa</div>
+                                <div class="col-8">
+                                    <span class="badge badge-success py-1 px-2">Dikonfirmasi</span>
+                                </div>
+                            </div>
+                            <div class="row mb-2 align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Status Bayar</div>
+                                <div class="col-8">
+                                    <span class="badge badge-success py-1 px-2">Lunas</span>
+                                </div>
+                            </div>
+                            <div class="row mb-4 align-items-center" style="font-size: 13px;">
+                                <div class="col-4 font-weight-bold text-dark">Metode Pembayaran</div>
+                                <div class="col-8 text-dark text-break font-weight-bold text-uppercase" id="detail-metode-bayar">
+                                    -
+                                </div>
+                            </div>
+
+                            {{-- Muncul cuma kalau metode bayar TUNAI (di-toggle via JS
+                                berdasarkan isi #detail-metode-bayar saat modal dibuka). --}}
+                            <div id="rincian-uang-diterima-section" class="mb-4" style="display: none;">
+                                <div class="row mb-2 align-items-center" style="font-size: 13px;">
+                                    <div class="col-4 font-weight-bold text-dark">Uang Diterima</div>
+                                    <div class="col-8">
+                                        <input type="number" min="0" step="1" inputmode="numeric"
+                                            class="form-control form-control-sm" id="rincian-uang-diterima"
+                                            placeholder="Nominal uang tunai">
+                                    </div>
+                                </div>
+                                <div class="row align-items-center" style="font-size: 13px;">
+                                    <div class="col-4 font-weight-bold text-dark">Kembalian</div>
+                                    <div class="col-8 font-weight-bold" id="rincian-kembalian-preview" style="color: #28a745;">
+                                        Rp 0
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-4 mb-3"></div>
+
+                            {{-- Sisa Booking: tidak relevan untuk F&B mandiri, tetap
+                                disembunyikan permanen via JS. --}}
+                            <div id="rincian-sisa-booking-section" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
+                                    <span class="font-weight-bold text-dark">Sisa Booking (belum lunas)</span>
+                                    <span class="font-weight-bold" id="rincian-sisa-booking-nominal" style="color: #dc3545;">Rp 0</span>
+                                </div>
+                            </div>
+
+                            {{-- Rincian F&B: diisi lewat JS di tambah-pesanan.blade.php
+                                (fnbShowRincianManual) pas klik "Simpan Pesanan" --}}
+                            <div id="rincian-fnb-section" style="display: none;">
+                                <h6 class="text-muted mb-3" style="font-size: 14px;">Rincian Pesanan F&B</h6>
+                                <div id="rincian-fnb-items"></div>
+                                <div class="text-right border-top pt-3">
+                                    <span class="font-weight-bold text-dark" style="font-size: 13px;">
+                                        Total F&B: <span id="rincian-total-fnb">Rp 0</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light border-top-0 d-flex justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <h5 class="mb-0 font-weight-bold text-dark mr-2">Grand Total:</h5>
+                        <h5 class="mb-0 font-weight-bold" style="color: #6f42c1;" id="rincian-grand-total">Rp 0</h5>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary font-weight-bold mr-2" data-dismiss="modal">Kembali / Cek Lagi</button>
+                    {{-- Tombol Cetak (Muncul duluan) --}}
+                        <button type="button" id="btn-cetak-struk" class="btn btn-secondary font-weight-bold">
+                            <i class="fas fa-print mr-1"></i> Cetak Struk
+                        </button>
+
+                        {{-- Tombol Selesai (Disembunyikan pake d-none) --}}
+                        <a href="{{ route('admin.fb.transaksi.index') }}" id="btn-selesai" class="btn btn-success font-weight-bold shadow-sm d-none">
+                            <i class="fas fa-check-circle mr-1"></i> Selesai
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@push('js')
-<script>
-// Trigger print dari iframe tersembunyi #cetak-struk-iframe. tambah-pesanan.blade.php
-// wajib menyediakan <iframe id="cetak-struk-iframe"> tersembunyi (bukan
-// display:none, biar window.print() dari dalamnya tetap jalan di semua browser).
-function triggerPrintStrukRincian() {
-    const iframe = document.getElementById('cetak-struk-iframe');
-    if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-    }
-}
-
-// ============ Uang Diterima & Kembalian (khusus flow F&B mandiri) ============
-function parseRupiahRincian(str) {
-    return parseInt(String(str).replace(/[^0-9]/g, ''), 10) || 0;
-}
-
-function isMetodeBayarTunai() {
-    return ($('#detail-metode-bayar').text() || '').trim().toUpperCase() === 'TUNAI';
-}
-
-function updateStatusTombolCetakRincian() {
-    const btn = $('#btn-cetak-struk');
-
-    if (!isMetodeBayarTunai()) {
-        btn.prop('disabled', false);
-        return;
-    }
-
-    const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
-    const uangDiterima = parseInt($('#rincian-uang-diterima').val(), 10) || 0;
-    const kembalian = uangDiterima - grandTotal;
-
-    $('#rincian-kembalian-preview').text('Rp ' + (kembalian > 0 ? kembalian : 0).toLocaleString('id-ID'));
-    btn.prop('disabled', uangDiterima < grandTotal);
-}
-
-$('#modalDetailPesanan').on('show.bs.modal', function () {
-    $('#rincian-uang-diterima').val('');
-    $('#rincian-kembalian-preview').text('Rp 0');
-    $('#rincian-uang-diterima-section').toggle(isMetodeBayarTunai());
-    updateStatusTombolCetakRincian();
-});
-
-$(document).on('input', '#rincian-uang-diterima', updateStatusTombolCetakRincian);
-
-window.getRincianUangDiterima = function () {
-    if (!isMetodeBayarTunai()) return null;
-    const val = parseInt($('#rincian-uang-diterima').val(), 10);
-    return isNaN(val) ? null : val;
-};
-
-window.validasiRincianPembayaranSiap = function () {
-    if (!isMetodeBayarTunai()) return true;
-
-    const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
-    const uangDiterima = window.getRincianUangDiterima();
-
-    if (uangDiterima === null || uangDiterima < grandTotal) {
-        alert('Uang diterima kurang dari Grand Total. Silakan periksa kembali nominal tunai.');
-        return false;
-    }
-    return true;
-};
-
-// ============ Submit (baru terjadi di sini, bukan pas "Simpan Pesanan") ============
-$(document).on('click', '#btn-cetak-struk', function () {
-    const state = window.fnbState;
-    const btn = $(this);
-
-    if (!state || !Array.isArray(state.items) || state.items.length === 0) {
-        alert('Data pesanan tidak ditemukan. Silakan ulangi dari awal.');
-        return;
-    }
-
-    if (!window.validasiRincianPembayaranSiap()) {
-        return;
-    }
-
-    const customer = (typeof window.fnbManualGetCustomerData === 'function')
-        ? window.fnbManualGetCustomerData()
-        : {};
-
-    if (!customer.nama_pelanggan) {
-        alert('Nama pelanggan wajib diisi.');
-        return;
-    }
-
-    const iframe = document.getElementById('cetak-struk-iframe');
-    const originalText = btn.html();
-    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
-
-    $.ajax({
-        url: "{{ route('admin.fb.transaksi.store') }}",
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        data: {
-            nama_pelanggan: customer.nama_pelanggan,
-            no_telp: customer.no_telp,
-            catatan: customer.catatan,
-            metode_pembayaran: state.metodePembayaran,
-            uang_diterima: window.getRincianUangDiterima(),
-            items: state.items,
-        },
-        success: function (res) {
-            if (res.success) {
-                btn.addClass('d-none');
-                $('#btn-selesai').removeClass('d-none');
-
-                if (iframe) {
-                    iframe.onload = function () {
-                        triggerPrintStrukRincian();
-                    };
-                    iframe.src = res.data.pdf_url;
-                } else {
-                    window.open(res.data.pdf_url, '_blank');
-                }
-
-                if (typeof window.fnbManualResetForm === 'function') {
-                    window.fnbManualResetForm();
-                }
-            }
-        },
-        error: function (xhr) {
-            const msg = xhr.responseJSON?.errors
-                ? Object.values(xhr.responseJSON.errors).flat().join('\n')
-                : 'Gagal menyimpan pesanan. Silakan coba lagi.';
-            alert(msg);
-            btn.prop('disabled', false).html(originalText);
+    @push('js')
+    <script>
+    // Trigger print dari iframe tersembunyi #cetak-struk-iframe. tambah-pesanan.blade.php
+    // wajib menyediakan <iframe id="cetak-struk-iframe"> tersembunyi (bukan
+    // display:none, biar window.print() dari dalamnya tetap jalan di semua browser).
+    function triggerPrintStrukRincian() {
+        const iframe = document.getElementById('cetak-struk-iframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
         }
+    }
+
+    // ============ Uang Diterima & Kembalian (khusus flow F&B mandiri) ============
+    function parseRupiahRincian(str) {
+        return parseInt(String(str).replace(/[^0-9]/g, ''), 10) || 0;
+    }
+
+    function isMetodeBayarTunai() {
+        return ($('#detail-metode-bayar').text() || '').trim().toUpperCase() === 'TUNAI';
+    }
+
+    function updateStatusTombolCetakRincian() {
+        const btn = $('#btn-cetak-struk');
+
+        if (!isMetodeBayarTunai()) {
+            btn.prop('disabled', false);
+            return;
+        }
+
+        const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
+        const uangDiterima = parseInt($('#rincian-uang-diterima').val(), 10) || 0;
+        const kembalian = uangDiterima - grandTotal;
+
+        $('#rincian-kembalian-preview').text('Rp ' + (kembalian > 0 ? kembalian : 0).toLocaleString('id-ID'));
+        btn.prop('disabled', uangDiterima < grandTotal);
+    }
+
+    $('#modalDetailPesanan').on('show.bs.modal', function () {
+        $('#rincian-uang-diterima').val('');
+        $('#rincian-kembalian-preview').text('Rp 0');
+        $('#rincian-uang-diterima-section').toggle(isMetodeBayarTunai());
+        updateStatusTombolCetakRincian();
     });
-});
-</script>
-@endpush
+
+    $(document).on('input', '#rincian-uang-diterima', updateStatusTombolCetakRincian);
+
+    window.getRincianUangDiterima = function () {
+        if (!isMetodeBayarTunai()) return null;
+        const val = parseInt($('#rincian-uang-diterima').val(), 10);
+        return isNaN(val) ? null : val;
+    };
+
+    window.validasiRincianPembayaranSiap = function () {
+        if (!isMetodeBayarTunai()) return true;
+
+        const grandTotal = parseRupiahRincian($('#rincian-grand-total').text());
+        const uangDiterima = window.getRincianUangDiterima();
+
+        if (uangDiterima === null || uangDiterima < grandTotal) {
+            alert('Uang diterima kurang dari Grand Total. Silakan periksa kembali nominal tunai.');
+            return false;
+        }
+        return true;
+    };
+
+    // ============ Submit (baru terjadi di sini, bukan pas "Simpan Pesanan") ============
+    $(document).on('click', '#btn-cetak-struk', function () {
+        const state = window.fnbState;
+        const btn = $(this);
+
+        if (!state || !Array.isArray(state.items) || state.items.length === 0) {
+            alert('Data pesanan tidak ditemukan. Silakan ulangi dari awal.');
+            return;
+        }
+
+        if (!window.validasiRincianPembayaranSiap()) {
+            return;
+        }
+
+        const customer = (typeof window.fnbManualGetCustomerData === 'function')
+            ? window.fnbManualGetCustomerData()
+            : {};
+
+        if (!customer.nama_pelanggan) {
+            alert('Nama pelanggan wajib diisi.');
+            return;
+        }
+
+        const iframe = document.getElementById('cetak-struk-iframe');
+        const originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+
+        $.ajax({
+            url: "{{ route('admin.fb.transaksi.store') }}",
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: {
+                nama_pelanggan: customer.nama_pelanggan,
+                no_telp: customer.no_telp,
+                catatan: customer.catatan,
+                metode_pembayaran: state.metodePembayaran,
+                uang_diterima: window.getRincianUangDiterima(),
+                items: state.items,
+            },
+            success: function (res) {
+                if (res.success) {
+                    btn.addClass('d-none');
+                    $('#btn-selesai').removeClass('d-none');
+
+                    if (iframe) {
+                        iframe.onload = function () {
+                            triggerPrintStrukRincian();
+                        };
+                        iframe.src = res.data.pdf_url;
+                    } else {
+                        window.open(res.data.pdf_url, '_blank');
+                    }
+
+                    if (typeof window.fnbManualResetForm === 'function') {
+                        window.fnbManualResetForm();
+                    }
+                }
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON?.errors
+                    ? Object.values(xhr.responseJSON.errors).flat().join('\n')
+                    : 'Gagal menyimpan pesanan. Silakan coba lagi.';
+                alert(msg);
+                btn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+    </script>
+    @endpush

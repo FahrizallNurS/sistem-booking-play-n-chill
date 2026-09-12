@@ -192,9 +192,17 @@ window.addEventListener('load', function () {
 
             fnbCart = {};
 
-            // Metode bayar F&B hanya ikut form booking kalau modal memang
-            // dibuka dari konteks form booking. Booking existing & F&B
-            // manual tetap dipilih manual seperti biasa.
+           if (isBookingExisting) {
+                const existingItems = btn.data('fnb-existing') || [];
+                existingItems.forEach(function (item) {
+                    fnbCart[item.id_produk] = {
+                        nama: item.nama,
+                        harga: item.harga,
+                        qty: item.jumlah,
+                    };
+                });
+            }
+            
             fnbMetodePembayaran = isBookingFormContext ? (fnbBookingData.metodeBayar || null) : null;
 
             $('#modalFBKodeSewa').text(fnbKodeSewa || (isBookingBaru ? 'Baru (belum tersimpan)' : '-'));

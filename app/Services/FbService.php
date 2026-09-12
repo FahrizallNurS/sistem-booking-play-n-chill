@@ -96,19 +96,18 @@ class FbService
                 }
 
                 $pos = TrPos::create([
-                'id_transaksi'      => null, // F&B mandiri, gak nempel booking
-                'id_pengguna'       => $user->id_pengguna,
-                'id_admin'          => $data['id_admin'] ?? null,   // <-- baru
-                'total_pos'         => $total,
-                'sumber_pesanan'    => 'Kasir',
-                'status_pesanan'    => 'Menunggu',
-                'status_pembayaran' => 'lunas',
-                'metode_pembayaran' => $data['metode_pembayaran'],
-                'catatan'           => $data['catatan'] ?? null,
-                'nomor_nota'        => $this->generateNomorNota(),
-                'uang_diterima'     => $uangDiterima,
-                'kembalian'         => $kembalian,
-            ]);
+                    'id_transaksi'      => null, // F&B mandiri, gak nempel booking
+                    'id_pengguna'       => $user->id_pengguna,
+                    'id_admin'          => $data['id_admin'] ?? null,   // <-- baru
+                    'total_pos'         => $total,
+                    'sumber_pesanan'    => 'Kasir',
+                    'status_pesanan'    => 'Menunggu',
+                    'status_pembayaran' => 'lunas',
+                    'metode_pembayaran' => $data['metode_pembayaran'],
+                    'catatan'           => $data['catatan'] ?? null,
+                    'nomor_nota'        => $this->generateNomorNota(),
+                    'struk_created_at'  => now(), // PDF digenerate & disimpan di request ini juga
+                ]);  
 
             foreach ($detailRows as $row) {
                 TrPosDetail::create([

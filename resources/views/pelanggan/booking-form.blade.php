@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/booking-form.css') }}">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>[x-cloak] { display: none !important; }</style>
     <style>
@@ -145,7 +146,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-9">
 
-                <form action="{{ url('/booking/penawaran-fb') }}" method="GET" novalidate>
+                <form action="{{ url('/booking/penawaran-fb') }}" method="GET" novalidate @submit.prevent="handleSubmit($event)">
 
                     <input type="hidden" name="id_penetapan_harga" :value="selectedPricing ? selectedPricing.id_penetapan_harga : ''">
                     <input type="hidden" name="tanggal" value="{{ $tanggal }}">
@@ -328,9 +329,10 @@
                             </div>
                             <div class="col-6">
                                 <button type="submit"
-                                    :disabled="!confirmedTime || !selectedPricing || isDpError"
+                                    :disabled="!confirmedTime || !selectedPricing || isDpError || isChecking"
                                     class="btn-action btn-primary-action w-100">
-                                    LANJUTKAN
+                                    <span x-show="!isChecking">LANJUTKAN</span>
+                                    <span x-show="isChecking">MEMERIKSA...</span>
                                 </button>
                             </div>
                         </div>
@@ -355,6 +357,66 @@ function bookingForm() {
         roomId: {{ $room->id_ruangan }},
 
         dpAmount: '',
+        isChecking: false,
+
+        async handleSubmit(event) {
+            if (!this.confirmedTime || !this.selectedPricing || this.isDpError) return;
+
+            this.isChecking = true;
+
+            const jamNormal = this.confirmedTime.replace('.', ':');
+            const waktuMulaiFull = this.tanggal + ' ' + jamNormal;
+
+            try {
+                const params = new URLSearchParams({
+                    ruangan: this.roomId,
+                    waktu_mulai: waktuMulaiFull,
+                    durasi_jam: this.selectedPricing.durasi_jam
+                });
+
+                const res = await fetch(`{{ url('/booking/cek-bentrok') }}?${params.toString()}`);
+                const data = await res.json();
+
+                if (!data.tersedia) {
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: 'Yah, Kalah Cepat!',
+                        text: data.pesan,
+                        confirmButtonColor: '#ff7a00',
+                        confirmButtonText: 'Pilih Jam Lain'
+                    });
+
+                    // Refresh status jam supaya tombol yang baru penuh langsung ke-disable
+                    await this.refreshJamTerpakai();
+                    this.confirmedTime = '';
+                    this.isChecking = false;
+                    return;
+                }
+
+                event.target.submit();
+            } catch (err) {
+                this.isChecking = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    text: 'Gagal memeriksa jadwal. Silakan coba lagi.'
+                });
+            }
+        },
+
+        async refreshJamTerpakai() {
+            try {
+                const params = new URLSearchParams({
+                    room: this.roomId,
+                    tanggal: this.tanggal
+                });
+                const res = await fetch(`{{ url('/booking/jam-terpakai') }}?${params.toString()}`);
+                const data = await res.json();
+                this.jamTerpakai = data.terpakai;
+            } catch (err) {
+                // diamkan, biarkan data lama tetap tampil
+            }
+        },
 
         get isDpError() {
             if (this.paymentMethod === 'dp' && this.selectedPricing) {

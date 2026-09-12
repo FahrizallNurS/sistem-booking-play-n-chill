@@ -20,14 +20,16 @@ class BookingController extends Controller
     public function __construct(private BookingService $bookingService) {}
 
     public function index(Request $request)
+
     {
-        // [BARU] Eksekusi update otomatis sebelum data ditarik
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
 
         $query = TrTransaksi::with(['penetapanHarga.ruangan', 'penetapanHarga.paket', 'pengguna'])
             ->whereNotIn('status_sewa', ['dibatalkan', 'selesai'])
             ->latest('created_at');
+
+
 
         // Filter sumber booking (Online / Kasir). Kosong = tampilkan semua.
         if ($request->filled('sumber_booking')) {
@@ -62,12 +64,19 @@ class BookingController extends Controller
 
         $bookings = $query->paginate(15)->withQueryString();
         $ruangans = MsRuangan::where('is_active', 1)->get();
-
         [$produks, $kategoriFnb] = $this->getProdukFnbData();
 
-        return view('admin.bookings.index', compact('bookings', 'ruangans', 'produks', 'kategoriFnb'));
-    }
 
+        $existingFnbByBooking = $bookings->getCollection()->mapWithKeys(
+                fn ($booking) => [$booking->id_transaksi => $this->bookingService->getFnbCartState($booking->id_transaksi)]
+            );
+
+            return view('admin.bookings.index', compact(
+                'bookings', 'ruangans', 'produks', 'kategoriFnb', 'existingFnbByBooking'
+            ));
+        }
+
+        
     // ============================================================
     // CREATE (Form Tambah Booking Manual - data ruangan/paket asli)
     // ============================================================
@@ -123,10 +132,10 @@ class BookingController extends Controller
         $waktuSelesai = $waktuMulai->copy()->addHours($durasiJam);
 
         // Cek apakah ada jadwal yang tumpang tindih
-        $isBentrok = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ruanganId) {
+         $isBentrok = TrTransaksi::whereHas('penetapanHarga', function ($q) use ($ruanganId) {
                 $q->where('id_ruangan', $ruanganId);
             })
-            ->whereNotIn('status_sewa', ['selesai', 'dibatalkan']) 
+            ->where('status_sewa', 'dikonfirmasi')
             ->where(function ($query) use ($waktuMulai, $waktuSelesai) {
                 // Logika akurat: Booking lama mulai SEBELUM booking baru selesai 
                 // DAN booking lama selesai SESUDAH booking baru mulai
@@ -213,8 +222,6 @@ class BookingController extends Controller
     // ============================================================
     public function show($id)
     {
-        // [BARU] Pastikan juga ditaruh di fungsi show
-        // Biar misal admin refresh halaman detail, statusnya ikut terupdate otomatis
         $this->cancelExpiredBookings();
         $this->completeExpiredBookings();
 
@@ -237,7 +244,9 @@ class BookingController extends Controller
             }
         }
 
-        return view('admin.bookings.show', compact('booking', 'pos', 'posDetails'));
+        $fnbCartState = $this->bookingService->getFnbCartState($id);
+
+        return view('admin.bookings.show', compact('booking', 'pos', 'posDetails', 'fnbCartState'));
     }
 
     // ============================================================
@@ -368,6 +377,13 @@ class BookingController extends Controller
             return back()->withErrors(['error' => 'Booking ini tidak bisa di-refund.']);
         }
 
+        // Struk yang sudah tercetak bersifat final -- begitu ada bukti fisik/PDF
+        // dicetak dan diserahkan ke customer, transaksi tidak boleh dibatalkan
+        // lagi lewat jalur ini.
+        if (!empty($booking->struk_created_at)) {
+            return back()->withErrors(['error' => 'Booking ini sudah dicetak strukturnya dan tidak bisa dibatalkan.']);
+        }
+
         $booking->update([
             'status_sewa'        => 'dibatalkan',
             'status_pembayaran'  => 'refund',
@@ -482,17 +498,24 @@ class BookingController extends Controller
     public function getPaketByRuangan(Request $request): JsonResponse
     {
         $request->validate([
-            'ruangan' => 'required|exists:ms_ruangan,id_ruangan',
+            'ruangan'     => 'required|exists:ms_ruangan,id_ruangan',
+            'waktu_mulai' => 'required|date',
         ]);
 
-        $pakets = DB::table('penetapan_harga')
-            ->join('ms_paket', 'penetapan_harga.id_paket', '=', 'ms_paket.id_paket')
-            ->where('penetapan_harga.id_ruangan', $request->ruangan)
-            ->where('ms_paket.is_active', 1)
-            ->select('ms_paket.id_paket', 'ms_paket.nama_paket')
-            ->distinct()
-            ->orderBy('ms_paket.nama_paket')
-            ->get();
+        $tipeHari = PenetapanHarga::tipeHariFromDate($request->waktu_mulai);
+
+        $pakets = PenetapanHarga::where('id_ruangan', $request->ruangan)
+            ->whereIn('tipe_hari', [$tipeHari, 'liburan'])
+            ->currentPrices()
+            ->whereHas('paket', fn ($q) => $q->where('is_active', 1))
+            ->with('paket')
+            ->get()
+            ->pluck('paket')
+            ->filter()
+            ->unique('id_paket')
+            ->sortBy('nama_paket')
+            ->values()
+            ->map(fn ($p) => ['id_paket' => $p->id_paket, 'nama_paket' => $p->nama_paket]);
 
         return response()->json(['pakets' => $pakets]);
     }

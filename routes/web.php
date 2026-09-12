@@ -229,6 +229,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/payment/process', [BookingController::class, 'processToPayment'])->name('booking.payment.process');
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
     Route::get('/booking/jam-terpakai', [BookingController::class, 'getJamTerpakai']);
+    Route::get('/booking/cek-bentrok', [BookingController::class, 'cekBentrok'])->name('booking.cek-bentrok');
     Route::get('/jadwal', [JadwalController::class, 'index'])->name('pelanggan.jadwal');
     Route::post('/booking/checkout', [JadwalController::class, 'checkout'])->name('booking.checkout');
 
@@ -318,6 +319,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('paket.toggle-aktif');
         Route::post('/paket/{id}/penetapan-modal', [PaketController::class, 'storePenetapanModal'])
              ->name('paket.penetapan.storeModal');
+
+        Route::get('/kategori/{kategori}/ruangan', [PaketController::class, 'getRuanganByKategori'])
+            ->name('kategori.ruangan');
+
                 
         Route::resource('paket', PaketController::class);
                 
@@ -350,9 +355,12 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('game', GameController::class);
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export-pdf'); 
+        Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export-excel');
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
         Route::patch('/profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::patch('/profil/password', [ProfilController::class, 'gantiPassword'])->name('profil.password');
+
+        Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
 
         // HALAMAN KELOLA GALERI PANEL ADMIN
         Route::resource('galeri', GaleriController::class)->names([

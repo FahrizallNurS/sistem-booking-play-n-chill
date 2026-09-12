@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TrPos;
 use App\Models\User;
 use App\Models\MsPengaturan;
-use App\Models\TrPosDetail;
+use App\Models\TrPosDetail; 
 use App\Models\MsProduk;
 use App\Services\FbService;
 use Illuminate\Http\Request;
