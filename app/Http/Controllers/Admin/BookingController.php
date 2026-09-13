@@ -252,6 +252,7 @@ class BookingController extends Controller
     // ============================================================
     // KONFIRMASI
     // ============================================================
+    // SESUDAH
     public function konfirmasi($id)
     {
         $booking = TrTransaksi::where('id_transaksi', $id)->firstOrFail();
@@ -260,14 +261,10 @@ class BookingController extends Controller
             return redirect()->route('admin.booking.index')
                 ->with('error', 'Hanya booking berstatus ditahan yang bisa dikonfirmasi.');
         }
-
-        $statusPembayaranBaru = $booking->opsi_pembayaran === 'full' ? 'lunas' : 'dp';
-
+        
         $booking->update([
-            'status_sewa'       => 'dikonfirmasi',
-            'status_pembayaran' => $statusPembayaranBaru,
-            'sisa_bayar'        => $statusPembayaranBaru === 'lunas' ? 0 : $booking->sisa_bayar,
-            'id_admin'          => auth()->id(),
+            'status_sewa' => 'dikonfirmasi',
+            'id_admin'    => auth()->id(),
         ]);
 
         return redirect()->route('admin.booking.index')
