@@ -306,6 +306,9 @@ $(document).ready(function () {
             tipe_hari: $(this).data('tipe-hari'),
             harga: $(this).data('harga'),
         };
+
+        updateWaktuSelesaiPreview();
+        checkJadwalRealtime(); 
     });
 
     // ================= Preview Waktu Selesai =================

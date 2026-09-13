@@ -27,7 +27,8 @@
                 <div class="card-header">
                     <h3 class="card-title">Informasi Booking</h3>
                     <div class="card-tools">
-                        <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm">
+                        {{-- SESUDAH --}}
+                        <a href="{{ route('admin.booking.index') }}" onclick="event.preventDefault(); history.length > 1 ? history.back() : window.location = '{{ route('admin.booking.index') }}';" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Kembali
                         </a>
                     </div>
