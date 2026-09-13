@@ -550,17 +550,21 @@
         <button class="filter-btn" data-filter="Minuman">Minuman</button>
     </div>
 
-    <div class="row g-4 mb-5 pb-4" id="menuLainnyaContainer">
-        {{-- Sisa produk (setelah 4 pertama) akan diloop di sini --}}
+   <div class="row g-4 mb-5 pb-4" id="menuLainnyaContainer">
         @foreach($produks->skip(4) as $item)
-        <div class="col-12 col-md-6 col-lg-3 menu-item-card" data-kategori="{{ $item->subKategori->kategori_produk ?? 'Lainnya' }}" data-aos="fade-up" data-aos-delay="100">
+        
+        {{-- 1. UBAH BAGIAN INI: Ganti kategori_produk menjadi sub_kategori_produk --}}
+        <div class="col-12 col-md-6 col-lg-3 menu-item-card" data-kategori="{{ $item->subKategori->sub_kategori_produk ?? 'Lainnya' }}" data-aos="fade-up" data-aos-delay="100">
             <div class="fb-card">
                 <div class="fb-img-wrapper">
                     <img src="{{ asset('uploads/fb/' . $item->foto) }}" alt="{{ $item->nama_produk }}" class="fb-img" onerror="this.src='{{ asset('images/gaming.jpg') }}'">
                     <span class="fb-price">Rp {{ number_format($item->harga_jual, 0, ',', '.') }}</span>
                 </div>
                 <div class="fb-body">
-                    <span class="fb-badge">{{ strtoupper($item->subKategori->kategori_produk ?? 'MENU') }}</span>
+                    
+                    {{-- 2. UBAH BAGIAN INI JUGA: Agar badge di layar ikut berubah jadi "MAKANAN RINGAN" dll --}}
+                    <span class="fb-badge">{{ strtoupper($item->subKategori->sub_kategori_produk ?? 'MENU') }}</span>
+                    
                     <h5 class="fb-title">{{ $item->nama_produk }}</h5>
                     <div class="fb-footer">
                         <span class="fb-status">In Stock</span>
@@ -714,15 +718,29 @@
     // ================= FUNGSI FILTER MENU =================
     document.querySelectorAll('.filter-btn').forEach(button => {
         button.addEventListener('click', function() {
+            // Hapus class active dari semua tombol
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            // Tambahkan class active ke tombol yang diklik
             this.classList.add('active');
 
-            const filterValue = this.getAttribute('data-filter');
+            // Ambil filter yang diklik (Aman dari case-sensitive & spasi berlebih)
+            const rawFilterValue = this.getAttribute('data-filter');
+            const filterValue = rawFilterValue.toLowerCase().trim(); 
+            
             const menuCards = document.querySelectorAll('.menu-item-card');
 
             menuCards.forEach(card => {
-                if (filterValue === 'Semua' || card.getAttribute('data-kategori') === filterValue) {
+                // Ambil kategori dari attribute HTML
+                const cardKategori = (card.getAttribute('data-kategori') || '').toLowerCase().trim();
+
+                // Pencocokan data
+                if (rawFilterValue === 'Semua' || cardKategori === filterValue) {
                     card.style.display = 'block';
+                    
+                    // KUNCI RAHASIA: Paksa AOS agar tidak membuat kartu transparan
+                    card.style.opacity = '1';
+                    card.style.transform = 'none'; 
+                    card.classList.remove('aos-animate'); 
                 } else {
                     card.style.display = 'none';
                 }

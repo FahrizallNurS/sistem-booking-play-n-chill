@@ -475,11 +475,33 @@ class BookingController extends Controller
         return [$produks, $kategoriFnb];
     }
 
+    // private function cancelExpiredBookings()
+    // {
+    //     TrTransaksi::where('status_sewa', 'ditahan')
+    //         ->where('sumber_booking', 'Online')
+    //         ->where('created_at', '<', now()->subMinutes(30))
+    //         ->update([
+    //             'status_sewa'        => 'dibatalkan',
+    //             'catatan_pembayaran' => 'Waktu pembayaran habis!',
+    //         ]);
+    // }
+
+    // private function completeExpiredBookings()
+    // {
+    //     TrTransaksi::where('status_sewa', 'dikonfirmasi')
+    //         ->where('waktu_selesai', '<', now())
+    //         ->update([
+    //             'status_sewa' => 'selesai',
+    //         ]);
+    // }
+
+    // ============================================================================
     private function cancelExpiredBookings()
     {
         TrTransaksi::where('status_sewa', 'ditahan')
             ->where('sumber_booking', 'Online')
-            ->where('created_at', '<', now()->subMinutes(30))
+            // Ubah dari now()->subMinutes(30) menjadi fungsi MySQL
+            ->where('created_at', '<', DB::raw('DATE_SUB(NOW(), INTERVAL 30 MINUTE)'))
             ->update([
                 'status_sewa'        => 'dibatalkan',
                 'catatan_pembayaran' => 'Waktu pembayaran habis!',
@@ -489,11 +511,13 @@ class BookingController extends Controller
     private function completeExpiredBookings()
     {
         TrTransaksi::where('status_sewa', 'dikonfirmasi')
-            ->where('waktu_selesai', '<', now())
+            // Ubah dari now() menjadi DB::raw('NOW()')
+            ->where('waktu_selesai', '<', DB::raw('NOW()'))
             ->update([
                 'status_sewa' => 'selesai',
             ]);
     }
+    // ===================================================================================
 
     public function getPaketByRuangan(Request $request): JsonResponse
     {

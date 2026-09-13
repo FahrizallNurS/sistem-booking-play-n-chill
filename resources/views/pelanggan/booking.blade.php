@@ -137,8 +137,13 @@
 (function () {
     const quickBtns   = document.querySelectorAll('.js-quick-date');
     const customInput = document.getElementById('tanggalCustom');
-    const bookingBtns = document.querySelectorAll('.js-btn-booking');
     const tabLinks    = document.querySelectorAll('.js-tab-link');
+    const roomGrid    = document.querySelector('.room-grid-booking'); // Deklarasi wadah ruangan
+
+    // Fungsi pembantu agar tombol booking yang baru muncul bisa ditangkap ulang
+    function getBookingBtns() {
+        return document.querySelectorAll('.js-btn-booking');
+    }
 
     function setActiveQuick(value) {
         let matched = false;
@@ -154,10 +159,12 @@
     }
 
     function applyTanggal(value) {
-        bookingBtns.forEach(function (btn) {
+        // Update parameter tanggal pada tombol booking yang sedang tampil
+        getBookingBtns().forEach(function (btn) {
             btn.href = btn.getAttribute('data-base-href') + '&tanggal=' + value;
         });
 
+        // Update URL di tombol tab kategori
         tabLinks.forEach(function (tab) {
             const url = new URL(tab.href, window.location.origin);
             url.searchParams.set('tanggal', value);
@@ -168,6 +175,36 @@
         setActiveQuick(value);
     }
 
+    tabLinks.forEach(function(tab) {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault(); 
+
+            tabLinks.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const targetUrl = this.href;
+
+            roomGrid.style.transition = 'opacity 0.3s ease';
+            roomGrid.style.opacity = '0.3'; 
+
+            fetch(targetUrl)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newGridContent = doc.querySelector('.room-grid-booking').innerHTML;
+                    roomGrid.innerHTML = newGridContent;
+                    roomGrid.style.opacity = '1';
+                    window.history.pushState({path: targetUrl}, '', targetUrl);
+                    applyTanggal(customInput.value);
+                })
+                .catch(err => {
+                    console.error('Gagal mengambil data:', err);
+                    roomGrid.style.opacity = '1'; 
+                });
+        });
+    });
+    
     quickBtns.forEach(function (btn) {
         btn.addEventListener('click', function () {
             applyTanggal(btn.dataset.value);
@@ -180,7 +217,10 @@
         }
     });
 
-    // Set initial state sesuai $tanggal dari server
+    window.addEventListener('popstate', function() {
+        window.location.reload(); 
+    });
+
     setActiveQuick(customInput.value);
 })();
 </script>
