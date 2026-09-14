@@ -21,6 +21,7 @@
                     <th>Waktu</th>
                 @endif
                 <th>Sumber</th>
+                <th>Admin</th>
                 <th>Total</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -80,6 +81,7 @@
                         @endif
                     </td>
 
+                    <td>{{ $t->admin->nama_pengguna ?? '-' }}</td>
                     <td class="font-weight-bold">
                         Rp {{ number_format($isBooking ? $t->total_harga : $t->total_pos, 0, ',', '.') }}
                     </td>
@@ -109,8 +111,8 @@
     <div id="table-info" class="text-muted text-sm">
         Menampilkan {{ $transaksisPaged->firstItem() ?? 0 }} hingga {{ $transaksisPaged->lastItem() ?? 0 }} dari {{ $transaksisPaged->total() }} entri
     </div>
-    <div id="pagination-container">
-        {{ $transaksisPaged->appends(request()->query())->links() }}
+        <div id="pagination-container">
+        <x-pagination-nav :paginator="$transaksisPaged->appends(request()->query())" />
     </div>
 </div>
 

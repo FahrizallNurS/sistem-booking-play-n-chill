@@ -71,7 +71,7 @@
                         </div>
                     </div>
 
-                    {{-- TAMBAHAN: Filter Status (Selesai/Dibatalkan) --}}
+                                        {{-- TAMBAHAN: Filter Status (Selesai/Dibatalkan) --}}
                     <div class="col-md-2 mt-2">
                         <div class="form-group mb-0">
                             <label>Status Transaksi</label>
@@ -79,6 +79,20 @@
                                 <option value="" {{ request('status_transaksi') === '' ? 'selected' : '' }}>Semua</option>
                                 <option value="selesai" {{ request('status_transaksi') === 'selesai' ? 'selected' : '' }}>Selesai</option>
                                 <option value="dibatalkan" {{ request('status_transaksi') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 mt-2">
+                        <div class="form-group mb-0">
+                            <label>Ditangani Admin</label>
+                            <select name="id_admin" class="form-control">
+                                <option value="">Semua</option>
+                                @foreach($admins as $a)
+                                    <option value="{{ $a->id_pengguna }}" {{ (string) request('id_admin') === (string) $a->id_pengguna ? 'selected' : '' }}>
+                                        {{ $a->nama_pengguna }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
