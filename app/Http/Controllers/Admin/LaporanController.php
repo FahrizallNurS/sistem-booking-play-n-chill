@@ -63,6 +63,7 @@ class LaporanController extends Controller
         $jenisTransaksi  = $request->input('jenis_transaksi', 'semua');
         $statusTransaksi = $request->input('status_transaksi', ''); 
         $sumber          = $request->input('sumber', ''); // Filter khusus admin
+        $idAdmin         = $request->input('id_admin', ''); // Filter admin yang menangani
 
         // --- Booking (Samakan waktu_selesai dan mapping datanya) ---
         $bookingQuery = TrTransaksi::with(['pengguna', 'admin', 'penetapanHarga.ruangan', 'penetapanHarga.paket'])
@@ -70,6 +71,10 @@ class LaporanController extends Controller
 
         if ($sumber) {
             $bookingQuery->where('sumber_booking', $sumber);
+        }
+
+        if ($idAdmin) {
+            $bookingQuery->where('id_admin', $idAdmin);
         }
 
         $bookingRaw = $bookingQuery->latest('waktu_mulai')->get()
@@ -80,12 +85,16 @@ class LaporanController extends Controller
                 return $item;
             });
 
-        // --- F&B (Samakan mapping struktur datanya) ---
+
         $fnbQuery = TrPos::with(['pengguna', 'admin', 'transaksi.penetapanHarga.ruangan', 'details.produk'])
             ->whereBetween('created_at', [$start, $end]);
 
         if ($sumber) {
             $fnbQuery->where('sumber_pesanan', $sumber);
+        }
+
+        if ($idAdmin) {
+            $fnbQuery->where('id_admin', $idAdmin);
         }
 
         $fnbRaw = $fnbQuery->latest('created_at')->get()
@@ -151,7 +160,7 @@ class LaporanController extends Controller
         $totalPendapatan = $pendapatanBooking + $pendapatanFnb;
 
         return compact(
-            'transaksis', 'jenisTransaksi', 'sumber', 'statusTransaksi',
+            'transaksis', 'jenisTransaksi', 'sumber', 'statusTransaksi', 'idAdmin',
             'totalBooking', 'totalFnb', 'bookingSelesai', 'fnbSelesai',
             'bookingDibatalkan', 'fnbDibatalkan', 'pendapatanBooking', 'pendapatanFnb',
             'totalSelesai', 'totalDibatalkan', 'totalPendapatan',
@@ -176,10 +185,12 @@ class LaporanController extends Controller
     {
         $data = $this->getReportData($request);
         
-        // Paginasi Data
         $data['transaksisPaged'] = $this->paginateTransaksis($data['transaksis'], $request);
 
-        // Jika Anda menggunakan AJAX/Infinite Scroll di Admin (seperti SA)
+        $data['admins'] = \App\Models\User::where('role', 'admin')
+            ->orderBy('nama_pengguna')
+            ->get(['id_pengguna', 'nama_pengguna']);
+
         if ($request->ajax() && $request->has('page')) {
             $html = view('admin.laporan.partials.table-rows', [
                 'transaksis' => $data['transaksisPaged'],
@@ -196,7 +207,6 @@ class LaporanController extends Controller
             ]);
         }
 
-        // Jangan lupa pastikan view Admin membaca dari 'transaksisPaged' jika menggunakan pagination
         return view('admin.laporan.index', $data);
     }
 

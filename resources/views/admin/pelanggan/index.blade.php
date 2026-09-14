@@ -40,6 +40,10 @@
                     @endforelse
                 </tbody>
             </table>
+
+            <div class="d-flex justify-content-end mt-3">
+                <x-pagination-nav :paginator="$pelanggans->appends(request()->query())" />
+            </div>
         </div>
     </div>
 @stop
