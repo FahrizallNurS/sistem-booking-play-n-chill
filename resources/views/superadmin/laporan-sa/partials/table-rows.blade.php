@@ -24,7 +24,7 @@
         <td class="align-middle py-3">{{ $t->metode_pembayaran ?? 'Cash' }}</td>
         <td class="align-middle py-3 font-weight-bold text-dark">
             Rp {{ number_format($t->total_harga, 0, ',', '.') }}
-        </td>
+        </td>   
         <td class="align-middle py-3">
             @if(($t->sumber_booking ?? 'Kasir') === 'Online')
                 <span class="badge text-white py-1 px-2" style="background-color: #0084ff; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">
