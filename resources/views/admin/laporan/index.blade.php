@@ -1,11 +1,9 @@
 @extends('adminlte::page')
 @include('partials.sidebar-admin')
 @section('title', 'Riwayat Transaksi')
-
 @section('content_header')
     <h1>Riwayat Transaksi</h1>
 @stop
-
 @section('content')
 
     {{-- Filter --}}
@@ -28,7 +26,7 @@
                     <div class="col-md-2" id="filter_tanggal">
                         <div class="form-group mb-0">
                             <label>Tanggal</label>
-                            <input type="date" name="tanggal" class="form-control"
+                            <input type="date" name="tanggal" class="form-control"  
                                 value="{{ request('tanggal', now()->format('Y-m-d')) }}">
                         </div>
                     </div>

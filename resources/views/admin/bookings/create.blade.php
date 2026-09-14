@@ -307,6 +307,9 @@ $(document).ready(function () {
             harga: $(this).data('harga'),
         };
 
+        // KUNCI JAWABAN: Pindahkan ID ke dalam hidden input agar ikut terkirim ke server!
+        $('#id_penetapan_harga').val($(this).data('id'));
+
         updateWaktuSelesaiPreview();
         checkJadwalRealtime(); 
     });
