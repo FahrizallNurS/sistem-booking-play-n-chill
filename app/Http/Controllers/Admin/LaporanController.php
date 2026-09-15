@@ -276,7 +276,7 @@ class LaporanController extends Controller
         return Excel::download(new TransaksiExport($flatData), $filename);
     }
 
-    public function exportPdf(Request $request)
+   public function exportPdf(Request $request)
     {
         $data = $this->getReportData($request);
         
@@ -297,10 +297,27 @@ class LaporanController extends Controller
             ];
         }, $flatData);
 
+        // KUNCI JAWABAN: Hitung ulang summary berdasarkan data tabel yang sudah difilter
+        $rowsCollection = collect($data['rows']);
+
+        $data['totalPendapatan'] = $rowsCollection->where('status', 'selesai')->sum('total');
+
+        $data['bookingSelesai']    = $rowsCollection->where('jenis_laporan', 'Booking')->where('status', 'selesai')->count();
+        $data['bookingDibatalkan'] = $rowsCollection->where('jenis_laporan', 'Booking')->where('status', 'dibatalkan')->count();
+        $data['totalBooking']      = $data['bookingSelesai'] + $data['bookingDibatalkan'];
+
+        $data['fnbSelesai']        = $rowsCollection->where('jenis_laporan', 'F&B')->where('status', 'selesai')->count();
+        $data['fnbDibatalkan']     = $rowsCollection->where('jenis_laporan', 'F&B')->where('status', 'dibatalkan')->count();
+        $data['totalFnb']          = $data['fnbSelesai'] + $data['fnbDibatalkan'];
+
+        $data['totalSelesai']    = $data['bookingSelesai'] + $data['fnbSelesai'];
+        $data['totalDibatalkan'] = $data['bookingDibatalkan'] + $data['fnbDibatalkan'];
+
         $data['tanggalCetak'] = now()->translatedFormat('d F Y H:i');
         $data['admin']        = auth()->user()->nama_pengguna;
 
-        $pdf      = Pdf::loadView('admin.laporan.pdf', $data)->setPaper('a4', 'portrait');
+        // Ubah menjadi landscape agar tabel luas
+        $pdf      = Pdf::loadView('admin.laporan.pdf', $data)->setPaper('a4', 'landscape');
         $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.pdf';
 
         return $pdf->download($filename);

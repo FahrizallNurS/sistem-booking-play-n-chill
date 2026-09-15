@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Booking Play N Chill</title>
+    <title>Laporan Transaksi Play N Chill</title>
     <style>
         * {
             margin: 0;
@@ -128,7 +128,7 @@
     {{-- Header --}}
     <div class="header">
         <img src="{{ public_path('gambar/Logo-PNC01.png') }}" alt="Play N Chill Logo">
-        <h1>LAPORAN BOOKING</h1>
+        <h1>LAPORAN TRANSAKSI {{ strtoupper($jenisTransaksi === 'semua' ? '' : $jenisTransaksi) }}</h1>
         <p>Play N Chill - Gaming & Entertainment Center</p>
     </div>
 
@@ -153,19 +153,19 @@
         </div>
     </div>
 
-    {{-- Summary --}}
+    {{-- Summary Box (Dibuat Dinamis menyesuaikan filter) --}}
     <div class="summary-box">
         <div class="summary-item">
-            <h3>{{ $totalBooking }}</h3>
-            <p>Total Booking</p>
+            <h3>{{ $jenisTransaksi == 'booking' ? $totalBooking : ($jenisTransaksi == 'fnb' ? $totalFnb : $totalBooking + $totalFnb) }}</h3>
+            <p>Total {{ $jenisTransaksi == 'booking' ? 'Booking' : ($jenisTransaksi == 'fnb' ? 'F&B' : 'Transaksi') }}</p>
         </div>
         <div class="summary-item">
             <h3>{{ $totalSelesai }}</h3>
-            <p>Booking Selesai</p>
+            <p>Transaksi Selesai</p>
         </div>
         <div class="summary-item">
             <h3>{{ $totalDibatalkan }}</h3>
-            <p>Booking Dibatalkan</p>
+            <p>Transaksi Dibatalkan</p>
         </div>
         <div class="summary-item">
             <h3>Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h3>
@@ -173,69 +173,62 @@
         </div>
     </div>
 
-    {{-- Tabel Transaksi --}}
+    {{-- Tabel Transaksi (Menggunakan data $rows yang sudah difilter) --}}
     <table>
         <thead>
             <tr>
                 <th style="width: 3%;">#</th>
-                <th style="width: 12%;">Kode Booking</th>
-                <th style="width: 15%;">Pelanggan</th>
-                <th style="width: 10%;">Ruangan</th>
-                <th style="width: 12%;">Paket</th>
-                <th style="width: 15%;">Waktu Main</th>
-                <th style="width: 8%;">Jenis Bayar</th>
-                <th style="width: 12%;">Total Harga</th>
-                <th style="width: 8%;">Status</th>
+                <th style="width: 14%;">Kode Transaksi</th>
+                <th style="width: 8%;">Jenis</th>
+                <th style="width: 13%;">Pelanggan</th>
+                <th style="width: 12%;">Kasir</th>
+                <th style="width: 16%;">Produk / Paket</th>
+                <th style="width: 6%;">Qty</th>
+                <th style="width: 8%;">Metode</th>
+                <th style="width: 11%;">Total Harga</th>
+                <th style="width: 9%;">Status</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($transaksis as $i => $t)
+            @forelse($rows as $i => $row)
             @php
-                $ph = $t->penetapanHarga;
-                $badgeSewa = match($t->status_sewa) {
+                $badgeSewa = match($row->status) {
                     'dikonfirmasi' => 'success',
                     'dibatalkan'   => 'danger',
                     'selesai'      => 'primary',
                     default        => 'secondary',
                 };
-                $badgeBayar = match($t->status_pembayaran) {
-                    'lunas'    => 'success',
-                    'dp'       => 'info',
-                    default    => 'warning',
-                };
             @endphp
             <tr>
                 <td>{{ $i + 1 }}</td>
-                <td>{{ $t->kode_sewa }}</td>
-                <td>{{ $t->pengguna->nama_pengguna ?? '-' }}</td>
-                <td>{{ $ph->ruangan->nama_ruangan ?? '-' }}</td>
-                <td>{{ $ph->paket->nama_paket ?? '-' }}</td>
+                <td>{{ $row->kode_transaksi }}</td>
                 <td>
-                    {{ \Carbon\Carbon::parse($t->waktu_mulai)->format('d/m/Y H:i') }}
-                    — {{ \Carbon\Carbon::parse($t->waktu_selesai)->format('H:i') }}
-                </td>
-                <td>
-                    <span class="badge badge-{{ $t->opsi_pembayaran === 'full' ? 'primary' : 'info' }}">
-                        {{ $t->opsi_pembayaran === 'full' ? 'Full' : 'DP' }}
+                    <span class="badge badge-{{ $row->jenis_laporan == 'Booking' ? 'info' : 'warning' }}">
+                        {{ $row->jenis_laporan }}
                     </span>
                 </td>
-                <td>Rp {{ number_format($t->total_harga, 0, ',', '.') }}</td>
+                <td>{{ $row->pelanggan }}</td>
+                <td>{{ $row->kasir }}</td>
+                <td>{{ $row->produk }}</td>
+                <td style="text-align: center;">{{ $row->jumlah }}</td>
+                <td>{{ strtoupper($row->metode) }}</td>
+                <td>Rp {{ number_format($row->total, 0, ',', '.') }}</td>
                 <td>
-                    <span class="badge badge-{{ $badgeSewa }}">{{ ucfirst($t->status_sewa) }}</span>
+                    <span class="badge badge-{{ $badgeSewa }}">{{ ucfirst($row->status) }}</span>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="9" style="text-align: center; padding: 20px; color: #999;">
+                <td colspan="10" style="text-align: center; padding: 20px; color: #999;">
                     Tidak ada data untuk periode ini.
                 </td>
             </tr>
             @endforelse
         </tbody>
-        @if($transaksis->isNotEmpty())
+        @if(count($rows) > 0)
         <tfoot>
             <tr class="total-row">
-                <td colspan="7" class="text-right fw-bold">Total Pendapatan (Selesai):</td>
+                <td colspan="8" class="text-right fw-bold">Total Pendapatan (Selesai):</td>
                 <td colspan="2" class="fw-bold">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</td>
             </tr>
         </tfoot>

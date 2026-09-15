@@ -239,7 +239,7 @@ class SATinjauLaporanController extends Controller
                     'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                     'kasir'             => $t->kasir ?? '-',
                     'nama_produk'       => $t->penetapanHarga->paket->nama_paket ?? 'Paket Terhapus',
-                    'jumlah'            => ($t->penetapanHarga->durasi_jam ?? 0) . ' Jam',
+                    'jumlah'            => ($t->penetapanHarga->durasi_jam ?? 0),
                     'nominal_transaksi' => $t->total_harga,
                     'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
                     'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
@@ -255,7 +255,7 @@ class SATinjauLaporanController extends Controller
                             'pelanggan'         => $t->pengguna->nama_pengguna ?? '-',
                             'kasir'             => $t->kasir ?? '-',
                             'nama_produk'       => $item->produk,
-                            'jumlah'            => $item->jumlah . ' Item',
+                            'jumlah'            => $item->jumlah,
                             'nominal_transaksi' => $item->subtotal,
                             'metode_pembayaran' => $t->metode_pembayaran ?? 'Cash',
                             'sumber_booking'    => $t->sumber_booking ?? 'Kasir',
@@ -286,11 +286,8 @@ class SATinjauLaporanController extends Controller
     public function exportPdf(Request $request)
     {
         $data = $this->getQueryData($request);
-
-        // Ambil data flat
         $flatData = $this->getFlattenedData($data['transaksis']);
 
-        // Konversi array kembali ke object dengan key yang sesuai dengan PDF blade agar tidak merusak view
         $data['rows'] = array_map(function($item) {
             return (object) [
                 'kode_transaksi' => $item['kode_transaksi'],
@@ -306,17 +303,25 @@ class SATinjauLaporanController extends Controller
             ];
         }, $flatData);
 
-        $data['totalPendapatan'] = collect($data['rows'])
-            ->where('status', 'selesai')
-            ->sum('total');
+       $rowsCollection = collect($data['rows']);
+
+        $data['totalPendapatan'] = $rowsCollection->where('status', 'selesai')->sum('total');
+
+        // Timpa hitungan lama agar membaca per-produk (baris tabel), bukan per-nota
+        $data['bookingSelesai']    = $rowsCollection->where('jenis_laporan', 'Booking')->where('status', 'selesai')->count();
+        $data['bookingDibatalkan'] = $rowsCollection->where('jenis_laporan', 'Booking')->where('status', 'dibatalkan')->count();
+        $data['totalBooking']      = $data['bookingSelesai'] + $data['bookingDibatalkan'];
+
+        $data['fnbSelesai']        = $rowsCollection->where('jenis_laporan', 'F&B')->where('status', 'selesai')->count();
+        $data['fnbDibatalkan']     = $rowsCollection->where('jenis_laporan', 'F&B')->where('status', 'dibatalkan')->count();
+        $data['totalFnb']          = $data['fnbSelesai'] + $data['fnbDibatalkan'];
 
         $data['totalSelesai']    = $data['bookingSelesai'] + $data['fnbSelesai'];
         $data['totalDibatalkan'] = $data['bookingDibatalkan'] + $data['fnbDibatalkan'];
 
         $data['tanggalCetak'] = now()->translatedFormat('d F Y H:i');
         $data['admin']        = auth()->user()->nama_pengguna;
-
-        $pdf      = Pdf::loadView('admin.laporan.pdf', $data)->setPaper('a4', 'portrait');
+        $pdf      = Pdf::loadView('superadmin.laporan-sa.pdf', $data)->setPaper('a4', 'landscape');
         $filename = 'Laporan_Transaksi_' . $data['start']->format('Y-m-d') . '.pdf';
 
         return $pdf->download($filename);

@@ -295,7 +295,6 @@ $(document).ready(function () {
 
     $('#select_paket').on('change', muatOpsiDurasi);
 
-    // ================= Pilih salah satu opsi durasi =================
     $(document).on('click', '.btn-durasi-option', function () {
         $('.btn-durasi-option').removeClass('active-durasi');
         $(this).addClass('active-durasi');
@@ -307,7 +306,7 @@ $(document).ready(function () {
             harga: $(this).data('harga'),
         };
 
-        // KUNCI JAWABAN: Pindahkan ID ke dalam hidden input agar ikut terkirim ke server!
+
         $('#id_penetapan_harga').val($(this).data('id'));
 
         updateWaktuSelesaiPreview();
